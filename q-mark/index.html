@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Mark | ペーパークイズデジタル採点ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+    --bg-base: #0f172a;
+    --bg-surface: #1e293b;
+    --bg-panel: #1e293b;
+    --border: #334155;
+    --primary: #818cf8;
+    --primary-hover: #a5b4fc;
+    --primary-active: #6366f1;
+    --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+    --text-main: #f1f5f9;
+    --text-sub: #94a3b8;
+    --text-muted: #64748b;
+    --success: #34d399;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --info: #38bdf8;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+}
+
+header {
+    background-color: var(--bg-surface);
+    height: 60px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    z-index: 50;
+    box-shadow: var(--shadow-sm);
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.5px;
+}
+
+.logo span {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.toolbar { display: flex; gap: 8px; align-items: center; }
+.divider { width: 1px; height: 24px; background: var(--border); margin: 0 8px; }
+
+.btn {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+    padding: 0 14px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.btn:hover:not(:disabled) {
+    background: #334155;
+    color: var(--text-main);
+    border-color: #475569;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+}
+.btn-primary:hover:not(:disabled) {
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+    opacity: 0.95;
+}
+
+.btn.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--primary);
+    color: var(--primary-hover);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 4px;
+    height: 36px;
+}
+.control-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0 6px;
+    font-weight: 600;
+}
+input[type="range"] {
+    width: 80px;
+    margin: 0 6px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.zoom-group {
+    display: flex;
+    align-items: center;
+}
+.zoom-btn {
+    width: 28px; height: 28px;
+    border: none; background: transparent;
+    color: var(--text-sub); cursor: pointer;
+    font-size: 1rem; border-radius: 4px;
+}
+.zoom-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+.zoom-val {
+    width: 48px; text-align: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    font-weight: 600; color: var(--text-main);
+}
+
+.workspace { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+.pane {
+    display: flex; flex-direction: column;
+    position: relative;
+    background: var(--bg-panel);
+    min-width: 200px;
+}
+
+.resizer {
+    width: 8px;
+    background: var(--bg-base);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    cursor: col-resize;
+    z-index: 100;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.resizer:hover, .resizer.resizing { background: var(--primary); border-color: var(--primary); }
+.resizer::after {
+    content: ''; height: 20px; width: 2px;
+    background: var(--text-muted); border-radius: 1px;
+}
+.resizer:hover::after { background: white; }
+
+.pane-header {
+    height: 48px;
+    padding: 0 16px;
+    background: rgba(30, 41, 59, 0.95);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-sub);
+}
+
+.canvas-container {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    background-color: #0b0f19;
+    background-image: radial-gradient(#334155 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; 
+    padding: 40px;
+}
+.canvas-container::-webkit-scrollbar { width: 10px; height: 10px; }
+.canvas-container::-webkit-scrollbar-track { background: var(--bg-base); }
+.canvas-container::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
+
+.sheet-wrap {
+    position: relative;
+    box-shadow: var(--shadow-xl);
+    background: white;
+    transform-origin: top center;
+    margin-bottom: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+canvas { display: block; width: 100%; height: auto; }
+
+#cursorGuide {
+    position: absolute; pointer-events: none;
+    width: var(--mark-size, 40px); height: var(--mark-size, 40px);
+    border: 2px solid rgba(255,255,255,0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%); z-index: 100; display: none;
+    transition: width 0.1s, height 0.1s;
+}
+#cursorGuide.snapped {
+    border-color: var(--info);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+}
+
+.mark {
+    position: absolute; transform: translate(-50%, -50%);
+    width: var(--mark-size, 44px); height: var(--mark-size, 44px);
+    display: flex; justify-content: center; align-items: center;
+    font-weight: 800; pointer-events: none; z-index: 10;
+    font-family: 'JetBrains Mono', monospace;
+}
+.mark-badge {
+    position: absolute; bottom: -8px; right: -8px;
+    background: var(--bg-surface); color: var(--text-main); font-size: 10px;
+    padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border);
+    font-weight: 700; box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+}
+
+.mark-o {
+    border-radius: 50%;
+    border: 3px solid var(--success); color: var(--success);
+    background: rgba(52, 211, 153, 0.15);
+}
+.mark-o::after { content: ""; }
+
+.mark-x {
+    color: var(--danger);
+}
+.mark-x::before, .mark-x::after {
+    content: ''; position: absolute;
+    width: 3px; height: 100%; background: var(--danger);
+    border-radius: 2px;
+}
+.mark-x::before { transform: rotate(45deg); }
+.mark-x::after { transform: rotate(-45deg); }
+
+.mark-tri {
+    color: var(--warning);
+    display: flex; justify-content: center; align-items: center;
+}
+.mark-tri-shape {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-bottom: 3px solid var(--warning);
+    box-sizing: border-box;
+    transform-origin: center bottom;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    background: rgba(251, 191, 36, 0.15);
+}
+.mark-tri-text {
+    position: relative; z-index: 2; font-size: 0.9rem;
+    padding-top: 15%; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.mark-text {
+    position: absolute; transform: translateY(-50%);
+    white-space: nowrap; z-index: 11; font-weight: bold; 
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px; border-radius: 4px;
+    border: 2px solid transparent;
+    cursor: grab;
+}
+.mark-text:hover { background: rgba(0,0,0,0.8); border-color: rgba(255,255,255,0.3); }
+.mark-text.selected { border-color: var(--primary); background: rgba(0,0,0,0.9); }
+
+.zone {
+    position: absolute; border: 1px dashed var(--warning);
+    background: rgba(245, 158, 11, 0.1);
+    transform: translate(-50%, -50%); pointer-events: none;
+    display: flex; justify-content: center; align-items: center;
+    color: var(--warning); font-size: 0.7rem; font-weight: bold;
+    border-radius: 4px;
+}
+
+#overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.9); z-index: 999;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(8px);
+}
+.modal {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    width: 700px; padding: 48px; border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.modal::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--primary-gradient);
+}
+
+.upload-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin: 40px 0;
+}
+.upload-box {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 40px 20px; background: rgba(255,255,255,0.01);
+    cursor: pointer; transition: all 0.2s ease;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.upload-box:hover, .upload-box.dragover {
+    border-color: var(--primary); background: rgba(99, 102, 241, 0.05);
+}
+.upload-status.ok { color: var(--success); background: rgba(52, 211, 153, 0.1); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+
+#toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(40px);
+    background: #0f172a; color: white; padding: 12px 24px; border-radius: 50px;
+    font-weight: 500; font-size: 0.95rem; border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg); opacity: 0; transition: all 0.3s;
+    pointer-events: none; z-index: 2000;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+#layoutBar {
+    background: var(--bg-surface); padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    display: none; align-items: center; gap: 12px; font-size: 0.9rem;
+}
+.input-num {
+    width: 60px; padding: 6px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--bg-base);
+    color: white; text-align: center;
+}
+
+#textEditor {
+    position: absolute;
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    display: none; gap: 8px; align-items: center;
+    box-shadow: var(--shadow-lg); z-index: 200;
+}
+</style>
+</head>
+<body>
+
+<div id="overlay">
+<div class="modal">
+<div class="logo" style="justify-content:center; font-size:2.5rem; margin-bottom:16px;">
+<span>Q</span>- Mark <span style="font-size:1rem; color:var(--text-muted); font-weight:500; margin-left:10px;"></span>
+</div>
+<p style="color: var(--text-sub); margin-bottom: 32px;">模範解答と生徒答案（画像/PDF）をアップロードしてください</p>
+<div class="upload-grid">
+<div class="upload-box" id="dropKey">
+<div style="font-size:2.5rem;">🔑</div>
+<div style="font-weight:700;">模範解答</div>
+<div class="upload-status" id="statKey">選択してください</div>
+<input type="file" id="inpKey" style="display:none" accept="image/*,application/pdf">
+</div>
+<div class="upload-box" id="dropStu">
+<div style="font-size:2.5rem;">📚</div>
+<div style="font-weight:700;">生徒答案</div>
+<div class="upload-status" id="statStu">選択してください (複数可)</div>
+<input type="file" id="inpStu" multiple style="display:none" accept="image/*,application/pdf">
+</div>
+</div>
+<button id="btnStart" class="btn btn-primary" style="width:100%; height:50px; justify-content:center; font-size:1.1rem;" disabled>
+採点スタート
+</button>
+</div>
+</div>
+
+<header>
+<div class="logo"><span>Q</span>-Mark</div>
+<div class="toolbar">
+<button class="btn active" id="toolO" onclick="setTool('o')">
+<span style="color:var(--success)">○</span> 正解 (1)
+</button>
+<button class="btn" id="toolX" onclick="setTool('x')">
+<span style="color:var(--danger)">×</span> 不正解 (2)
+</button>
+<button class="btn" id="toolTri" onclick="setTool('tri')">
+<span style="color:var(--warning)">△</span> 部分 (3)
+</button>
+<button class="btn" id="toolText" onclick="setTool('text')">
+<span>T</span> 文字 (T)
+</button>
+<div class="divider"></div>
+<div class="control-group">
+<span class="control-label">Size</span>
+<input type="range" id="markSizeRange" min="20" max="100" value="44" title="マークサイズ">
+</div>
+<button class="btn" onclick="toggleLayoutMode()" title="問題番号のグリッド設定">
+<span>📐</span> Grid
+</button>
+</div>
+<div class="toolbar">
+<div style="margin-right:20px; font-family:'JetBrains Mono'; font-weight:700; display:flex; align-items:baseline; gap:6px;">
+<span style="font-size:0.8rem; color:var(--text-muted);">SCORE</span>
+<span id="scoreDisplay" style="font-size:1.6rem; color:var(--primary-hover);">0</span>
+</div>
+<button class="btn" onclick="undo()" title="Ctrl+Z">戻る</button>
+<button class="btn" onclick="window.open('https://astro-root.github.io/quiz.pointshow/Q-Mark-how-to-use.html', '_blank')">使い方</button>
+<div class="divider"></div>
+<button class="btn btn-primary" onclick="downloadPDF()">PDF</button>
+<button class="btn" onclick="downloadCSV()">CSV</button>
+</div>
+</header>
+
+<div id="layoutBar">
+<span style="color:var(--info); font-weight:700;">📐 レイアウトモード:</span>
+<span style="color:var(--text-sub)">始点(左上) → 終点(右下) をクリック</span>
+<div class="divider"></div>
+<span>開始No:</span>
+<input type="number" id="gridStart" class="input-num" value="1">
+<select id="gridDir" class="input-num" style="width:auto; cursor:pointer;">
+<option value="v">↓ 縦 (N字)</option>
+<option value="h">→ 横 (Z字)</option>
+</select>
+<div class="divider"></div>
+<input type="number" id="gridRows" class="input-num" value="5"> 行 × 
+<input type="number" id="gridCols" class="input-num" value="2"> 列
+<button class="btn btn-primary" style="height:32px;" onclick="generateGrid()">生成</button>
+<button class="btn" style="height:32px;" onclick="toggleLayoutMode()">完了</button>
+<button class="btn" onclick="clearZones()" style="height:32px; color:var(--danger);">全クリア</button>
+</div>
+
+<div class="workspace" id="workspace">
+<div class="pane" id="paneLeft" style="width: 40%;">
+<div class="pane-header">
+<span>🔑 模範解答</span>
+<div class="zoom-group">
+<button class="zoom-btn" onclick="addZoom('left', -10)">-</button>
+<div class="zoom-val" id="zoomValLeft">100%</div>
+<button class="zoom-btn" onclick="addZoom('left', 10)">+</button>
+</div>
+</div>
+<div class="canvas-container" id="scrollLeft">
+<div class="sheet-wrap" id="wrapLeft">
+<canvas id="cvLeft"></canvas>
+</div>
+</div>
+</div>
+
+<div class="resizer" id="dragHandle"></div>
+
+<div class="pane" id="paneRight" style="width: 60%;">
+<div class="pane-header">
+<div class="toolbar">
+<button class="btn" onclick="navStudent(-1)" style="padding:0 10px;">◀</button>
+<div style="text-align:center; padding:0 10px;">
+<div id="stuName" style="font-weight:700; font-size:0.85rem; max-width:180px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Student</div>
+<div id="stuCount" style="font-size:0.7rem; color:var(--text-muted);">0 / 0</div>
+</div>
+<button class="btn" onclick="navStudent(1)" style="padding:0 10px;">▶</button>
+</div>
+<div class="toolbar">
+<span style="margin-right:12px; font-size:0.85rem; color:var(--text-sub);">
+Next: <span id="nextQ" style="color:var(--primary); font-weight:800; background:rgba(99,102,241,0.1); padding:2px 8px; border-radius:4px;">1</span>
+</span>
+<button class="btn" onclick="clearMarks()" style="color:var(--danger); padding:0 10px;">全消去</button>
+<div class="divider"></div>
+<div class="zoom-group">
+<button class="zoom-btn" onclick="addZoom('right', -10)">-</button>
+<div class="zoom-val" id="zoomValRight">100%</div>
+<button class="zoom-btn" onclick="addZoom('right', 10)">+</button>
+</div>
+</div>
+</div>
+<div class="canvas-container" id="scrollRight">
+<div class="sheet-wrap" id="wrapRight">
+<canvas id="cvRight"></canvas>
+<div id="layerMarks"></div>
+<div id="layerZones"></div>
+<div id="layerTemp"></div>
+<div id="cursorGuide"></div>
+<div id="textEditor">
+<input type="number" id="txtSize" class="input-num" value="24" title="サイズ">
+<input type="color" id="txtColor" value="#ef4444" style="border:none; background:transparent; cursor:pointer; height:28px;">
+<button class="btn" style="color:var(--danger);" onclick="deleteSelectedText()">削除</button>
+<button class="btn btn-primary" onclick="closeTextEditor()">OK</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="toast">Message</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const { jsPDF } = window.jspdf;
+const STORAGE_KEY = 'QG_PRO_DATA_V2';
+
+const state = {
+keyFile: null,
+stuFiles: [],
+currIdx: 0,
+zoom: { left: 100, right: 100 },
+fitWidths: { left: 0, right: 0 }, // ピクセルベースの計算用
+marks: {}, 
+zones: [],
+tool: 'o',
+layoutMode: false,
+gridPoints: [],
+nextQ: 1,
+selectedText: null, 
+dragging: false,
+globalMarkSize: 44 
+};
+
+const dropKey = document.getElementById('dropKey');
+const inpKey = document.getElementById('inpKey');
+const dropStu = document.getElementById('dropStu');
+const inpStu = document.getElementById('inpStu');
+const btnStart = document.getElementById('btnStart');
+const markSizeRange = document.getElementById('markSizeRange');
+
+function loadFromStorage() {
+const raw = localStorage.getItem(STORAGE_KEY);
+if (!raw) return;
+try {
+const data = JSON.parse(raw);
+if (data.marks) state.marks = data.marks;
+if (data.zones) state.zones = data.zones;
+if (data.markSize) {
+state.globalMarkSize = data.markSize;
+markSizeRange.value = data.markSize;
+}
+} catch (e) { console.error(e); }
+}
+
+function saveToStorage() {
+const data = {
+marks: state.marks,
+zones: state.zones,
+markSize: state.globalMarkSize
+};
+localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function setupUpload(dropId, inpId, type) {
+const drop = document.getElementById(dropId);
+const inp = document.getElementById(inpId);
+drop.onclick = () => inp.click();
+inp.onchange = (e) => handleFiles(e.target.files, type);
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+drop.addEventListener('drop', e => {
+e.preventDefault(); drop.classList.remove('dragover');
+handleFiles(e.dataTransfer.files, type);
+});
+}
+
+setupUpload('dropKey', 'inpKey', 'key');
+setupUpload('dropStu', 'inpStu', 'stu');
+
+function handleFiles(files, type) {
+if (files.length === 0) return;
+if (type === 'key') {
+state.keyFile = files[0];
+document.getElementById('statKey').textContent = `OK: ${state.keyFile.name}`;
+document.getElementById('statKey').classList.add('ok');
+} else {
+state.stuFiles = Array.from(files);
+document.getElementById('statStu').textContent = `OK: ${state.stuFiles.length}枚`;
+document.getElementById('statStu').classList.add('ok');
+}
+btnStart.disabled = !(state.keyFile && state.stuFiles.length > 0);
+}
+
+btnStart.onclick = async () => {
+loadFromStorage();
+document.getElementById('overlay').style.display = 'none';
+showToast("画像を読み込んでいます...");
+await drawImage(state.keyFile, 'cvLeft', 'wrapLeft', 'scrollLeft', 'left');
+await loadStudent(0);
+};
+
+async function drawImage(file, cvId, wrapId, scrollId, side) {
+const cv = document.getElementById(cvId);
+const ctx = cv.getContext('2d');
+// 画像描画
+if (file.type === 'application/pdf') {
+const buff = await file.arrayBuffer();
+const doc = await pdfjsLib.getDocument({data: buff}).promise;
+const page = await doc.getPage(1);
+const viewport = page.getViewport({scale: 3.0}); 
+cv.width = viewport.width;
+cv.height = viewport.height;
+await page.render({canvasContext: ctx, viewport}).promise;
+} else {
+await new Promise((resolve) => {
+const img = new Image();
+img.onload = () => {
+cv.width = img.width;
+cv.height = img.height;
+ctx.drawImage(img, 0, 0);
+resolve();
+};
+img.src = URL.createObjectURL(file);
+});
+}
+
+// 読み込み完了後にフィットサイズを計算
+const container = document.getElementById(scrollId);
+// コンテナ幅からパディング分(80px)を引いた値を基準(100%)とする
+const fitW = Math.max(200, container.clientWidth - 80);
+state.fitWidths[side] = fitW;
+state.zoom[side] = 100;
+applyZoom(side);
+}
+
+async function loadStudent(idx) {
+if (idx < 0 || idx >= state.stuFiles.length) return;
+state.currIdx = idx;
+closeTextEditor();
+const f = state.stuFiles[idx];
+document.getElementById('stuName').textContent = f.name;
+document.getElementById('stuCount').textContent = `${idx + 1} / ${state.stuFiles.length}`;
+const ms = state.marks[f.name] || [];
+const max = ms.reduce((m, v) => (v.qNum > m ? v.qNum : m), 0);
+state.nextQ = max + 1;
+updateUI();
+await drawImage(f, 'cvRight', 'wrapRight', 'scrollRight', 'right');
+renderMarks();
+}
+
+function navStudent(d) { loadStudent(state.currIdx + d); }
+
+function addZoom(side, d) {
+let newVal = state.zoom[side] + d;
+newVal = Math.max(10, Math.min(500, newVal));
+state.zoom[side] = newVal;
+applyZoom(side);
+}
+
+function applyZoom(side) {
+const z = state.zoom[side];
+const wrap = document.getElementById(side === 'left' ? 'wrapLeft' : 'wrapRight');
+document.getElementById(side === 'left' ? 'zoomValLeft' : 'zoomValRight').textContent = z + '%';
+// ピクセル単位でサイズを指定（ウィンドウ幅に依存しなくなる）
+const pxWidth = state.fitWidths[side] * (z / 100);
+wrap.style.width = pxWidth + 'px';
+}
+
+const wrapRight = document.getElementById('wrapRight');
+const guide = document.getElementById('cursorGuide');
+
+wrapRight.addEventListener('mousemove', e => {
+if (state.dragging && state.selectedText !== null) {
+const r = wrapRight.getBoundingClientRect();
+const x = e.clientX - r.left;
+const y = e.clientY - r.top;
+const fname = state.stuFiles[state.currIdx].name;
+if (state.marks[fname]?.[state.selectedText]) {
+state.marks[fname][state.selectedText].x = (x / r.width) * 100;
+state.marks[fname][state.selectedText].y = (y / r.height) * 100;
+renderMarks();
+}
+return; 
+}
+
+const r = wrapRight.getBoundingClientRect();
+const x = e.clientX - r.left;
+const y = e.clientY - r.top;
+guide.style.display = 'block';
+document.documentElement.style.setProperty('--mark-size', state.globalMarkSize + 'px');
+
+if (state.layoutMode) {
+guide.style.left = x + 'px'; guide.style.top = y + 'px';
+guide.className = ''; guide.style.borderColor = 'var(--warning)';
+guide.style.borderRadius = '0';
+delete guide.dataset.snap;
+return;
+}
+
+if (state.tool !== 'text' && state.zones.length > 0) {
+// ズーム倍率を考慮したスナップ範囲の計算（見た目の距離で一定にする）
+// 現在の表示幅(r.width)と元の基準幅(fitWidth)の比率を使用
+const scaleFactor = r.width / state.fitWidths['right'];
+const snapRange = (state.globalMarkSize / 2) * (100 / state.zoom.right) * 10; 
+// シンプルにピクセル距離で判定
+let target = null;
+let minDist = Infinity;
+state.zones.forEach(z => {
+const zx = (z.x / 100) * r.width;
+const zy = (z.y / 100) * r.height;
+const dist = Math.hypot(x - zx, y - zy);
+if (dist < 20 && dist < minDist) { // 20px以内
+minDist = dist;
+target = z;
+}
+});
+if (target) {
+guide.style.left = (target.x / 100 * r.width) + 'px';
+guide.style.top = (target.y / 100 * r.height) + 'px';
+guide.className = 'snapped';
+guide.style.borderRadius = '50%';
+guide.dataset.snap = target.qNum;
+} else {
+guide.style.left = x + 'px'; guide.style.top = y + 'px';
+guide.className = '';
+guide.style.borderColor = state.tool==='o'?'var(--success)':state.tool==='x'?'var(--danger)':'var(--warning)';
+guide.style.borderRadius = '50%';
+delete guide.dataset.snap;
+}
+} else {
+guide.style.left = x + 'px'; guide.style.top = y + 'px';
+guide.className = '';
+guide.style.borderColor = 'white';
+guide.style.borderRadius = '50%';
+delete guide.dataset.snap;
+}
+});
+
+wrapRight.addEventListener('mouseleave', () => {
+guide.style.display = 'none';
+if (state.dragging) endDrag();
+});
+wrapRight.addEventListener('mouseup', () => { if (state.dragging) endDrag(); });
+
+wrapRight.addEventListener('mousedown', e => {
+if (e.button !== 0) return;
+if (state.selectedText !== null && !state.dragging) closeTextEditor();
+if (state.dragging) return;
+
+const r = wrapRight.getBoundingClientRect();
+const px = ((e.clientX - r.left) / r.width) * 100;
+const py = ((e.clientY - r.top) / r.height) * 100;
+
+if (state.layoutMode) {
+addGridPoint(px, py);
+return;
+}
+
+let q = state.nextQ;
+let fx = px, fy = py;
+if (guide.dataset.snap && state.tool !== 'text') {
+const z = state.zones.find(zn => zn.qNum == guide.dataset.snap);
+q = z.qNum;
+fx = z.x; fy = z.y;
+}
+addMark(fx, fy, q);
+});
+
+function addMark(x, y, q) {
+const fname = state.stuFiles[state.currIdx].name;
+if (!state.marks[fname]) state.marks[fname] = [];
+
+if (state.tool === 'text') {
+const t = prompt("文字を入力:", "");
+if (t) state.marks[fname].push({ x, y, type: 'text', text: t, size: 24, color: '#ef4444' });
+} 
+else if (state.tool === 'tri') {
+const t = prompt("部分点(数値) または 文字を入力:", "1");
+if (t !== null) {
+const oldIdx = state.marks[fname].findIndex(m => m.qNum === q && m.type !== 'text');
+if (oldIdx >= 0) state.marks[fname].splice(oldIdx, 1);
+state.marks[fname].push({ x, y, type: 'tri', text: t, qNum: q });
+state.nextQ = q + 1;
+}
+}
+else {
+const oldIdx = state.marks[fname].findIndex(m => m.qNum === q && m.type !== 'text');
+if (oldIdx >= 0) state.marks[fname].splice(oldIdx, 1);
+state.marks[fname].push({ x, y, type: state.tool, qNum: q });
+state.nextQ = q + 1;
+}
+saveToStorage();
+renderMarks();
+updateUI();
+}
+
+markSizeRange.addEventListener('input', (e) => {
+state.globalMarkSize = parseInt(e.target.value);
+renderMarks();
+saveToStorage();
+});
+
+function renderMarks() {
+const lMarks = document.getElementById('layerMarks');
+const lZones = document.getElementById('layerZones');
+lMarks.innerHTML = ''; lZones.innerHTML = '';
+document.documentElement.style.setProperty('--mark-size', state.globalMarkSize + 'px');
+
+state.zones.forEach(z => {
+const div = document.createElement('div');
+div.className = 'zone';
+div.style.width = state.globalMarkSize + 'px';
+div.style.height = (state.globalMarkSize * 0.6) + 'px';
+div.style.left = z.x + '%'; div.style.top = z.y + '%';
+div.textContent = z.qNum;
+lZones.appendChild(div);
+});
+
+const fname = state.stuFiles[state.currIdx]?.name;
+if (!fname) return;
+const list = state.marks[fname] || [];
+
+list.forEach((m, i) => {
+if (m.type === 'text') {
+const d = document.createElement('div');
+d.className = 'mark-text';
+if (state.selectedText === i) d.classList.add('selected');
+d.id = `txt-${i}`;
+d.style.left = m.x + '%'; d.style.top = m.y + '%';
+d.style.color = m.color;
+d.style.fontSize = m.size + 'px';
+d.textContent = m.text;
+d.onmousedown = (e) => { e.stopPropagation(); startTextDrag(i, d); };
+lMarks.appendChild(d);
+} else {
+const d = document.createElement('div');
+d.className = `mark mark-${m.type}`;
+d.style.left = m.x + '%'; d.style.top = m.y + '%';
+if (m.type === 'tri') {
+const shape = document.createElement('div');
+shape.className = 'mark-tri-shape';
+const txt = document.createElement('span');
+txt.className = 'mark-tri-text';
+txt.textContent = m.text;
+d.appendChild(shape);
+d.appendChild(txt);
+}
+const b = document.createElement('div');
+b.className = 'mark-badge';
+b.textContent = m.qNum;
+d.appendChild(b);
+lMarks.appendChild(d);
+}
+});
+}
+
+function setTool(t) {
+state.tool = t;
+document.querySelectorAll('.toolbar .btn').forEach(b => b.classList.remove('active'));
+const map = { 'o': 'toolO', 'x': 'toolX', 'tri': 'toolTri', 'text': 'toolText' };
+if(map[t]) document.getElementById(map[t]).classList.add('active');
+}
+
+function updateUI() {
+const fname = state.stuFiles[state.currIdx]?.name;
+const ms = state.marks[fname] || [];
+let score = 0;
+ms.forEach(m => {
+if (m.type === 'o') score += 1;
+if (m.type === 'tri') {
+const val = parseFloat(m.text);
+if (!isNaN(val)) score += val;
+}
+});
+document.getElementById('scoreDisplay').textContent = Number.isInteger(score) ? score : score.toFixed(1);
+document.getElementById('nextQ').textContent = state.nextQ;
+}
+
+// Layout & Grid
+function toggleLayoutMode() {
+state.layoutMode = !state.layoutMode;
+document.getElementById('layoutBar').style.display = state.layoutMode ? 'flex' : 'none';
+state.gridPoints = [];
+document.getElementById('layerTemp').innerHTML = '';
+renderMarks();
+}
+
+function addGridPoint(x, y) {
+state.gridPoints.push({x, y});
+const dot = document.createElement('div');
+dot.style.cssText = `position:absolute; width:10px; height:10px; background:var(--info); border-radius:50%; left:${x}%; top:${y}%; transform:translate(-50%,-50%); box-shadow:0 0 5px black;`;
+document.getElementById('layerTemp').appendChild(dot);
+if (state.gridPoints.length === 2) showToast("行・列を指定して生成してください");
+}
+
+function generateGrid() {
+if (state.gridPoints.length < 2) return alert("始点と終点を指定してください");
+const [p1, p2] = state.gridPoints;
+const rows = parseInt(document.getElementById('gridRows').value);
+const cols = parseInt(document.getElementById('gridCols').value);
+const startQ = parseInt(document.getElementById('gridStart').value) || 1;
+const dir = document.getElementById('gridDir').value;
+state.zones = [];
+let q = startQ;
+if (dir === 'h') {
+for (let r = 0; r < rows; r++) {
+const ry = rows === 1 ? 0 : r / (rows - 1);
+const cy = p1.y + (p2.y - p1.y) * ry;
+for (let c = 0; c < cols; c++) {
+const rx = cols === 1 ? 0 : c / (cols - 1);
+const cx = p1.x + (p2.x - p1.x) * rx;
+state.zones.push({ x: cx, y: cy, qNum: q++ });
+}
+}
+} else {
+for (let c = 0; c < cols; c++) {
+const rx = cols === 1 ? 0 : c / (cols - 1);
+const cx = p1.x + (p2.x - p1.x) * rx;
+for (let r = 0; r < rows; r++) {
+const ry = rows === 1 ? 0 : r / (rows - 1);
+const cy = p1.y + (p2.y - p1.y) * ry;
+state.zones.push({ x: cx, y: cy, qNum: q++ });
+}
+}
+}
+saveToStorage();
+renderMarks();
+state.gridPoints = [];
+document.getElementById('layerTemp').innerHTML = '';
+showToast("グリッドを生成しました");
+}
+
+function clearZones() { state.zones = []; saveToStorage(); renderMarks(); }
+
+// Text Edit
+function startTextDrag(idx, el) {
+state.selectedText = idx;
+state.dragging = true;
+const fname = state.stuFiles[state.currIdx].name;
+const m = state.marks[fname][idx];
+document.getElementById('txtSize').value = m.size;
+document.getElementById('txtColor').value = m.color;
+const editor = document.getElementById('textEditor');
+const wRect = document.getElementById('wrapRight').getBoundingClientRect();
+const tRect = el.getBoundingClientRect();
+editor.style.display = 'flex';
+editor.style.top = (tRect.bottom - wRect.top + 5) + 'px';
+editor.style.left = (tRect.left - wRect.left) + 'px';
+}
+
+function endDrag() { state.dragging = false; saveToStorage(); }
+function closeTextEditor() { state.selectedText = null; document.getElementById('textEditor').style.display = 'none'; renderMarks(); }
+function deleteSelectedText() {
+const fname = state.stuFiles[state.currIdx].name;
+state.marks[fname].splice(state.selectedText, 1);
+closeTextEditor();
+saveToStorage();
+}
+document.getElementById('txtSize').addEventListener('input', e => {
+if (state.selectedText !== null) {
+state.marks[state.stuFiles[state.currIdx].name][state.selectedText].size = e.target.value;
+renderMarks();
+}
+});
+document.getElementById('txtColor').addEventListener('input', e => {
+if (state.selectedText !== null) {
+state.marks[state.stuFiles[state.currIdx].name][state.selectedText].color = e.target.value;
+renderMarks();
+}
+});
+
+// Utils
+function undo() {
+const fname = state.stuFiles[state.currIdx].name;
+if (state.marks[fname]?.length) {
+const rm = state.marks[fname].pop();
+if (rm.qNum) state.nextQ = rm.qNum;
+saveToStorage(); renderMarks(); updateUI();
+}
+}
+function clearMarks() {
+if(confirm("全消去しますか？")) {
+state.marks[state.stuFiles[state.currIdx].name] = [];
+state.nextQ = 1;
+saveToStorage(); renderMarks(); updateUI();
+}
+}
+function showToast(msg) {
+const t = document.getElementById('toast');
+t.textContent = msg; t.classList.add('show');
+setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Resizer Logic
+const resizer = document.getElementById('dragHandle');
+const paneLeft = document.getElementById('paneLeft');
+const paneRight = document.getElementById('paneRight');
+let isResizing = false;
+
+resizer.addEventListener('mousedown', () => { isResizing = true; resizer.classList.add('resizing'); });
+window.addEventListener('mouseup', () => { isResizing = false; resizer.classList.remove('resizing'); });
+window.addEventListener('mousemove', (e) => {
+if (!isResizing) return;
+const containerWidth = document.getElementById('workspace').offsetWidth;
+const newLeftWidth = (e.clientX / containerWidth) * 100;
+if (newLeftWidth > 10 && newLeftWidth < 90) {
+paneLeft.style.width = newLeftWidth + '%';
+paneRight.style.width = (100 - newLeftWidth) + '%';
+}
+});
+
+// Export
+async function downloadPDF() {
+showToast("PDF生成中...");
+const cv = document.getElementById('cvRight');
+const fname = state.stuFiles[state.currIdx].name;
+const marks = state.marks[fname] || [];
+const pdf = new jsPDF({ orientation: cv.width>cv.height?'l':'p', unit:'px', format:[cv.width, cv.height] });
+
+pdf.addImage(cv.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, cv.width, cv.height);
+
+marks.forEach(m => {
+const x = (m.x / 100) * cv.width;
+const y = (m.y / 100) * cv.height;
+const s = (state.globalMarkSize * (cv.width / document.getElementById('wrapRight').offsetWidth)); 
+
+if (m.type === 'o') {
+pdf.setDrawColor(52, 211, 153); pdf.setLineWidth(s/10);
+pdf.circle(x, y, s/2);
+} else if (m.type === 'x') {
+pdf.setDrawColor(248, 113, 113); pdf.setLineWidth(s/10);
+const r = s/2.5;
+pdf.line(x-r, y-r, x+r, y+r);
+pdf.line(x+r, y-r, x-r, y+r);
+} else if (m.type === 'tri') {
+pdf.setDrawColor(251, 191, 36); pdf.setLineWidth(s/10);
+const r = s/2;
+pdf.triangle(x, y-r, x-r, y+r, x+r, y+r, 'S');
+pdf.setTextColor(251, 191, 36);
+pdf.setFontSize(s/2);
+pdf.text(m.text, x, y+r/2, {align:'center'});
+} else {
+pdf.setTextColor(m.color);
+pdf.setFontSize(m.size * 1.5);
+pdf.text(m.text, x, y);
+}
+});
+pdf.save(`graded_${fname}.pdf`);
+showToast("PDF保存完了");
+}
+
+function downloadCSV() {
+let maxQ = 0;
+state.zones.forEach(z => maxQ = Math.max(maxQ, z.qNum));
+Object.values(state.marks).forEach(ms => ms.forEach(m => { if(m.qNum) maxQ = Math.max(maxQ, m.qNum); }));
+if (maxQ === 0) maxQ = 10;
+
+const fnames = state.stuFiles.map(f => f.name);
+let csv = "\uFEFFNumber,";
+fnames.forEach(n => csv += `"${n}",`);
+csv += "\n";
+
+let totalRow = "Total Score,";
+fnames.forEach(n => {
+const ms = state.marks[n] || [];
+let score = 0;
+ms.forEach(m => {
+if(m.type==='o') score += 1;
+if(m.type==='tri') score += (parseFloat(m.text)||0);
+});
+totalRow += `${score},`;
+});
+csv += totalRow + "\n";
+
+for(let i=1; i<=maxQ; i++) {
+let row = `${i},`;
+fnames.forEach(n => {
+const ms = state.marks[n] || [];
+const m = ms.find(x => x.qNum === i);
+let val = '';
+if(m) {
+if(m.type==='o') val = '1';
+else if(m.type==='x') val = '0';
+else if(m.type==='tri') val = m.text;
+}
+row += val + ',';
+});
+csv += row + "\n";
+}
+
+const blob = new Blob([csv], { type: 'text/csv' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url; a.download = 'results.csv'; a.click();
+}
+
+document.addEventListener('keydown', e => {
+if (document.getElementById('overlay').style.display !== 'none') return;
+if (e.target.tagName === 'INPUT') return;
+const k = e.key.toLowerCase();
+if (k === 'z' || k === '1') setTool('o');
+if (k === 'x' || k === '2') setTool('x');
+if (k === 'c' || k === '3') setTool('tri');
+if (k === 't') setTool('text');
+if (k === 'arrowright') navStudent(1);
+if (k === 'arrowleft') navStudent(-1);
+if (e.ctrlKey && k === 'z') { e.preventDefault(); undo(); }
+if (k === 'delete' || k === 'backspace') deleteSelectedText();
+});
+</script>
+</body>
+</html>
