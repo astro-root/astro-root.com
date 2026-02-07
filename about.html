@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | るーとの研究室</title>
+    <meta name="description" content="るーとの研究室について">
+    <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-deep: #050508;
+            --bg-card: #0f0f13;
+            --text-main: #f0f0f2;
+            --text-sub: #a0a0a5;
+            --text-muted: #606065;
+            --accent-primary: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --glass-bg: rgba(20, 20, 30, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --nav-height: 70px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans JP', 'JetBrains Mono', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.8;
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(5, 5, 8, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-logo i {
+            color: var(--accent-cyan);
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: calc(var(--nav-height) + 60px) 24px 80px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 48px;
+            margin-bottom: 16px;
+            color: var(--accent-cyan);
+        }
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+        p {
+            margin-bottom: 16px;
+            color: var(--text-sub);
+        }
+        ul {
+            margin-bottom: 16px;
+            padding-left: 24px;
+            color: var(--text-sub);
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .contact-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+        .contact-box h3 {
+            margin-top: 0;
+        }
+        footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.3);
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+        .footer-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+        a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fa-solid fa-flask"></i> Root's Lab
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>About</h1>
+
+        <h2>サイト概要</h2>
+        <p>「るーとの研究室」は、高校生Webエンジニア・天文学者である「るーと」が運営する個人ポートフォリオサイトです。</p>
+        <p>当サイトでは、るーとが開発したWebアプリケーションやツールの紹介、技術的な情報の発信を行っています。</p>
+
+        <h2>運営者について</h2>
+        <p><strong>名前:</strong> るーと (Root)</p>
+        <p><strong>所属:</strong></p>
+        <ul>
+            <li>高校2年生</li>
+            <li>M1QC（早押しクイズサークル）</li>
+            <li>日本物理学会 学生会友</li>
+        </ul>
+        <p><strong>専門分野:</strong></p>
+        <ul>
+            <li>Web開発（HTML/CSS/JavaScript）</li>
+            <li>天文学</li>
+            <li>早押しクイズ</li>
+        </ul>
+
+        <h2>主な活動</h2>
+        <h3>Web開発</h3>
+        <p>早押しクイズ関連のツール開発を中心に、ブラウザベースのアプリケーションを制作しています。</p>
+        <ul>
+            <li><strong>Q-Score:</strong> 早押しクイズの得点表示ツール</li>
+            <li><strong>Q-Panel:</strong> パネルクイズ形式のツール</li>
+            <li><strong>Q-Mark:</strong> ペーパークイズのデジタル採点ツール</li>
+        </ul>
+
+        <h3>天文学</h3>
+        <p>高校生として天文学の研究に取り組んでおり、日本物理学会の学生会友として活動しています。</p>
+
+        <h2>サイトの目的</h2>
+        <p>当サイトは、以下の目的で運営されています。</p>
+        <ul>
+            <li>開発したツールの公開とドキュメント提供</li>
+            <li>技術情報やナレッジの共有</li>
+            <li>同じ分野に興味を持つ人々とのつながり</li>
+            <li>個人のポートフォリオとしての活用</li>
+        </ul>
+
+        <h2>技術スタック</h2>
+        <p>当サイトおよび公開ツールで使用している主な技術:</p>
+        <ul>
+            <li>HTML5 / CSS3 / JavaScript</li>
+            <li>GitHub Pages（ホスティング）</li>
+            <li>Google Fonts, Font Awesome（デザインリソース）</li>
+        </ul>
+
+        <div class="contact-box">
+            <h3><i class="fa-solid fa-envelope"></i> お問い合わせ</h3>
+            <p>バグ報告、機能追加のご要望、その他のお問い合わせは以下のフォームよりお願いします。</p>
+            <p><a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank">お問い合わせフォーム</a></p>
+            
+            <h3 style="margin-top: 24px;"><i class="fa-brands fa-twitter"></i> SNS</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                <li><strong>Personal:</strong> <a href="https://twitter.com/astro_root" target="_blank">@astro_root</a></li>
+                <li><strong>Official:</strong> <a href="https://twitter.com/root_qscore" target="_blank">@root_qscore</a></li>
+            </ul>
+        </div>
+
+        <h2>更新履歴</h2>
+        <ul>
+            <li>2026/02/07 - サイトリニューアル、プライバシーポリシー・利用規約を追加</li>
+        </ul>
+
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/">ホーム</a>
+            <a href="/privacy-policy.html">Privacy Policy</a>
+            <a href="/terms-of-use.html">Terms of Use</a>
+            <a href="/about.html">About</a>
+        </div>
+        <p>&copy; 2026 Root. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
