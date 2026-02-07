@@ -70,6 +70,20 @@
         .nav-logo i {
             color: var(--accent-cyan);
         }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        .nav-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
         .container {
             width: 100%;
             max-width: 900px;
@@ -120,6 +134,13 @@
         .contact-box h3 {
             margin-top: 0;
         }
+        a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
         footer {
             border-top: 1px solid var(--glass-border);
             padding: 40px 24px;
@@ -142,12 +163,10 @@
         .footer-links a:hover {
             color: var(--text-main);
         }
-        a {
-            color: var(--accent-cyan);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -158,6 +177,12 @@
             <a href="/" class="nav-logo">
                 <i class="fa-solid fa-flask"></i> Root's Lab
             </a>
+            <div class="nav-links">
+                <a href="https://astro-root.com/blog/">Blog</a>
+                <a href="/about.html">About</a>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="/terms-of-use.html">Terms of Use</a>
+            </div>
         </div>
     </nav>
 
@@ -165,8 +190,8 @@
         <h1>About</h1>
 
         <h2>サイト概要</h2>
-        <p>「るーとの研究室」は、高校生Webエンジニア・天文学者である「るーと」が運営する個人ポートフォリオサイトです。</p>
-        <p>当サイトでは、るーとが開発したWebアプリケーションやツールの紹介、技術的な情報の発信を行っています。</p>
+        <p>「るーとの研究室（Root's Laboratory）」は、高校生Webエンジニア・天文学者である「るーと」が運営する個人ポートフォリオサイトです。</p>
+        <p>当サイトでは、早押しクイズ関連のWebツールの提供、技術情報の発信、天文学や物理学に関する情報共有を行っています。</p>
 
         <h2>運営者について</h2>
         <p><strong>名前:</strong> るーと (Root)</p>
@@ -179,64 +204,75 @@
         <p><strong>専門分野:</strong></p>
         <ul>
             <li>Web開発（HTML/CSS/JavaScript）</li>
-            <li>天文学</li>
+            <li>天文学・物理学</li>
             <li>早押しクイズ</li>
         </ul>
 
         <h2>主な活動</h2>
         <h3>Web開発</h3>
-        <p>早押しクイズ関連のツール開発を中心に、ブラウザベースのアプリケーションを制作しています。</p>
+        <p>早押しクイズ関連のツール開発を中心に、ブラウザベースのアプリケーションを制作しています。全てのツールは無料で公開されており、誰でも利用可能です。</p>
         <ul>
             <li><strong>Q-Score:</strong> 早押しクイズの得点表示ツール</li>
             <li><strong>Q-Panel:</strong> パネルクイズ形式のツール</li>
             <li><strong>Q-Mark:</strong> ペーパークイズのデジタル採点ツール</li>
         </ul>
 
-        <h3>天文学</h3>
-        <p>高校生として天文学の研究に取り組んでおり、日本物理学会の学生会友として活動しています。</p>
+        <h3>天文学・物理学</h3>
+        <p>高校生として天文学の研究に取り組んでおり、日本物理学会の学生会友として活動しています。天文現象の観測や理論研究に興味を持ち、将来的には専門的な研究者を目指しています。</p>
+
+        <h3>早押しクイズ</h3>
+        <p>M1QCに所属し、早押しクイズプレイヤーとして活動しています。競技としてのクイズだけでなく、クイズ大会の運営やツール開発を通じて、コミュニティへの貢献も行っています。</p>
 
         <h2>サイトの目的</h2>
         <p>当サイトは、以下の目的で運営されています。</p>
         <ul>
             <li>開発したツールの公開とドキュメント提供</li>
             <li>技術情報やナレッジの共有</li>
-            <li>同じ分野に興味を持つ人々とのつながり</li>
+            <li>天文学・物理学・クイズに関する情報発信</li>
+            <li>同じ分野に興味を持つ人々との交流</li>
             <li>個人のポートフォリオとしての活用</li>
         </ul>
 
         <h2>技術スタック</h2>
         <p>当サイトおよび公開ツールで使用している主な技術:</p>
         <ul>
-            <li>HTML5 / CSS3 / JavaScript</li>
-            <li>GitHub Pages（ホスティング）</li>
+            <li>HTML5 / CSS3 / JavaScript（フロントエンド開発）</li>
+            <li>GitHub Pages（静的サイトホスティング）</li>
             <li>Google Fonts, Font Awesome（デザインリソース）</li>
+            <li>レスポンシブデザイン対応</li>
         </ul>
 
         <div class="contact-box">
             <h3><i class="fa-solid fa-envelope"></i> お問い合わせ</h3>
-            <p>バグ報告、機能追加のご要望、その他のお問い合わせは以下のフォームよりお願いします。</p>
-            <p><a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank">お問い合わせフォーム</a></p>
+            <p>バグ報告、機能追加のご要望、コラボレーションのご相談、その他のお問い合わせは以下よりお願いします。</p>
+            <p><strong>Email:</strong> <a href="mailto:astro.root.quiz@gmail.com">astro.root.quiz@gmail.com</a></p>
+            <p><strong>お問い合わせフォーム:</strong> <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank">こちら</a></p>
             
             <h3 style="margin-top: 24px;"><i class="fa-brands fa-twitter"></i> SNS</h3>
             <ul style="list-style: none; padding-left: 0;">
-                <li><strong>Personal:</strong> <a href="https://twitter.com/astro_root" target="_blank">@astro_root</a></li>
-                <li><strong>Official:</strong> <a href="https://twitter.com/root_qscore" target="_blank">@root_qscore</a></li>
+                <li><strong>Personal:</strong> <a href="https://twitter.com/astro_root" target="_blank">@astro_root</a> - 日常の活動や雑談</li>
+                <li><strong>Official:</strong> <a href="https://twitter.com/root_qscore" target="_blank">@root_qscore</a> - ツールの更新情報</li>
             </ul>
         </div>
 
         <h2>更新履歴</h2>
         <ul>
             <li>2026/02/07 - サイトリニューアル、プライバシーポリシー・利用規約を追加</li>
+            <li>2026/02/07 - ブログページを開設</li>
         </ul>
+
+        <h2>ライセンスと利用について</h2>
+        <p>当サイトのコンテンツおよび公開ツールの利用については、<a href="/terms-of-use.html">利用規約</a>をご確認ください。個人利用・教育目的での利用は原則として自由です。商業利用をご検討の方は、事前にご連絡ください。</p>
 
     </div>
 
     <footer>
         <div class="footer-links">
-            <a href="/">ホーム</a>
+            <a href="/">TOP</a>
+            <a href="https://astro-root.com/blog/">Blog</a>
+            <a href="/about.html">About</a>
             <a href="/privacy-policy.html">Privacy Policy</a>
             <a href="/terms-of-use.html">Terms of Use</a>
-            <a href="/about.html">About</a>
         </div>
         <p>&copy; 2026 Root. All rights reserved.</p>
     </footer>
