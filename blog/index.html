@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | るーとの研究室</title>
+    <meta name="description" content="技術情報、開発日記、天文学、クイズに関する記事を発信しています。">
+    <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-deep: #050508;
+            --bg-card: #0f0f13;
+            --text-main: #f0f0f2;
+            --text-sub: #a0a0a5;
+            --text-muted: #606065;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --glass-bg: rgba(20, 20, 30, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --nav-height: 70px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Noto Sans JP', 'JetBrains Mono', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        .cosmic-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(5, 5, 8, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-logo i {
+            color: var(--accent-cyan);
+        }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        .nav-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: calc(var(--nav-height) + 60px) 24px 80px;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header p {
+            color: var(--text-sub);
+            font-size: 1.1rem;
+        }
+        .category-filter {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-sub);
+            padding: 10px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .category-btn:hover,
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-color: transparent;
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+        .blog-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            backdrop-filter: blur(16px);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .blog-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-cyan);
+        }
+        .blog-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+        .blog-date {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .blog-category {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .blog-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+        .blog-excerpt {
+            color: var(--text-sub);
+            margin-bottom: 16px;
+            line-height: 1.7;
+        }
+        .read-more {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .coming-soon {
+            text-align: center;
+            padding: 80px 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            backdrop-filter: blur(16px);
+        }
+        .coming-soon i {
+            font-size: 4rem;
+            color: var(--accent-cyan);
+            margin-bottom: 24px;
+        }
+        .coming-soon h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+        .coming-soon p {
+            color: var(--text-sub);
+            font-size: 1.1rem;
+        }
+        footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.3);
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+        .footer-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cosmic-bg"></div>
+
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fa-solid fa-flask"></i> Root's Lab
+            </a>
+            <div class="nav-links">
+                <a href="https://astro-root.com/blog/">Blog</a>
+                <a href="/about.html">About</a>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="/terms-of-use.html">Terms of Use</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-pen-nib"></i> Blog</h1>
+            <p>技術情報、開発日記、天文学、クイズに関する記事</p>
+        </div>
+
+        <div class="category-filter">
+            <button class="category-btn active">すべて</button>
+            <button class="category-btn">技術</button>
+            <button class="category-btn">天文学</button>
+            <button class="category-btn">クイズ</button>
+            <button class="category-btn">開発日記</button>
+        </div>
+
+        <div class="blog-grid">
+            <!-- 準備中メッセージ -->
+            <div class="coming-soon">
+                <i class="fa-solid fa-rocket"></i>
+                <h2>記事を準備中です</h2>
+                <p>近日中に、技術情報や開発の舞台裏、天文学の話題などをお届けします。</p>
+                <p style="margin-top: 16px; color: var(--text-muted); font-size: 0.95rem;">
+                    更新情報は <a href="https://twitter.com/astro_root" target="_blank" style="color: var(--accent-cyan); text-decoration: none;">@astro_root</a> でお知らせします。
+                </p>
+            </div>
+
+            <!-- 記事例（コメントアウト）
+            <a href="/blog/article1.html" class="blog-card">
+                <div class="blog-meta">
+                    <span class="blog-date"><i class="fa-regular fa-calendar"></i> 2026/02/10</span>
+                    <span class="blog-category">技術</span>
+                </div>
+                <h2>Q-Scoreの開発秘話と技術的工夫</h2>
+                <p class="blog-excerpt">
+                    早押しクイズの得点表示ツール「Q-Score」をなぜ作ったのか、どんな技術を使ったのか、開発で苦労した点と解決方法について詳しく解説します。
+                </p>
+                <span class="read-more">続きを読む <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+            -->
+
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/">TOP</a>
+            <a href="https://astro-root.com/blog/">Blog</a>
+            <a href="/about.html">About</a>
+            <a href="/privacy-policy.html">Privacy Policy</a>
+            <a href="/terms-of-use.html">Terms of Use</a>
+        </div>
+        <p>&copy; 2026 Root. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
