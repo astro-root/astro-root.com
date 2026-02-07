@@ -3,122 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>るーとの研究室 | Root's Laboratory</title>
-    <meta name="description" content="高校生Webエンジニア るーと のホームページ。">
-
+    <meta name="description" content="高校生Webエンジニア・天文学者 るーとのポートフォリオサイト。">
     <meta name="google-site-verification" content="iZ4nhiPpToih9WRwsrI-dEDMtJ--hOoYUMf0X8Vv4lM">
     <meta name="google-adsense-account" content="ca-pub-2160232916387687">
-
     <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
     <link rel="apple-touch-icon" href="https://astro-root.github.io/astro-root.com/icon.png">
     <link rel="icon" type="image/png" href="https://astro-root.github.io/astro-root.com/icon.png">
-
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://astro-root.com/">
     <meta property="og:title" content="Root's Portfolio">
-    <meta property="og:description" content="Astronomer / Quiz Player / Web Engineer.るーとのホームページ。">
+    <meta property="og:description" content="Astronomer / Quiz Player / Web Engineer るーとのホームページ。">
     <meta property="og:image" content="https://astro-root.github.io/astro-root.com/ogp-image.png">
-
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@astro_root">
     <meta name="twitter:title" content="Root's Portfolio">
     <meta name="twitter:image" content="https://astro-root.github.io/astro-root.com/ogp-image.png">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
         :root {
-            --bg-deep: #0a0a0f;
-            --bg-card: #12121a;
-            --text-main: #f5f5f7;
-            --text-sub: #a1a1aa;
-            --text-muted: #6b7280;
-            
+            --bg-deep: #050508;
+            --bg-card: #0f0f13;
+            --text-main: #f0f0f2;
+            --text-sub: #a0a0a5;
+            --text-muted: #606065;
             --accent-primary: #3b82f6;
             --accent-secondary: #8b5cf6;
             --accent-cyan: #06b6d4;
             --accent-emerald: #10b981;
-            
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-bg: rgba(20, 20, 30, 0.4);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 255, 255, 0.12);
-            --blur: 20px;
-            
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --blur: 16px;
+            --nav-height: 70px;
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
         body {
             font-family: 'Noto Sans JP', 'JetBrains Mono', sans-serif;
             background-color: var(--bg-deep);
             color: var(--text-main);
             min-height: 100vh;
-            line-height: 1.7;
+            line-height: 1.8;
             overflow-x: hidden;
             position: relative;
         }
-
         .cosmic-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
+            z-index: -2;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
         }
-        
         .stars {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             background-image: 
-                radial-gradient(1.5px 1.5px at 20px 30px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 60px 70px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 50px 160px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
-                radial-gradient(1.5px 1.5px at 130px 80px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.5), rgba(0,0,0,0));
-            background-size: 200px 200px;
-            opacity: 0.4;
-            animation: twinkle 15s linear infinite;
+                radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 100px 70px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 50px 160px, rgba(255,255,255,0.5), rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 200px 120px, rgba(255,255,255,0.7), rgba(0,0,0,0));
+            background-size: 300px 300px;
+            opacity: 0.5;
+            animation: twinkle 20s linear infinite;
         }
-
         @keyframes twinkle {
             from { transform: translateY(0); }
-            to { transform: translateY(-200px); }
+            to { transform: translateY(-300px); }
         }
-
-        .container {
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 60px 24px 80px;
+            height: var(--nav-height);
+            background: rgba(5, 5, 8, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        .nav-container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        .profile-wrapper {
-            width: 140px;
-            height: 140px;
-            margin: 0 auto 24px;
+        .nav-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-logo i {
+            color: var(--accent-cyan);
+        }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        .nav-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.3s;
             position: relative;
         }
-
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: calc(var(--nav-height) + 60px) 24px 80px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .profile-wrapper {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 32px;
+            position: relative;
+        }
         .profile-img {
             width: 100%;
             height: 100%;
@@ -127,550 +156,344 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid var(--glass-border);
+            border: 2px solid var(--glass-border);
             position: relative;
             z-index: 2;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6),
-                        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.1);
         }
-        
         .profile-img img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
         .orbit {
             position: absolute;
-            top: -12px; left: -12px; right: -12px; bottom: -12px;
+            top: -15px; left: -15px; right: -15px; bottom: -15px;
             border-radius: 50%;
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            animation: spin 12s linear infinite;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            animation: spin 15s linear infinite;
         }
         .orbit::after {
             content: '';
             position: absolute;
-            top: 50%; left: -4px;
-            width: 8px; height: 8px;
+            top: 50%; left: -5px;
+            width: 10px; height: 10px;
             background: var(--accent-cyan);
             border-radius: 50%;
-            box-shadow: 0 0 16px var(--accent-cyan);
+            box-shadow: 0 0 20px var(--accent-cyan);
         }
-
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
         h1 {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            letter-spacing: -0.04em;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             font-family: 'JetBrains Mono', monospace;
         }
-
         .tagline {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--accent-cyan);
             font-weight: 600;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            opacity: 0.9;
             font-family: 'JetBrains Mono', monospace;
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(6, 182, 212, 0.1);
+            border-radius: 100px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
         }
-
-        .main-grid {
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            padding-left: 20px;
+        }
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 4px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+        .grid-layout {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: 24px;
-            margin-bottom: 24px;
+            gap: 32px;
+            margin-bottom: 64px;
         }
-
         .card {
             background: var(--glass-bg);
             backdrop-filter: blur(var(--blur));
             -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 32px;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s;
             position: relative;
-            box-shadow: var(--shadow-sm);
+            overflow: hidden;
         }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
         .card:hover {
-            transform: translateY(-4px);
             border-color: var(--glass-highlight);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
         }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        h2 {
-            font-size: 1rem;
-            color: var(--text-sub);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        h2 i {
-            font-size: 1.1rem;
-            color: var(--accent-primary);
-        }
-
         .profile-list {
             list-style: none;
-            margin-bottom: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
         .profile-list li {
-            margin-bottom: 18px;
-            font-size: 1rem;
             display: flex;
             align-items: center;
-            color: var(--text-main);
-            padding: 12px 16px;
+            gap: 16px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
             border-radius: 12px;
-            transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.02);
-        }
-        .profile-list li:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateX(4px);
         }
         .profile-list i {
-            width: 28px;
             color: var(--accent-secondary);
-            opacity: 0.9;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
         }
-
-        .social-area {
-            margin-top: auto;
-            padding-top: 24px;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        .social-area h3 {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
         .social-links {
+            margin-top: 32px;
             display: flex;
             gap: 12px;
         }
-
         .social-btn {
             flex: 1;
-            height: 48px;
+            height: 44px;
             border-radius: 12px;
             background: rgba(255,255,255,0.05);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
             color: var(--text-main);
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 1px solid transparent;
-            font-size: 0.9rem;
             font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border: 1px solid transparent;
         }
         .social-btn:hover {
             background: var(--text-main);
             color: var(--bg-deep);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
         }
-        .social-btn i {
-            font-size: 1.2rem;
-        }
-
         .works-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
         }
-
         .work-item {
-            display: block;
+            display: flex;
+            flex-direction: column;
             text-decoration: none;
             background: rgba(255,255,255,0.03);
             padding: 24px;
             border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s;
             position: relative;
-            overflow: hidden;
-        }
-
-        .work-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
             height: 100%;
-            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
-            opacity: 0;
-            transition: opacity 0.4s;
         }
-
         .work-item:hover {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.06);
             border-color: var(--accent-primary);
             transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
         }
-
-        .work-item:hover::before {
-            opacity: 1;
+        .work-icon {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+            margin-bottom: 16px;
         }
-
         .work-title {
-            display: block;
             font-weight: 700;
             font-size: 1.2rem;
-            margin-bottom: 8px;
             color: var(--text-main);
+            margin-bottom: 8px;
             font-family: 'JetBrains Mono', monospace;
         }
         .work-desc {
-            display: block;
             font-size: 0.9rem;
             color: var(--text-sub);
             line-height: 1.6;
+            flex-grow: 1;
         }
-        .work-icon {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            font-size: 1.5rem;
-            color: var(--accent-cyan);
-            opacity: 0.4;
-            transition: all 0.4s;
+        .work-link-arrow {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .work-item:hover .work-icon {
-            opacity: 1;
-            transform: rotate(-10deg) scale(1.1);
+        .docs-section {
+            margin-bottom: 64px;
         }
-
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .doc-card {
+            background: linear-gradient(145deg, rgba(20,20,30,0.6), rgba(30,30,45,0.6));
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .doc-card:hover {
+            border-color: var(--accent-emerald);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .doc-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-emerald);
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .doc-content h3 {
+            color: var(--text-main);
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+        .doc-content p {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
         .twitter-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
+            margin-bottom: 64px;
         }
-
-        .twitter-card {
+        .twitter-wrapper {
             background: var(--glass-bg);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--glass-border);
             border-radius: 20px;
-            padding: 32px;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
+            padding: 24px;
+            height: 500px;
+            overflow: hidden;
         }
-
-        .twitter-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--glass-highlight);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .twitter-header {
+        .twitter-label {
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .twitter-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #1da1f2, #0d8bd9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.6rem;
-            box-shadow: 0 4px 16px rgba(29, 161, 242, 0.3);
-        }
-
-        .twitter-info h3 {
-            font-size: 1.2rem;
+            gap: 10px;
             font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 4px;
-            font-family: 'JetBrains Mono', monospace;
         }
-
-        .twitter-handle {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .twitter-timeline-wrapper {
-            flex: 1;
-            min-height: 400px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .twitter-timeline-wrapper iframe {
-            border-radius: 12px;
-        }
-
-        .twitter-link {
-            margin-top: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #1da1f2;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            padding: 12px 20px;
-            border-radius: 10px;
-            background: rgba(29, 161, 242, 0.1);
-            border: 1px solid rgba(29, 161, 242, 0.2);
-        }
-
-        .twitter-link:hover {
-            background: rgba(29, 161, 242, 0.2);
-            border-color: rgba(29, 161, 242, 0.4);
-            transform: translateX(4px);
-        }
-
         .contact-card {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 20px;
-            padding: 40px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 48px;
+            text-align: center;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            gap: 32px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            margin-top: 24px;
+            gap: 24px;
         }
-
-        .contact-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: rgba(255,255,255,0.2);
-        }
-
-        .contact-content {
-            flex: 1;
-        }
-
         .contact-title {
             font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 8px;
             color: var(--text-main);
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: -0.02em;
         }
-
-        .contact-desc {
-            color: var(--text-sub);
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        .cta-button {
+        .contact-btn {
+            background: var(--text-main);
+            color: var(--bg-deep);
+            padding: 14px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            background: var(--text-main);
-            color: var(--bg-deep);
-            padding: 16px 32px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
-            font-family: 'JetBrains Mono', monospace;
+            transition: transform 0.2s;
         }
-        .cta-button:hover {
+        .contact-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 24px rgba(255,255,255,0.3);
         }
-
         footer {
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 60px;
-            padding-top: 40px;
             border-top: 1px solid var(--glass-border);
-            opacity: 0.7;
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.3);
         }
-
-        footer p {
-            margin-bottom: 8px;
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
         }
-
-        @media (max-width: 1200px) {
-            .twitter-section {
+        .footer-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover {
+            color: var(--text-main);
+        }
+        @media (max-width: 900px) {
+            .grid-layout, .twitter-section, .docs-grid {
                 grid-template-columns: 1fr;
             }
-        }
-
-        @media (max-width: 992px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-
-            h1 {
-                font-size: 3.2rem;
-            }
-
-            .works-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 40px 20px 60px;
-            }
-
             h1 {
                 font-size: 2.5rem;
             }
-
-            .tagline {
-                font-size: 0.9rem;
+            .nav-links {
+                display: none;
             }
-
-            .profile-wrapper {
-                width: 120px;
-                height: 120px;
+            .container {
+                padding-top: 100px;
             }
-
-            .twitter-section {
-                grid-template-columns: 1fr;
-            }
-
-            .twitter-timeline-wrapper {
-                min-height: 350px;
-            }
-
-            .contact-card {
-                flex-direction: column;
-                text-align: center;
-                gap: 24px;
-                padding: 32px 24px;
-            }
-
-            .works-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .social-links {
-                flex-direction: column;
-            }
-
-            .card {
-                padding: 24px;
-            }
-
-            .twitter-card {
-                padding: 24px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            .tagline {
-                font-size: 0.8rem;
-                letter-spacing: 0.1em;
-            }
-
-            .profile-wrapper {
-                width: 100px;
-                height: 100px;
-            }
-
-            .twitter-timeline-wrapper {
-                min-height: 300px;
-            }
-
-            .card h2, .twitter-card h3 {
-                font-size: 1.2rem;
-            }
-
-            .contact-title {
-                font-size: 1.3rem;
-            }
-
-            .cta-button {
-                padding: 14px 28px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
+            from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .animate-delay-1 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards; }
-        .animate-delay-2 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards; }
-        .animate-delay-3 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s backwards; }
-        .animate-delay-4 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards; }
-
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
     </style>
 </head>
 <body>
@@ -678,134 +501,130 @@
     <div class="cosmic-bg"></div>
     <div class="stars"></div>
 
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <i class="fa-solid fa-flask"></i> Root's Lab
+            </a>
+            <div class="nav-links">
+                <a href="#profile">Profile</a>
+                <a href="#works">Works</a>
+                <a href="#docs">Documents</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <header>
             <div class="profile-wrapper">
                 <div class="profile-img">
-                    <img src="http://astro-root.github.io/astro-root.com/icon.png" alt="Root Profile">
+                    <img src="https://astro-root.github.io/astro-root.com/icon.png" alt="Root Profile">
                 </div>
                 <div class="orbit"></div>
             </div>
             <h1>るーと / Root</h1>
-            <p class="tagline">Astronomer / Quiz Player / Web Engineer</p>
+            <span class="tagline">Astronomer / Quiz Player / Web Engineer</span>
         </header>
 
-        <div class="main-grid">
-            <section class="card animate-delay-1">
-                <h2><i class="fa-regular fa-id-badge"></i> Profile</h2>
+        <div class="grid-layout" id="profile">
+            <section class="card fade-in delay-1">
+                <h2 class="section-title">Profile</h2>
                 <ul class="profile-list">
                     <li><i class="fa-solid fa-school"></i> 高校2年生</li>
                     <li><i class="fa-solid fa-users-rectangle"></i> M1QC 所属</li>
                     <li><i class="fa-solid fa-atom"></i> 日本物理学会 学生会友</li>
                     <li><i class="fa-solid fa-rocket"></i> 天文学者</li>
                 </ul>
-                <div class="social-area">
-                    <h3>Social Links</h3>
-                    <div class="social-links">
-                        <a href="https://twitter.com/astro_root" target="_blank" class="social-btn">
-                            <i class="fa-brands fa-x-twitter"></i>
-                            <span>Personal</span>
-                        </a>
-                        <a href="https://twitter.com/root_qscore" target="_blank" class="social-btn">
-                            <i class="fa-solid fa-bullhorn"></i>
-                            <span>Official</span>
-                        </a>
-                    </div>
+                <div class="social-links">
+                    <a href="https://twitter.com/astro_root" target="_blank" class="social-btn">
+                        <i class="fa-brands fa-x-twitter"></i> &nbsp; Personal
+                    </a>
+                    <a href="https://twitter.com/root_qscore" target="_blank" class="social-btn">
+                        <i class="fa-solid fa-bullhorn"></i> &nbsp; Official
+                    </a>
                 </div>
             </section>
 
-            <section class="card animate-delay-2">
-                <h2><i class="fa-solid fa-terminal"></i> Works & Tools</h2>
+            <section class="card fade-in delay-2" id="works">
+                <h2 class="section-title">Works & Tools</h2>
                 <div class="works-grid">
                     <a href="https://astro-root.com/q-score/" target="_blank" class="work-item">
                         <i class="fa-solid fa-chart-gantt work-icon"></i>
                         <span class="work-title">Q-Score</span>
-                        <span class="work-desc">早押しクイズ得点表示ツール</span>
+                        <p class="work-desc">早押しクイズの得点表示をブラウザ上で実現するツール。イベントや大会での利用に最適化されています。</p>
+                        <div class="work-link-arrow">Launch App <i class="fa-solid fa-arrow-right"></i></div>
                     </a>
                     <a href="https://astro-root.com/q-panel/" target="_blank" class="work-item">
                         <i class="fa-solid fa-border-all work-icon"></i>
                         <span class="work-title">Q-Panel</span>
-                        <span class="work-desc">QuizKnock「Mondo」風クイズ</span>
+                        <p class="work-desc">QuizKnock「Mondo」風のパネルクイズツール。視覚的な演出でクイズ大会を盛り上げます。</p>
+                        <div class="work-link-arrow">Launch App <i class="fa-solid fa-arrow-right"></i></div>
                     </a>
                     <a href="https://astro-root.com/q-mark/" target="_blank" class="work-item">
                         <i class="fa-solid fa-file-circle-check work-icon"></i>
                         <span class="work-title">Q-Mark</span>
-                        <span class="work-desc">ペーパークイズデジタル採点ツール</span>
+                        <p class="work-desc">ペーパークイズの採点をデジタル化し、効率的な集計を可能にする採点補助ツールです。</p>
+                        <div class="work-link-arrow">Launch App <i class="fa-solid fa-arrow-right"></i></div>
                     </a>
                 </div>
             </section>
         </div>
 
-        <section class="twitter-section animate-delay-3">
-            <div class="twitter-card">
-                <div class="twitter-header">
-                    <div class="twitter-icon">
-                        <i class="fa-brands fa-x-twitter"></i>
+        <section class="docs-section fade-in delay-3" id="docs">
+            <h2 class="section-title">Documentation</h2>
+            <div class="docs-grid">
+                <a href="https://note.com/astro_root/n/n21ea1ba407fd?sub_rt=share_pb" target="_blank" class="doc-card">
+                    <div class="doc-icon"><i class="fa-solid fa-book-open"></i></div>
+                    <div class="doc-content">
+                        <h3>Q-Score 使い方マニュアル</h3>
+                        <p>得点表示ツールの詳細なセットアップ方法、操作ガイドはこちら（Note）。</p>
                     </div>
-                    <div class="twitter-info">
-                        <h3>Personal Account</h3>
-                        <div class="twitter-handle">@astro_root</div>
-                    </div>
-                </div>
-                <div class="twitter-timeline-wrapper">
-                    <a class="twitter-timeline" 
-                       data-lang="ja" 
-                       data-width="100%"
-                       data-height="400" 
-                       data-theme="dark" 
-                       data-chrome="noheader nofooter noborders"
-                       href="https://twitter.com/astro_root?ref_src=twsrc%5Etfw">
-                       Tweets by astro_root
-                    </a>
-                </div>
-                <a href="https://twitter.com/astro_root" target="_blank" class="twitter-link">
-                    <span>@astro_rootをフォロー</span>
-                    <i class="fa-solid fa-arrow-right"></i>
                 </a>
-            </div>
-
-            <div class="twitter-card">
-                <div class="twitter-header">
-                    <div class="twitter-icon">
-                        <i class="fa-solid fa-bullhorn"></i>
+                <a href="https://astro-root.com/q-mark/manual" target="_blank" class="doc-card">
+                    <div class="doc-icon"><i class="fa-solid fa-laptop-code"></i></div>
+                    <div class="doc-content">
+                        <h3>Q-Mark 公式マニュアル</h3>
+                        <p>デジタル採点ツールの導入から運用までの完全ガイド。</p>
                     </div>
-                    <div class="twitter-info">
-                        <h3>Official Account</h3>
-                        <div class="twitter-handle">@root_qscore</div>
-                    </div>
-                </div>
-                <div class="twitter-timeline-wrapper">
-                    <a class="twitter-timeline" 
-                       data-lang="ja" 
-                       data-width="100%"
-                       data-height="400" 
-                       data-theme="dark" 
-                       data-chrome="noheader nofooter noborders"
-                       href="https://twitter.com/root_qscore?ref_src=twsrc%5Etfw">
-                       Tweets by root_qscore
-                    </a>
-                </div>
-                <a href="https://twitter.com/root_qscore" target="_blank" class="twitter-link">
-                    <span>@root_qscoreをフォロー</span>
-                    <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
         </section>
 
-        <section class="contact-card animate-delay-4">
-            <div class="contact-content">
-                <div class="contact-title">フィードバック</div>
-                <div class="contact-desc">バグ報告・機能要望・その他お問い合わせはこちらから</div>
+        <section class="twitter-section fade-in delay-3">
+            <div class="twitter-wrapper">
+                <div class="twitter-label">
+                    <i class="fa-brands fa-x-twitter"></i> @astro_root (Personal)
+                </div>
+                <a class="twitter-timeline" data-lang="ja" data-height="400" data-theme="dark" data-chrome="noheader nofooter noborders transparent" href="https://twitter.com/astro_root?ref_src=twsrc%5Etfw">Tweets by astro_root</a>
             </div>
-            <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank" class="cta-button">
-                Send Feedback <i class="fa-solid fa-paper-plane"></i>
+            <div class="twitter-wrapper">
+                <div class="twitter-label">
+                    <i class="fa-solid fa-bullhorn"></i> @root_qscore (Official)
+                </div>
+                <a class="twitter-timeline" data-lang="ja" data-height="400" data-theme="dark" data-chrome="noheader nofooter noborders transparent" href="https://twitter.com/root_qscore?ref_src=twsrc%5Etfw">Tweets by root_qscore</a>
+            </div>
+        </section>
+
+        <section class="contact-card fade-in delay-3" id="contact">
+            <h2 class="contact-title">Feedback & Contact</h2>
+            <p style="color: var(--text-sub); max-width: 600px;">
+                バグ報告、機能追加のご要望、その他のお問い合わせは専用フォームより受け付けております。
+            </p>
+            <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank" class="contact-btn">
+                フォームを開く <i class="fa-solid fa-paper-plane"></i>
             </a>
         </section>
     </div>
 
     <footer>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">About</a>
+        </div>
         <p>&copy; 2026 Root. All rights reserved.</p>
-        <p>Last Update: 2026/2/7 23:00</p>
+        <p>Last Update: 2026/2/7 23:20
     </footer>
 
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
