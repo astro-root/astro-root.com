@@ -70,6 +70,20 @@
         .nav-logo i {
             color: var(--accent-cyan);
         }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        .nav-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
         .container {
             width: 100%;
             max-width: 900px;
@@ -115,6 +129,13 @@
             font-size: 0.9rem;
             margin-top: 8px;
         }
+        a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
         footer {
             border-top: 1px solid var(--glass-border);
             padding: 40px 24px;
@@ -137,6 +158,11 @@
         .footer-links a:hover {
             color: var(--text-main);
         }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -146,6 +172,12 @@
             <a href="/" class="nav-logo">
                 <i class="fa-solid fa-flask"></i> Root's Lab
             </a>
+            <div class="nav-links">
+                <a href="https://astro-root.com/blog/">Blog</a>
+                <a href="/about.html">About</a>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="/terms-of-use.html">Terms of Use</a>
+            </div>
         </div>
     </nav>
 
@@ -160,7 +192,7 @@
         <ul>
             <li>アクセスログ（IPアドレス、ブラウザの種類、アクセス日時、参照元など）</li>
             <li>Cookieおよび類似技術による情報</li>
-            <li>お問い合わせフォームに入力された情報（メールアドレス、お名前など）</li>
+            <li>お問い合わせフォームまたはメールで提供された情報（メールアドレス、お名前など）</li>
         </ul>
 
         <h2>2. 情報の利用目的</h2>
@@ -179,55 +211,58 @@
         <p>当サイトでは、Googleが提供するアクセス解析ツール「Google Analytics」を使用しています。Google Analyticsは、Cookieを使用してユーザーの訪問情報を収集します。この情報は匿名で収集され、個人を特定するものではありません。</p>
         <p>Google Analyticsの利用規約およびプライバシーポリシーについては、以下をご確認ください。</p>
         <ul>
-            <li><a href="https://policies.google.com/technologies/partner-sites" target="_blank" style="color: var(--accent-cyan);">Google のサービスを使用するサイトやアプリから収集した情報の Google による使用</a></li>
-            <li><a href="https://tools.google.com/dlpage/gaoptout" target="_blank" style="color: var(--accent-cyan);">Google Analytics オプトアウト アドオン</a></li>
+            <li><a href="https://policies.google.com/technologies/partner-sites" target="_blank">Google のサービスを使用するサイトやアプリから収集した情報の Google による使用</a></li>
+            <li><a href="https://tools.google.com/dlpage/gaoptout" target="_blank">Google Analytics オプトアウト アドオン</a></li>
         </ul>
 
         <h3>3.2 Google AdSense</h3>
         <p>当サイトでは、広告配信サービス「Google AdSense」を使用しています。Google AdSenseは、Cookieを使用してユーザーの興味関心に基づいた広告を配信します。</p>
         <p>Cookieを無効化する方法や、パーソナライズド広告を無効にする方法については、以下をご確認ください。</p>
         <ul>
-            <li><a href="https://policies.google.com/technologies/ads" target="_blank" style="color: var(--accent-cyan);">Google 広告設定</a></li>
-            <li><a href="https://www.aboutads.info/choices/" target="_blank" style="color: var(--accent-cyan);">Network Advertising Initiative のオプトアウトページ</a></li>
+            <li><a href="https://policies.google.com/technologies/ads" target="_blank">Google 広告設定</a></li>
+            <li><a href="https://www.aboutads.info/choices/" target="_blank">Network Advertising Initiative のオプトアウトページ</a></li>
         </ul>
 
         <h2>4. 第三者への情報提供</h2>
         <p>当サイトは、以下の場合を除き、ユーザーの個人情報を第三者に提供することはありません。</p>
         <ul>
             <li>ユーザーの同意がある場合</li>
-            <li>法令に基づく場合</li>
+            <li>法令に基づく開示が必要な場合</li>
             <li>人の生命、身体または財産の保護のために必要がある場合</li>
         </ul>
 
         <h2>5. 外部サービスの利用</h2>
         <p>当サイトでは、以下の外部サービスを利用しています。これらのサービスには独自のプライバシーポリシーが適用されます。</p>
         <ul>
-            <li>Twitter（X）: ツイートの埋め込み表示</li>
+            <li>Twitter（X）: ソーシャルメディア連携</li>
             <li>Google Forms: お問い合わせフォーム</li>
             <li>Font Awesome、Google Fonts: Webフォントの提供</li>
+            <li>GitHub Pages: ホスティングサービス</li>
         </ul>
 
         <h2>6. セキュリティ</h2>
         <p>当サイトは、収集した情報の漏洩、紛失、改ざんを防ぐため、適切なセキュリティ対策を講じています。ただし、インターネット上の通信の完全な安全性を保証することはできません。</p>
 
         <h2>7. 子供のプライバシー保護</h2>
-        <p>当サイトは、13歳未満の子供から意図的に個人情報を収集することはありません。</p>
+        <p>当サイトは、13歳未満の子供から意図的に個人情報を収集することはありません。保護者の方で、お子様が当サイトに個人情報を提供したと思われる場合は、直ちにご連絡ください。</p>
 
         <h2>8. プライバシーポリシーの変更</h2>
-        <p>当サイトは、必要に応じて本プライバシーポリシーを変更することがあります。変更後のプライバシーポリシーは、当サイトに掲載した時点で効力を生じるものとします。</p>
+        <p>当サイトは、必要に応じて本プライバシーポリシーを変更することがあります。変更後のプライバシーポリシーは、当サイトに掲載した時点で効力を生じるものとします。重要な変更がある場合は、サイト上で告知いたします。</p>
 
         <h2>9. お問い合わせ</h2>
-        <p>本プライバシーポリシーに関するご質問やご不明な点がございましたら、以下のフォームよりお問い合わせください。</p>
-        <p><a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank" style="color: var(--accent-cyan);">お問い合わせフォーム</a></p>
+        <p>本プライバシーポリシーに関するご質問やご不明な点がございましたら、以下よりお問い合わせください。</p>
+        <p><strong>Email:</strong> <a href="mailto:astro.root.quiz@gmail.com">astro.root.quiz@gmail.com</a></p>
+        <p><strong>お問い合わせフォーム:</strong> <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank">こちら</a></p>
 
     </div>
 
     <footer>
         <div class="footer-links">
-            <a href="/">ホーム</a>
+            <a href="/">TOP</a>
+            <a href="https://astro-root.com/blog/">Blog</a>
+            <a href="/about.html">About</a>
             <a href="/privacy-policy.html">Privacy Policy</a>
             <a href="/terms-of-use.html">Terms of Use</a>
-            <a href="/about.html">About</a>
         </div>
         <p>&copy; 2026 Root. All rights reserved.</p>
     </footer>
