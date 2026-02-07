@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Mark | 操作マニュアル</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-body: #0f172a;
+        --bg-card: #1e293b;
+        --border: #334155;
+        --primary: #818cf8;
+        --primary-glow: rgba(129, 140, 248, 0.3);
+        --text-main: #f1f5f9;
+        --text-sub: #94a3b8;
+        --accent-success: #34d399;
+        --accent-danger: #f87171;
+        --accent-warn: #fbbf24;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        line-height: 1.7;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    /* Header */
+    header {
+        text-align: center;
+        margin-bottom: 60px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 40px;
+    }
+    h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -1px;
+    }
+    h1 span { color: var(--primary); }
+    .subtitle {
+        color: var(--text-sub);
+        font-size: 1.1rem;
+        margin-top: 10px;
+    }
+
+    /* Navigation */
+    nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 50px;
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+    }
+    nav a {
+        background: var(--bg-card);
+        color: var(--text-sub);
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 1px solid var(--border);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+    }
+    nav a:hover {
+        border-color: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Sections */
+    section {
+        margin-bottom: 80px;
+        scroll-margin-top: 100px;
+    }
+    h2 {
+        font-size: 1.8rem;
+        border-left: 5px solid var(--primary);
+        padding-left: 20px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    h3 {
+        font-size: 1.3rem;
+        color: var(--text-main);
+        margin-top: 40px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    
+    p { margin-bottom: 15px; color: var(--text-sub); }
+
+    /* Tags & Highlights */
+    .key {
+        display: inline-block;
+        background: #334155;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85em;
+        border-bottom: 2px solid #1e293b;
+        color: #e2e8f0;
+    }
+    .highlight { color: var(--primary); font-weight: bold; }
+    
+    /* Lists */
+    ul.feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    ul.feature-list li {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 15px;
+        color: var(--text-sub);
+    }
+    ul.feature-list li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: #161e2e;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    th, td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+    th {
+        background: #1e293b;
+        color: var(--primary);
+        font-weight: 600;
+    }
+    td { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
+
+    /* Icons */
+    .icon-box {
+        width: 40px; height: 40px;
+        display: inline-flex;
+        align-items: center; justify-content: center;
+        border-radius: 8px;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .i-o { background: rgba(52, 211, 153, 0.2); color: var(--accent-success); border: 1px solid var(--accent-success); }
+    .i-x { background: rgba(248, 113, 113, 0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
+    .i-t { background: rgba(251, 191, 36, 0.2); color: var(--accent-warn); border: 1px solid var(--accent-warn); }
+
+    /* Footer */
+    footer {
+        text-align: center;
+        margin-top: 100px;
+        padding: 40px;
+        border-top: 1px solid var(--border);
+        color: var(--text-sub);
+        font-size: 0.9rem;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><span>Q</span>-Mark Manual</h1>
+        <div class="subtitle">ペーパークイズデジタル採点ツール 操作ガイド</div>
+    </header>
+
+    <nav>
+        <a href="#start">🚀 はじめに</a>
+        <a href="#basic">✍️ 基本操作</a>
+        <a href="#grid">📐 グリッド機能</a>
+        <a href="#view">🔍 表示・ズーム</a>
+        <a href="#data">💾 保存・出力</a>
+    </nav>
+
+    <section id="start">
+        <h2>🚀 はじめに</h2>
+        <div class="card">
+            <p>Q-Markは、Webブラウザだけで動作する軽量かつ高機能な採点ツールです。サーバーに画像をアップロードせず、すべてお使いのPC内で完結するため、セキュリティ面でも安心です。</p>
+            <h3>セットアップ手順</h3>
+            <ol style="color:var(--text-sub); padding-left:20px; line-height:2;">
+                <li>ツール（HTMLファイル）をChromeやEdgeなどのブラウザで開きます。</li>
+                <li>初期画面で<strong>「模範解答 (Answer Key)」</strong>と<strong>「生徒答案 (Student Papers)」</strong>を選択します。</li>
+                <li>生徒答案は一度に複数ファイル（画像またはPDF）を選択可能です。</li>
+                <li>準備ができたら<span class="key">採点スタート</span>ボタンを押してください。</li>
+            </ol>
+        </div>
+    </section>
+
+    <section id="basic">
+        <h2>✍️ 基本的な採点方法</h2>
+        
+        <div class="card">
+            <h3>採点ツールの種類</h3>
+            <p>画面上部のツールバー、またはキーボードショートカットで切り替えます。</p>
+            
+            <div style="display:flex; flex-direction:column; gap:15px; margin-top:20px;">
+                <div style="display:flex; align-items:center;">
+                    <div class="icon-box i-o">○</div>
+                    <div>
+                        <strong style="color:var(--text-main)">正解 (1点)</strong><br>
+                        <span style="font-size:0.85rem; color:var(--text-sub)">ショートカット: <span class="key">1</span> または <span class="key">Z</span></span>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <div class="icon-box i-x">×</div>
+                    <div>
+                        <strong style="color:var(--text-main)">不正解 (0点)</strong><br>
+                        <span style="font-size:0.85rem; color:var(--text-sub)">ショートカット: <span class="key">2</span> または <span class="key">X</span></span>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <div class="icon-box i-t">△</div>
+                    <div>
+                        <strong style="color:var(--text-main)">部分点 (任意点)</strong><br>
+                        <span style="font-size:0.85rem; color:var(--text-sub)">ショートカット: <span class="key">3</span> または <span class="key">C</span>。配置時に点数を入力します。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>操作のヒント</h3>
+            <ul class="feature-list">
+                <li><strong>クリックで配置:</strong> 答案の上でクリックすると、選択中のマークが配置されます。</li>
+                <li><strong>自動採点:</strong> 配置した○や△（数値）は自動的に合計され、右上のSCOREに反映されます。</li>
+                <li><strong>上書き修正:</strong> 同じ問題番号の箇所に新しいマークを置くと、古いマークは自動的に削除されます。</li>
+                <li><strong>一つ戻る:</strong> 間違えた場合はツールバーの「戻る」か、<span class="key">Ctrl</span> + <span class="key">Z</span> で取り消せます。</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="grid">
+        <h2>📐 グリッド（自動配置ガイド）機能</h2>
+        <div class="card">
+            <p>解答欄が規則正しく並んでいる場合、グリッドを設定するとマウスを近づけるだけで吸着（スナップ）し、問題番号も自動で割り当てられます。</p>
+            
+            <h3>設定手順</h3>
+            <ol style="color:var(--text-sub); padding-left:20px; line-height:2;">
+                <li>ツールバーの <strong>Grid</strong> ボタンを押して設定モードに入ります。</li>
+                <li>答案用紙の解答欄の<strong>「左上のマス」</strong>をクリックし、次に<strong>「右下のマス」</strong>をクリックします（対角線）。</li>
+                <li>上部の設定バーで、<strong>行数・列数</strong>を入力します。</li>
+                <li>並び順（縦方向優先 N字 / 横方向優先 Z字）を選択し、<span class="key">生成</span>を押します。</li>
+                <li>オレンジ色の枠が表示されれば設定完了です。<span class="key">完了</span>ボタンで元の画面に戻ります。</li>
+            </ol>
+            <p style="margin-top:15px; font-size:0.9rem; color:var(--accent-warn);">※ グリッドを設定しなくても、手動で好きな場所にマークを置くことは可能です。</p>
+        </div>
+    </section>
+
+    <section id="view">
+        <h2>🔍 表示・ズーム・サイズ調整</h2>
+        <div class="card">
+            <h3>画面分割の調整</h3>
+            <p>模範解答（左）と生徒答案（右）の間のバーをドラッグすることで、表示比率を自由に変更できます。</p>
+
+            <h3>ピクセルベース・ズーム</h3>
+            <p>各画面の右上にある <strong>[ - ] [ 100% ] [ + ]</strong> ボタンで拡大縮小ができます。</p>
+            <ul class="feature-list">
+                <li><strong>横幅ロック解除:</strong> 拡大してもブラウザの横幅に合わせて縮小されることはありません。スクロールバーを使って細部まで確認できます。</li>
+                <li><strong>初期表示:</strong> 最初に画像を読み込んだ際、画面サイズにちょうど収まるサイズを「100%」として自動計算します。</li>
+            </ul>
+
+            <h3>マークサイズの変更</h3>
+            <p>ツールバー中央の <strong>Size</strong> スライダーで、マークの大きさをリアルタイムに変更できます。文字が小さい答案用紙の場合などに調整してください。</p>
+        </div>
+    </section>
+
+    <section id="data">
+        <h2>💾 データの保存と出力</h2>
+        <div class="card">
+            <h3>自動保存</h3>
+            <p>作業内容はブラウザの<strong>ローカルストレージ</strong>に自動的に保存されます。ブラウザを閉じても、再度同じファイルを開けば続きから再開できます。</p>
+            <p style="font-size:0.85rem; color:var(--text-sub);">※ データ保存場所：<code>QG_PRO_DATA_V2</code></p>
+
+            <h3>ファイル出力</h3>
+            <table>
+                <tr>
+                    <th width="30%">PDF保存</th>
+                    <td>現在の生徒答案に、採点結果（マークと点数）を書き込んだ状態でPDFファイルとしてダウンロードします。返却用に最適です。</td>
+                </tr>
+                <tr>
+                    <th>CSV出力</th>
+                    <td>全生徒の採点結果（合計点および設問ごとの正誤）を一覧表としてCSV形式でダウンロードします。Excelでの集計に便利です。</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2026 astro_root<br>
+        UI Design enhanced with AI. Managed by Developer.
+    </footer>
+</div>
+
+</body>
+</html>
