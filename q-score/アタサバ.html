@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attack Survival</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      --color-crimson: #f43f5e;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      --shadow-glow: 0 0 15px rgba(244, 63, 94, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-crimson), var(--color-red));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; white-space: nowrap; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 40px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-crimson); }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    #setupBtn { background: var(--color-blue); }
+    #resetAll { background: var(--color-red); }
+    #undoGlobal { background: #64748b; }
+    #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .scoreboard {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+    #grid {
+      display: grid;
+      gap: 15px;
+      align-items: start;
+    }
+
+    .column {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .name-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 24px;
+      height: 240px;
+      width: 40px;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      transition: color 0.2s;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+
+    .score-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+    .life-score {
+      font-size: 56px;
+      font-weight: 800;
+      color: var(--color-cyan);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+      min-height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.3s;
+    }
+
+    .life-score.danger { color: var(--color-red); text-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+
+    .wrong-count {
+      height: 24px;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--color-red);
+      margin-top: 5px;
+      letter-spacing: 2px;
+    }
+
+    .buttons { display: flex; gap: 8px; width: 100%; }
+    .btn-op {
+      flex: 1; border: none; padding: 12px 0; border-radius: 8px;
+      cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+
+    .column.eliminated {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .column.eliminated .name-input { color: #334155; }
+    .column.eliminated .life-score { font-size: 24px; color: #475569; text-shadow: none; }
+    .column.eliminated .wrong-count { opacity: 0.5; }
+    .column.eliminated .btn-op { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+
+    .column.winner {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
+    }
+    .column.winner .life-score {
+      color: var(--color-gold);
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+    }
+    .column.winner::after {
+      content: "WIN";
+      position: absolute;
+      top: -10px;
+      background: var(--color-gold);
+      color: #000;
+      font-weight: 900;
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .status-bar {
+      margin-top: 15px;
+      padding: 10px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+
+    .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .shake-anim { animation: shake 0.3s ease-in-out; }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
+    @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+      .controls { justify-content: space-between; }
+      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .life-score { font-size: 36px; }
+      .btn-op { padding: 8px 0; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">AS</div>
+    <h1>Attack Survival</h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>LIFE</label>
+      <input type="number" id="initLife" min="1" value="20">
+    </div>
+    <div class="control-group">
+      <label>相:減</label>
+      <input type="number" id="attackVal" min="0" value="1">
+    </div>
+    <div class="control-group">
+      <label>自:加</label>
+      <input type="number" id="bonusVal" min="0" value="0">
+    </div>
+    <div class="control-group">
+      <label>自:誤</label>
+      <input type="number" id="penaltyVal" min="0" value="2">
+    </div>
+    <div class="control-group">
+      <label>残り</label>
+      <input type="number" id="surviveVal" min="1" value="1">
+    </div>
+    <div class="control-group">
+      <label>人数</label>
+      <input type="number" id="playerCount" min="1" max="20" value="6">
+    </div>
+    
+    <div style="flex:1"></div>
+    
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div id="grid" aria-label="scoreboard-grid"></div>
+</div>
+<div class="status-bar" id="statusBar">Ready</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const initInput = document.getElementById('initLife');
+  const attackInput = document.getElementById('attackVal');
+  const bonusInput = document.getElementById('bonusVal');
+  const penaltyInput = document.getElementById('penaltyVal');
+  const surviveInput = document.getElementById('surviveVal');
+  const countInput = document.getElementById('playerCount');
+  const statusBar = document.getElementById('statusBar');
+  
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoGlobal');
+
+  let players = []; 
+  let historyStack = [];
+
+  function setGridColumnsByCount(count){
+    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+  }
+
+  function pushHistory(){
+    historyStack.push(players.map(p => ({...p})));
+    if(historyStack.length > 500) historyStack.shift();
+    updateUndoState();
+  }
+
+  function updateUndoState(){
+    undoBtn.disabled = historyStack.length === 0;
+  }
+
+  function createGrid(count){
+    grid.innerHTML = '';
+    players = [];
+    historyStack = [];
+    setGridColumnsByCount(count);
+
+    const initialLife = parseInt(initInput.value || 10);
+
+    for(let i=0;i<count;i++){
+      const col = document.createElement('div');
+      col.className = 'column';
+      col.innerHTML = `
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <div class="score-area">
+          <div class="life-score"><span class="life-num">${initialLife}</span></div>
+          <div class="wrong-count"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn-op btn-correct">正解</button>
+          <button class="btn-op btn-wrong">誤答</button>
+        </div>
+      `;
+      grid.appendChild(col);
+
+      const nameEl = col.querySelector('.name-input');
+      const lifeNumEl = col.querySelector('.life-num');
+      const lifeScoreEl = col.querySelector('.life-score');
+      const wrongEl = col.querySelector('.wrong-count');
+      const btnC = col.querySelector('.btn-correct');
+      const btnW = col.querySelector('.btn-wrong');
+
+      const p = { 
+        idx:i, 
+        el:col, 
+        nameEl, 
+        lifeNumEl, 
+        lifeScoreEl, 
+        wrongEl, 
+        btnC, 
+        btnW, 
+        life: initialLife, 
+        wrong: 0, 
+        eliminated: false,
+        isWinner: false
+      };
+
+      btnC.addEventListener('click', () => handleCorrect(p));
+      btnW.addEventListener('click', () => handleWrong(p));
+
+      players.push(p);
+    }
+    
+    renderAll(false);
+    updateUndoState();
+  }
+
+  function handleCorrect(actor){
+    if(actor.eliminated) return;
+    pushHistory();
+    
+    const attack = parseInt(attackInput.value || 0);
+    const bonus = parseInt(bonusInput.value || 0);
+
+    actor.life += bonus;
+
+    players.forEach(p => {
+      if(p.idx !== actor.idx && !p.eliminated){
+        p.life -= attack;
+        animateDamage(p);
+      }
+    });
+    
+    checkStatus();
+    renderAll(true, actor.idx, 'correct');
+  }
+
+  function handleWrong(actor){
+    if(actor.eliminated) return;
+    pushHistory();
+    
+    const penalty = parseInt(penaltyInput.value || 0);
+    actor.life -= penalty;
+    actor.wrong++;
+    
+    checkStatus();
+    renderAll(true, actor.idx, 'wrong');
+  }
+
+  function animateDamage(p){
+    p.lifeScoreEl.classList.remove('shake-anim');
+    void p.lifeScoreEl.offsetWidth;
+    p.lifeScoreEl.classList.add('shake-anim');
+  }
+
+  function checkStatus(){
+    const surviveCount = parseInt(surviveInput.value || 1);
+    
+    players.forEach(p => {
+      if(!p.eliminated && p.life <= 0){
+        p.eliminated = true;
+        p.life = 0;
+      }
+    });
+
+    const survivors = players.filter(p => !p.eliminated);
+    if(survivors.length <= surviveCount){
+      survivors.forEach(p => p.isWinner = true);
+    } else {
+      players.forEach(p => p.isWinner = false);
+    }
+    
+    statusBar.textContent = `Survivor: ${survivors.length} / ${players.length}`;
+  }
+
+  function renderAll(animate=true, activeIdx = -1, type=''){
+    players.forEach(p=>{
+      p.el.classList.remove('eliminated', 'winner');
+      p.lifeScoreEl.classList.remove('danger');
+      
+      p.lifeNumEl.textContent = p.eliminated ? 'LOSE' : p.life;
+      p.wrongEl.textContent = p.wrong > 0 ? '×'.repeat(p.wrong) : '';
+
+      if(p.eliminated){
+        p.el.classList.add('eliminated');
+        p.btnC.disabled = true;
+        p.btnW.disabled = true;
+        p.nameEl.disabled = true;
+      } else {
+        if(p.isWinner){
+          p.el.classList.add('winner');
+        }
+        if(p.life <= 5) p.lifeScoreEl.classList.add('danger');
+
+        p.btnC.disabled = false;
+        p.btnW.disabled = false;
+        p.nameEl.disabled = false;
+      }
+
+      if(animate && p.idx === activeIdx){
+        if(type === 'correct'){
+          p.lifeScoreEl.classList.remove('pop-anim');
+          void p.lifeScoreEl.offsetWidth;
+          p.lifeScoreEl.classList.add('pop-anim');
+        } else if(type === 'wrong'){
+          animateDamage(p);
+        }
+      }
+    });
+
+    updateUndoState();
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const prev = historyStack.pop();
+    
+    players.forEach((p, i) => {
+      const state = prev[i];
+      p.life = state.life;
+      p.wrong = state.wrong;
+      p.eliminated = state.eliminated;
+      p.isWinner = state.isWinner;
+    });
+    
+    renderAll(false);
+    
+    const survivors = players.filter(p => !p.eliminated).length;
+    statusBar.textContent = `Survivor: ${survivors} / ${players.length}`;
+  }
+
+  function resetAll(){
+    const init = parseInt(initInput.value || 10);
+    players.forEach((p,i)=>{
+      p.life = init; p.wrong = 0; p.eliminated = false; p.isWinner = false;
+      p.nameEl.value = `プレイヤー${i+1}`;
+      p.nameEl.disabled = false;
+      p.btnC.disabled = false;
+      p.btnW.disabled = false;
+    });
+    historyStack = [];
+    renderAll(false);
+    statusBar.textContent = `Survivor: ${players.length} / ${players.length}`;
+    updateUndoState();
+  }
+
+  setupBtn.addEventListener('click', ()=>{
+    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    createGrid(cnt);
+  });
+
+  resetBtn.addEventListener('click', resetAll);
+  undoBtn.addEventListener('click', undoGlobal);
+
+  createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+  
+  window.addEventListener('resize', ()=> {
+    const cnt = players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    setGridColumnsByCount(cnt);
+  });
+
+})();
+</script>
+</body>
+</html>

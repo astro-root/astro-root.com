@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>EQIDEN</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      --color-purple: #8b5cf6;
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      overflow-y: auto; 
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-purple), var(--color-blue));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; }
+
+    .controls { 
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; 
+      background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
+      border: 1px solid var(--card-border); margin-bottom: 20px;
+    }
+    .control-group { display: flex; flex-direction: column; gap: 5px; }
+    .control-group label { font-size: 11px; color: var(--text-muted); font-weight: bold; }
+    .control-group input {
+      background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); 
+      color: var(--text-main); font-weight: bold; font-size: 14px; 
+      width: 60px; text-align: center; padding: 5px; border-radius: 4px;
+    }
+
+    .needs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .need-item { display: flex; flex-direction: column; align-items: center; }
+    .need-item span { font-size: 9px; color: var(--text-muted); }
+    .need-item input { width: 30px; height: 24px; font-size: 12px; padding: 0; }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px; height: 36px;
+    }
+    #applyBtn { background: var(--color-blue); }
+    #resetBtn { background: var(--color-red); }
+    #globalSkip { background: var(--color-gold); color: #000; }
+    #globalUndo { background: #64748b; }
+
+    .global-summary {
+      margin-left: auto; font-weight: 800; color: var(--text-muted); font-size: 14px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .global-summary span { color: var(--color-gold); font-size: 20px; font-family: monospace; }
+
+    .teams-wrap {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 15px;
+      width: 100%;
+      align-items: start;
+      overflow-x: auto;
+      padding-bottom: 20px;
+    }
+
+    .team-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 240px;
+      box-shadow: var(--shadow-soft);
+      flex: 0 0 auto;
+    }
+    .team-card.disqualified {
+      opacity: 0.6;
+      border-color: var(--color-red);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .team-name {
+      background: transparent; border: none; 
+      color: var(--text-muted); font-weight: 800; font-size: 14px;
+      text-align: center; width: 100%; outline: none;
+    }
+
+    .team-current {
+      font-size: 16px; font-weight: 900; text-align: center; color: var(--color-gold);
+      padding: 8px; border-radius: 6px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      min-height: 40px; display: flex; align-items: center; justify-content: center;
+    }
+
+    .limits { 
+      font-size: 11px; color: var(--text-muted); text-align: center; 
+      display: flex; justify-content: space-around;
+      background: rgba(0,0,0,0.2); padding: 4px; border-radius: 4px;
+    }
+    .limits span { color: var(--text-main); font-weight: bold; }
+
+    .districts { display: flex; flex-direction: column; gap: 4px; margin-top: 5px; }
+    
+    .district {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px; border-radius: 6px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid transparent;
+      font-size: 12px;
+    }
+    
+    .district.current { border-color: var(--color-blue); background: rgba(59, 130, 246, 0.1); }
+    .district.done { opacity: 0.5; }
+    .district.reach { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
+    .district.lock { background: rgba(15, 23, 42, 0.9); border-color: var(--color-red); color: var(--text-muted); }
+
+    .player-input {
+      flex: 1; border: none; background: transparent;
+      color: var(--text-main); font-weight: 700;
+      font-size: 13px; outline: none; min-width: 0;
+    }
+
+    .count {
+      font-family: monospace; font-weight: 700;
+      color: var(--text-muted); font-size: 12px; white-space: nowrap;
+    }
+
+    .top-controls { display: flex; gap: 5px; margin-bottom: 5px; }
+    .btn-mini {
+      flex: 1; padding: 8px 0; border-radius: 6px; border: none;
+      cursor: pointer; font-weight: 800; font-size: 12px; color: #fff;
+    }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+    .btn-undo { background: var(--text-muted); color: #1e293b; }
+
+    .teams-wrap::-webkit-scrollbar { height: 8px; }
+    .teams-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">EQ</div>
+    <h1>EQIDEN</h1>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="control-group">
+    <label>往路失格</label>
+    <input id="c15" type="number" min="1" value="4">
+  </div>
+  <div class="control-group">
+    <label>選手数</label>
+    <input id="playersPerTeam" type="number" min="1" max="10" value="10">
+  </div>
+  <div class="control-group">
+    <label>チーム数</label>
+    <input id="teamCount" type="number" min="1" max="30" value="5">
+  </div>
+  <div class="control-group" style="flex-direction:row; align-items:center; gap:8px;">
+    <button id="addTeamBtn" class="btn-action" style="background:#06b6d4;">チーム追加</button>
+  </div>
+  <div class="control-group">
+    <label>正解数</label>
+    <div class="needs-grid" id="needsInputs"></div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="control-group" style="flex-direction:row; align-items:center; gap:10px;">
+    <button id="applyBtn" class="btn-action">開始</button>
+    <button id="resetBtn" class="btn-action">リセット</button>
+  </div>
+  <div class="control-group" style="flex-direction:row; align-items:center; gap:10px; border-left: 1px solid var(--card-border); padding-left:15px; margin-left:10px;">
+    <button id="globalSkip" class="btn-action">スルー</button>
+    <button id="globalUndo" class="btn-action">戻る</button>
+  </div>
+  <div class="global-summary">Q. <span id="global-summary">0</span></div>
+</div>
+
+<div class="teams-wrap" id="preview" aria-live="polite"></div>
+
+<script>
+(function(){
+  let globalHistory = [];
+  const preview = document.getElementById('preview');
+  const c15El = document.getElementById('c15');
+  const playersPerTeamEl = document.getElementById('playersPerTeam');
+  const teamCountEl = document.getElementById('teamCount');
+  const needsInputsWrap = document.getElementById('needsInputs');
+  const applyBtn = document.getElementById('applyBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const globalSkipBtn = document.getElementById('globalSkip');
+  const globalUndoBtn = document.getElementById('globalUndo');
+  const globalSummary = document.getElementById('global-summary');
+  const addTeamBtn = document.getElementById('addTeamBtn');
+
+  function buildNeedsInputs(){
+    needsInputsWrap.innerHTML = '';
+    const needs = [1,1,1,2,2,2,2,2,2,2];
+    for(let i=0;i<10;i++){
+      const div = document.createElement('div');
+      div.className = 'need-item';
+      div.innerHTML = `<span>${i+1}</span><input type="number" id="need${i+1}" min="1" value="${needs[i]||1}">`;
+      needsInputsWrap.appendChild(div);
+    }
+  }
+
+  function readNeeds(){
+    const arr = [];
+    for(let i=1;i<=10;i++){
+      const el = document.getElementById('need'+i);
+      arr.push(el ? Math.max(1, parseInt(el.value||'1',10)) : 1);
+    }
+    return arr;
+  }
+
+  function initUI(){
+    const playersPerTeam = Math.max(1, Math.min(10, +playersPerTeamEl.value));
+    const teamCount = Math.max(1, Math.min(30, +teamCountEl.value));
+    preview.innerHTML = '';
+    for(let t = 1; t <= teamCount; t++){
+      preview.appendChild(createTeamBoard(t, playersPerTeam));
+    }
+    recalcAndRender();
+  }
+
+  function createTeamBoard(teamNo, playersPerTeam){
+    const board = document.createElement('div');
+    board.className = 'team-card';
+    board.id = `team-card-${teamNo}`;
+    board.dataset.teamId = teamNo;
+
+    const nameInput = document.createElement('input');
+    nameInput.className = 'team-name';
+    nameInput.value = `Team ${teamNo}`;
+
+    const currentDiv = document.createElement('div');
+    currentDiv.className = 'team-current';
+    currentDiv.textContent = '—';
+
+    const limits = document.createElement('div');
+    limits.className = 'limits';
+    limits.innerHTML = `<span>往路誤答: <span class="team15-count">0</span></span>`;
+
+    const ctl = document.createElement('div');
+    ctl.className = 'top-controls';
+    const btnC = document.createElement('button'); btnC.className='btn-mini btn-correct'; btnC.textContent='正解';
+    const btnW = document.createElement('button'); btnW.className='btn-mini btn-wrong'; btnW.textContent='誤答';
+    const btnU = document.createElement('button'); btnU.className='btn-mini btn-undo'; btnU.textContent='戻る';
+    
+    btnC.addEventListener('click', () => pushAction('correct', teamNo));
+    btnW.addEventListener('click', () => pushAction('wrong', teamNo));
+    btnU.addEventListener('click', () => undoTeamAction(teamNo));
+
+    ctl.append(btnC, btnW, btnU);
+
+    const ds = document.createElement('div'); ds.className = 'districts';
+    for(let idx=0; idx<playersPerTeam; idx++){
+      const cell = document.createElement('div');
+      cell.className = 'district';
+      cell.id = `t${teamNo}-d${idx}`;
+      cell.innerHTML = `<input class="player-input" value="プレイヤー${idx+1}"><div class="count">-</div>`;
+      ds.appendChild(cell);
+    }
+
+    board.append(nameInput, currentDiv, limits, ctl, ds);
+    return board;
+  }
+
+  function pushAction(type, teamId){
+    globalHistory.push({ type, teamId });
+    recalcAndRender();
+  }
+
+  function undoTeamAction(teamId){
+    for(let i = globalHistory.length - 1; i >= 0; i--){
+      if(globalHistory[i].teamId === teamId){
+        globalHistory.splice(i, 1);
+        recalcAndRender();
+        return;
+      }
+    }
+  }
+
+  function recalcAndRender(){
+    const needs = readNeeds();
+    const c15 = +c15El.value;
+    const playersPerTeam = Math.max(1, Math.min(10, +playersPerTeamEl.value));
+    const teamCount = Math.max(1, Math.min(30, +teamCountEl.value));
+
+    const teamsState = {};
+    for(let t=1; t<=teamCount; t++){
+      teamsState[t] = {
+        corrects: Array(playersPerTeam).fill(0),
+        wrongs15: 0,
+        wrongsTotal: 0,
+        currentIdx: 0,
+        penaltyStartTurn: null,
+        disqualified: false
+      };
+    }
+
+    let globalTurnCount = 0;
+
+    for(let index = 0; index < globalHistory.length; index++){
+      const action = globalHistory[index];
+      globalTurnCount++;
+
+      if(action.type === 'skip') continue;
+
+      if(action.type === 'eliminate'){
+        if(teamsState[action.teamId]) teamsState[action.teamId].disqualified = true;
+        continue;
+      }
+
+      const t = teamsState[action.teamId];
+      if(!t || t.disqualified || t.currentIdx >= playersPerTeam) continue;
+
+      let isLocked = false;
+      if(t.penaltyStartTurn !== null){
+        const turnsPassed = (globalTurnCount - 1) - t.penaltyStartTurn.start;
+        if(turnsPassed < t.penaltyStartTurn.duration) isLocked = true;
+      }
+      if(isLocked) continue;
+
+      if(action.type === 'correct'){
+        const priorIdx = t.currentIdx;
+        t.corrects[t.currentIdx]++;
+        if(t.corrects[t.currentIdx] >= (needs[t.currentIdx] || 1)){
+          t.currentIdx++;
+          t.penaltyStartTurn = null;
+
+          const returnStart = Math.floor(playersPerTeam / 2);
+          if(priorIdx < returnStart && t.currentIdx >= returnStart){
+            const nextAction = globalHistory[index + 1];
+            if (!(nextAction && nextAction.type === 'eliminate' && nextAction.triggeredBy === index)) {
+              handleReturnElimination(teamsState, action.teamId, index);
+            }
+          }
+        }
+      } else if(action.type === 'wrong'){
+        t.wrongsTotal++;
+        if(t.currentIdx < Math.floor(playersPerTeam / 2)){
+          t.wrongs15++;
+          if(t.wrongs15 >= c15) t.disqualified = true;
+        } else {
+          const activeCount = Object.values(teamsState).filter(s => !s.disqualified).length;
+          t.penaltyStartTurn = { start: globalTurnCount, duration: activeCount };
+        }
+      }
+    }
+
+    globalSummary.textContent = String(globalTurnCount);
+    for(let t=1; t<=teamCount; t++){
+      updateTeamUI(t, teamsState[t], needs, playersPerTeam, c15, globalTurnCount);
+    }
+  }
+
+  function handleReturnElimination(teamsState, advancingTeamId, actionIndex) {
+    const activeTeams = Object.entries(teamsState).filter(([id, s]) => !s.disqualified).map(([id])=>parseInt(id, 10));
+    if(activeTeams.length <= 1) return;
+
+    const stats = activeTeams.map(id => {
+      const s = teamsState[id];
+      return { id, totalCorrect: s.corrects.reduce((a,b)=>a+b,0), wrongsTotal: s.wrongsTotal };
+    });
+
+    let minCorrect = Math.min(...stats.map(x=>x.totalCorrect));
+    let candidates = stats.filter(x=>x.totalCorrect === minCorrect);
+
+    let chosenId = null;
+    if(candidates.length === 1) {
+      chosenId = candidates[0].id;
+    } else {
+      let maxWrong = Math.max(...candidates.map(x=>x.wrongsTotal));
+      let wrongCandidates = candidates.filter(x=>x.wrongsTotal === maxWrong);
+      if(wrongCandidates.length === 1) {
+        chosenId = wrongCandidates[0].id;
+      } else {
+        const listStr = wrongCandidates.map(c => {
+          const name = document.querySelector(`#team-card-${c.id} .team-name`).value;
+          return `${c.id}: ${name}`;
+        }).join('\n');
+        let input = prompt(`チーム ${advancingTeamId} が復路進出！脱落させるチームの番号を入力：\n${listStr}`);
+        chosenId = parseInt(input, 10);
+        if(isNaN(chosenId) || !wrongCandidates.find(c=>c.id === chosenId)) chosenId = wrongCandidates[0].id;
+      }
+    }
+    globalHistory.splice(actionIndex + 1, 0, { type: 'eliminate', teamId: chosenId, triggeredBy: actionIndex });
+    recalcAndRender();
+  }
+
+  function updateTeamUI(t, state, needs, playersPerTeam, c15, globalTurnCount) {
+    const board = document.getElementById(`team-card-${t}`);
+    if(!board) return;
+    
+    board.querySelector('.team15-count').textContent = `${state.wrongs15}/${c15}`;
+    board.classList.toggle('disqualified', state.disqualified);
+
+    let lockRemaining = 0;
+    if(state.penaltyStartTurn !== null && !state.disqualified){
+      const turnsPassed = globalTurnCount - state.penaltyStartTurn.start;
+      lockRemaining = Math.max(0, state.penaltyStartTurn.duration - turnsPassed);
+    }
+
+    const ds = board.querySelectorAll('.district');
+    ds.forEach((cell, idx) => {
+      const need = needs[idx] || 1;
+      const cCount = state.corrects[idx];
+      cell.className = 'district';
+      let txt = `${cCount}/${need}`;
+
+      if(idx < state.currentIdx) cell.classList.add('done');
+      else if(idx === state.currentIdx){
+        if(state.disqualified) { cell.classList.add('lock'); txt = "LOSE"; }
+        else if(lockRemaining > 0) { cell.classList.add('lock'); txt += ` 休${lockRemaining}`; }
+        else { cell.classList.add('current'); if(cCount + 1 >= need) cell.classList.add('reach'); }
+      }
+      cell.querySelector('.count').textContent = txt;
+    });
+
+    const curDiv = board.querySelector('.team-current');
+    if(state.disqualified){ curDiv.textContent = "LOSE"; curDiv.style.color = "var(--color-red)"; }
+    else if(state.currentIdx >= playersPerTeam){ curDiv.textContent = "GOAL!"; curDiv.style.color = "var(--color-green)"; }
+    else {
+      const pInps = board.querySelectorAll('.player-input');
+      const name = pInps[state.currentIdx] ? pInps[state.currentIdx].value : `プレイヤー${state.currentIdx+1}`;
+      curDiv.textContent = (lockRemaining > 0) ? `LOCK (${lockRemaining})` : name;
+      curDiv.style.color = (lockRemaining > 0) ? "var(--color-red)" : "var(--color-gold)";
+    }
+    board.querySelector('.btn-correct').disabled = state.disqualified || state.currentIdx >= playersPerTeam || lockRemaining > 0;
+    board.querySelector('.btn-wrong').disabled = state.disqualified || state.currentIdx >= playersPerTeam || lockRemaining > 0;
+  }
+
+  globalSkipBtn.addEventListener('click', () => { globalHistory.push({ type: 'skip' }); recalcAndRender(); });
+  globalUndoBtn.addEventListener('click', () => { globalHistory.pop(); recalcAndRender(); });
+  applyBtn.addEventListener('click', initUI);
+  resetBtn.addEventListener('click', () => { if(confirm("リセットしますか？")){ globalHistory = []; initUI(); } });
+  addTeamBtn.addEventListener('click', () => { teamCountEl.value = Math.min(30, (+teamCountEl.value||0)+1); initUI(); });
+
+  buildNeedsInputs();
+  initUI();
+})();
+</script>
+</body>
+</html>

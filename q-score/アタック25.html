@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>アタック25</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-p1: #ef4444;
+      --color-p2: #10b981;
+      --color-p3: #f1f5f9;
+      --color-p4: #3b82f6;
+      --color-empty: #334155;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-p1), var(--color-p4));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 20px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .header-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    #resetBtn { background: #ef4444; }
+    #undoBtn { background: #64748b; }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 20px;
+      flex: 1;
+      align-items: start;
+    }
+
+    .board-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(10px);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 24px;
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      overflow: hidden;
+      transition: all 0.2s;
+      background: var(--color-empty);
+    }
+
+    .cell:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+    
+    .cell.empty { background: linear-gradient(180deg, #334155, #1e293b); color: var(--text-muted); }
+    .cell.p1 { background: linear-gradient(180deg, #f87171, var(--color-p1)); color: #fff; }
+    .cell.p2 { background: linear-gradient(180deg, #4ade80, var(--color-p2)); color: #fff; }
+    .cell.p3 { background: linear-gradient(180deg, #ffffff, #e2e8f0); color: #0f172a; }
+    .cell.p4 { background: linear-gradient(180deg, #60a5fa, var(--color-p4)); color: #fff; }
+
+    .cell .num { position: relative; z-index: 2; font-size: 18px; }
+
+    .owner-badge {
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 10px;
+      z-index: 4;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+
+    .cell.candidate-allowed {
+      outline: 3px solid rgba(255,255,255,0.3);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .cand-mark {
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+      background: rgba(255,255,255,0.9);
+      color: #0f172a;
+    }
+
+    .flipping {
+      animation: flipAnim 350ms ease-in-out;
+    }
+    @keyframes flipAnim {
+      0% { transform: rotateY(0deg) scale(1); }
+      50% { transform: rotateY(90deg) scale(1.05); }
+      100% { transform: rotateY(0deg) scale(1); }
+    }
+
+    .players-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .player-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-left: 4px solid;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(10px);
+    }
+
+    .player-card.p1 { border-left-color: var(--color-p1); }
+    .player-card.p2 { border-left-color: var(--color-p2); }
+    .player-card.p3 { border-left-color: var(--color-p3); }
+    .player-card.p4 { border-left-color: var(--color-p4); }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .player-name {
+      background: transparent;
+      border: 1px dashed rgba(255,255,255,0.2);
+      color: var(--text-main);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      width: 120px;
+    }
+    .player-name:focus { outline: none; border-color: rgba(255,255,255,0.4); }
+
+    .score-display {
+      text-align: right;
+    }
+    .score-label { font-size: 11px; color: var(--text-muted); font-weight: bold; }
+    .score-value { font-size: 32px; font-weight: 900; line-height: 1; }
+
+    .player-stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .stat-item {
+      flex: 1;
+      background: rgba(255,255,255,0.03);
+      padding: 6px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .stat-label { font-size: 10px; color: var(--text-muted); font-weight: bold; }
+    .stat-value { font-size: 18px; font-weight: 900; margin-top: 2px; }
+
+    .player-buttons {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-player {
+      flex: 1;
+      border: none;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .btn-player:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-player:active { transform: translateY(0); }
+    .btn-player:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-correct { background: var(--color-p4); color: #064e3b; }
+    .btn-wrong { background: var(--color-p1); color: #7f1d1d; }
+    .btn-skip { background: #64748b; color: #fff; }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      .board {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { padding: 10px; }
+      .main-content { gap: 15px; }
+      .cell .num { font-size: 14px; }
+      .player-name { width: 100px; font-size: 14px; }
+      .score-value { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">25</div>
+    <h1>アタック25</h1>
+  </div>
+  <div class="header-controls">
+    <div class="status-badge" id="remaining">残り: 25</div>
+    <div class="status-badge" id="attackFlag">アタック: OFF</div>
+    <div style="flex:1"></div>
+    <button id="resetBtn" class="btn-action">リセット</button>
+    <button id="undoBtn" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="main-content">
+  <div class="board-section">
+    <div id="board" class="board"></div>
+  </div>
+
+  <div class="players-section">
+    <div class="player-card p1">
+      <div class="player-header">
+        <input class="player-name" id="playerName1" value="プレイヤー1">
+        <div class="score-display">
+          <div class="score-label">獲得マス</div>
+          <div class="score-value" id="score1">0</div>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-item">
+          <div class="stat-label">誤答</div>
+          <div class="stat-value" id="wrong1">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Skip</div>
+          <div class="stat-value" id="skip1">0</div>
+        </div>
+      </div>
+      <div class="player-buttons">
+        <button class="btn-player btn-correct" onclick="selectPlayer(1)">正解</button>
+        <button class="btn-player btn-wrong" onclick="markWrong(1)">誤答</button>
+        <button class="btn-player btn-skip" onclick="skipReduce(1)">スルー</button>
+      </div>
+    </div>
+
+    <div class="player-card p2">
+      <div class="player-header">
+        <input class="player-name" id="playerName2" value="プレイヤー2">
+        <div class="score-display">
+          <div class="score-label">獲得マス</div>
+          <div class="score-value" id="score2">0</div>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-item">
+          <div class="stat-label">誤答</div>
+          <div class="stat-value" id="wrong2">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Skip</div>
+          <div class="stat-value" id="skip2">0</div>
+        </div>
+      </div>
+      <div class="player-buttons">
+        <button class="btn-player btn-correct" onclick="selectPlayer(2)">正解</button>
+        <button class="btn-player btn-wrong" onclick="markWrong(2)">誤答</button>
+        <button class="btn-player btn-skip" onclick="skipReduce(2)">スルー</button>
+      </div>
+    </div>
+
+    <div class="player-card p3">
+      <div class="player-header">
+        <input class="player-name" id="playerName3" value="プレイヤー3">
+        <div class="score-display">
+          <div class="score-label">獲得マス</div>
+          <div class="score-value" id="score3">0</div>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-item">
+          <div class="stat-label">誤答</div>
+          <div class="stat-value" id="wrong3">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Skip</div>
+          <div class="stat-value" id="skip3">0</div>
+        </div>
+      </div>
+      <div class="player-buttons">
+        <button class="btn-player btn-correct" onclick="selectPlayer(3)">正解</button>
+        <button class="btn-player btn-wrong" onclick="markWrong(3)">誤答</button>
+        <button class="btn-player btn-skip" onclick="skipReduce(3)">スルー</button>
+      </div>
+    </div>
+
+    <div class="player-card p4">
+      <div class="player-header">
+        <input class="player-name" id="playerName4" value="プレイヤー4">
+        <div class="score-display">
+          <div class="score-label">獲得マス</div>
+          <div class="score-value" id="score4">0</div>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div class="stat-item">
+          <div class="stat-label">誤答</div>
+          <div class="stat-value" id="wrong4">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Skip</div>
+          <div class="stat-value" id="skip4">0</div>
+        </div>
+      </div>
+      <div class="player-buttons">
+        <button class="btn-player btn-correct" onclick="selectPlayer(4)">正解</button>
+        <button class="btn-player btn-wrong" onclick="markWrong(4)">誤答</button>
+        <button class="btn-player btn-skip" onclick="skipReduce(4)">スルー</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const OWNER_EMPTY = 0;
+let owners = Array(25).fill(0);
+let wrongCount = [0,0,0,0,0];
+let skipTurns = [0,0,0,0,0];
+let currentCorrectPlayer = 0;
+let attackActive = false;
+let attackOwner = 0;
+let attackUsed = false;
+let mode = 'normal';
+let actionStack = [];
+const deltas = [[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1]];
+const boardEl = document.getElementById('board');
+const remainingEl = document.getElementById('remaining');
+const attackFlagEl = document.getElementById('attackFlag');
+const undoBtn = document.getElementById('undoBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+function idxToRC(i){ return {r: Math.floor(i/5), c: i%5}; }
+function rcToIdx(r,c){ return r*5 + c; }
+function inBoard(r,c){ return r>=0 && r<5 && c>=0 && c<5; }
+function remainingPanels(){ return owners.reduce((s,o)=> s + (o===0?1:0), 0); }
+function countOwned(p){ return owners.reduce((s,o)=> s + (o===p?1:0), 0); }
+function isBoardEmpty(){ return owners.every(o=>o===0); }
+function ownerLabelFor(p){ const name = (document.getElementById('playerName'+p)?.value || ('P'+p)).trim(); return name? name[0].toUpperCase() : ('P'+p); }
+
+function flippableListIfPlaced(panelIdx, player){
+  if(owners[panelIdx] !== OWNER_EMPTY) return [];
+  const {r,c} = idxToRC(panelIdx);
+  let result = [];
+  for(const d of deltas){
+    let tr = r + d[0], tc = c + d[1];
+    const temp = []; let foundOpponent = false;
+    while(inBoard(tr,tc)){
+      const idx = rcToIdx(tr,tc);
+      const owner = owners[idx];
+      if(owner === OWNER_EMPTY) break;
+      if(owner !== player){ temp.push(idx); foundOpponent = true; }
+      else { if(foundOpponent) result = result.concat(temp); break; }
+      tr += d[0]; tc += d[1];
+    }
+  }
+  return Array.from(new Set(result));
+}
+
+function isAdjacentToAnyOccupied(idx){
+  const {r,c} = idxToRC(idx);
+  for(const d of deltas){
+    const tr = r + d[0], tc = c + d[1];
+    if(inBoard(tr,tc) && owners[rcToIdx(tr,tc)] !== OWNER_EMPTY) return true;
+  }
+  return false;
+}
+
+function computeLegal(player){
+  const flipList = [];
+  for(let i=0;i<25;i++){
+    if(owners[i] === OWNER_EMPTY){
+      if(flippableListIfPlaced(i,player).length > 0) flipList.push(i);
+    }
+  }
+  if(flipList.length > 0) return flipList;
+  
+  const setupList = [];
+  for(let i=0;i<25;i++){
+    if(owners[i] === OWNER_EMPTY){
+      owners[i] = player;
+      let canFlipNext = false;
+      for(let j=0; j<25; j++){
+        if(owners[j] === OWNER_EMPTY){
+          if(flippableListIfPlaced(j, player).length > 0){
+            canFlipNext = true;
+            break;
+          }
+        }
+      }
+      owners[i] = OWNER_EMPTY;
+      if(canFlipNext) setupList.push(i);
+    }
+  }
+  if(setupList.length > 0) return setupList;
+
+  const adj = [];
+  for(let i=0;i<25;i++){
+    if(owners[i] === OWNER_EMPTY && isAdjacentToAnyOccupied(i)) adj.push(i);
+  }
+  if(adj.length > 0) return adj;
+  const all = [];
+  for(let i=0;i<25;i++) if(owners[i] === OWNER_EMPTY) all.push(i);
+  return all;
+}
+
+function saveState(){ return {owners: owners.slice(), wrong: wrongCount.slice(), skip: skipTurns.slice(), currentCorrectPlayer, attackActive, attackOwner, attackUsed, mode}; }
+function restoreState(s){
+  owners = s.owners.slice();
+  wrongCount = s.wrong.slice();
+  skipTurns = s.skip.slice();
+  currentCorrectPlayer = s.currentCorrectPlayer;
+  attackActive = s.attackActive;
+  attackOwner = s.attackOwner;
+  attackUsed = s.attackUsed;
+  mode = s.mode;
+  renderBoard();
+  updateUI();
+  refreshUndo();
+}
+function pushState(){ actionStack.push(saveState()); if(actionStack.length > 400) actionStack.shift(); refreshUndo(); }
+function refreshUndo(){ undoBtn.disabled = actionStack.length === 0; }
+function undo(){ if(actionStack.length === 0) return; const prev = actionStack.pop(); restoreState(prev); }
+
+function renderBoard(){
+  boardEl.innerHTML = '';
+  for(let i=0;i<25;i++){
+    const div = document.createElement('div'); div.className = 'cell';
+    const o = owners[i];
+    if(o === 0) div.classList.add('empty'); else div.classList.add('p'+o);
+    div.innerHTML = `<div class="num">${i+1}</div>`;
+    div.dataset.idx = i; div.onclick = onCellClick;
+    if(o !== 0){
+      const badge = document.createElement('div'); badge.className = 'owner-badge'; badge.textContent = ownerLabelFor(o);
+      div.appendChild(badge);
+    }
+    boardEl.appendChild(div);
+  }
+  highlightCandidates();
+}
+
+function highlightCandidates(){
+  const cells = boardEl.querySelectorAll('.cell');
+  cells.forEach(c => {
+    c.classList.remove('candidate-allowed');
+    const m = c.querySelector('.cand-mark'); if(m) m.remove();
+  });
+  if(mode === 'choosePanel' && currentCorrectPlayer){
+    const legal = computeLegal(currentCorrectPlayer);
+    legal.forEach(idx => {
+      const el = boardEl.querySelector(`[data-idx="${idx}"]`);
+      if(el){
+        el.classList.add('candidate-allowed');
+        const mark = document.createElement('div'); mark.className = 'cand-mark'; mark.textContent = '✓';
+        el.appendChild(mark);
+      }
+    });
+  }
+  if(mode === 'attackDelete' && attackOwner){
+    for(let i=0;i<25;i++) if(owners[i] !== OWNER_EMPTY){
+      const el = boardEl.querySelector(`[data-idx="${i}"]`);
+      if(el){
+        el.classList.add('candidate-allowed');
+        const mark = document.createElement('div'); mark.className = 'cand-mark'; mark.textContent = '✖';
+        el.appendChild(mark);
+      }
+    }
+  }
+}
+
+function refreshAttackActiveFlag(){
+  const rem = remainingPanels();
+  if(rem === 0){
+    attackActive = false;
+    mode = 'normal';
+    attackOwner = 0;
+  }
+}
+
+function applyPlaceWithFlip(panelIdx, player){
+  return new Promise(resolve => {
+    const flips = flippableListIfPlaced(panelIdx, player);
+    owners[panelIdx] = player;
+    renderBoard();
+    const flipEls = flips.map(i => boardEl.querySelector(`[data-idx="${i}"]`)).filter(Boolean);
+    flipEls.forEach(el => el.classList.add('flipping'));
+    setTimeout(() => {
+      for(const i of flips) owners[i] = player;
+      renderBoard();
+
+      const rem = remainingPanels();
+      refreshAttackActiveFlag();
+
+      if(rem === 5 && !attackUsed){
+        attackUsed = true;
+        attackActive = true;
+        alert('アタックチャンス!');
+      }
+      
+      if(rem === 0){
+        attackActive = false;
+        mode = 'normal';
+      }
+      resolve();
+    }, 300);
+  });
+}
+
+function decrementSkipsExcept(actingPlayer){ for(let p=1;p<=4;p++){ if(p === actingPlayer) continue; if(skipTurns[p] > 0) skipTurns[p]--; } }
+
+async function selectPlayer(player){
+  if(skipTurns[player] > 0){ alert('Skip中のため操作できません'); return; }
+  
+  if(attackActive && attackOwner){
+    return;
+  }
+  
+  pushState();
+  currentCorrectPlayer = player;
+
+  if(isBoardEmpty()){
+    await applyPlaceWithFlip(12, player);
+    decrementSkipsExcept(player);
+    currentCorrectPlayer = 0; renderBoard(); updateUI(); return;
+  }
+
+  const legal = computeLegal(player);
+  if(legal.length === 0){ alert('置ける場所がありません(パス)'); currentCorrectPlayer = 0; mode = 'normal'; return; }
+
+  if(attackActive && !attackOwner){
+    attackOwner = player;
+  }
+
+  if(legal.length === 1){
+    await applyPlaceWithFlip(legal[0], player);
+    decrementSkipsExcept(player);
+    currentCorrectPlayer = 0;
+    
+    if(attackActive && attackOwner === player){
+      mode = 'attackDelete';
+      renderBoard(); updateUI();
+    } else {
+      renderBoard(); updateUI();
+    }
+    return;
+  }
+
+  mode = 'choosePanel'; renderBoard(); updateUI();
+}
+
+function markWrong(player){
+  pushState();
+  wrongCount[player] = (wrongCount[player] || 0) + 1;
+  if(wrongCount[player] === 1){
+    skipTurns[player] = 0;
+  } else {
+    skipTurns[player] = 2;
+  }
+  decrementSkipsExcept(player);
+  renderBoard(); updateUI();
+}
+
+async function doAttackDeleteAt(idx){
+  if(owners[idx] === OWNER_EMPTY){ alert('空きパネルは消せません'); return; }
+  if(!attackOwner || attackOwner === 0){ alert('交換対象のプレイヤーが未設定です'); return; }
+  pushState();
+  owners[idx] = OWNER_EMPTY;
+  renderBoard();
+  const el = boardEl.querySelector(`[data-idx="${idx}"]`);
+  if(el){ el.classList.add('flipping'); setTimeout(()=> el.classList.remove('flipping'), 360); }
+}
+
+async function onCellClick(e){
+  const idx = parseInt(e.currentTarget.dataset.idx, 10);
+  if(mode === 'choosePanel'){
+    const player = currentCorrectPlayer; if(!player){ alert('正解者が未設定です'); return; }
+    const legal = computeLegal(player);
+    if(!legal.includes(idx)){ alert('そのマスは現在選べません'); return; }
+    pushState();
+    await applyPlaceWithFlip(idx, player);
+    decrementSkipsExcept(player);
+    currentCorrectPlayer = 0;
+    
+    if(attackActive && attackOwner === player){
+      mode = 'attackDelete';
+      renderBoard(); updateUI();
+    } else {
+      renderBoard(); updateUI();
+    }
+    return;
+  } else if(mode === 'attackDelete'){
+    await doAttackDeleteAt(idx);
+    mode = 'normal';
+    attackActive = false;
+    attackOwner = 0;
+    currentCorrectPlayer = 0;
+    renderBoard(); updateUI();
+    return;
+  }
+}
+
+function skipReduce(player){
+  if(skipTurns[player] > 0){
+    pushState();
+    skipTurns[player] = Math.max(0, skipTurns[player] - 1);
+    renderBoard(); updateUI();
+  } else {
+    alert('スキップはありません');
+  }
+}
+
+function updateUI(){
+  refreshAttackActiveFlag();
+  remainingEl.textContent = `残り: ${remainingPanels()}`;
+  attackFlagEl.textContent = `アタック: ${attackActive? 'ON':'OFF'}`;
+  for(let p=1;p<=4;p++){
+    document.getElementById('score'+p).textContent = countOwned(p);
+    document.getElementById('wrong'+p).textContent = wrongCount[p] || 0;
+    document.getElementById('skip'+p).textContent = skipTurns[p] || 0;
+  }
+  highlightCandidates(); refreshUndo();
+}
+
+resetBtn.addEventListener('click', ()=>{ if(!confirm('リセットしますか?')) return; pushState(); owners = Array(25).fill(0); wrongCount=[0,0,0,0,0]; skipTurns=[0,0,0,0,0]; currentCorrectPlayer=0; attackActive=false; attackOwner=0; attackUsed=false; mode='normal'; renderBoard(); updateUI(); });
+undoBtn.addEventListener('click', undo);
+
+for(let p=1;p<=4;p++) document.getElementById('playerName'+p).addEventListener('input', renderBoard);
+
+renderBoard();
+updateUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>TOMOE</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      --color-indigo: #6366f1;
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-indigo), var(--color-blue));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; white-space: nowrap; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 60px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-indigo); }
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    #setupBtn { background: var(--color-blue); }
+    #resetAll { background: var(--color-red); }
+    #skipBtn { background: var(--color-gold); color: #000; }
+    #undoGlobal { background: #64748b; }
+    #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
+    .q-count { margin-left: 10px; font-weight: 800; color: var(--text-muted); font-size: 14px; }
+    .q-count span { color: var(--text-main); font-size: 18px; }
+    .arena { display: flex; gap: 20px; width: 100%; flex: 1; min-height: 0; }
+    .team-card {
+      flex: 1; background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 20px; display: flex; flex-direction: column;
+      box-shadow: var(--shadow-soft); min-width: 0; transition: all 0.3s ease;
+    }
+    .team-header {
+      display: flex; flex-direction: column; align-items: center; margin-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+    }
+    .team-name {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: 900; font-size: 24px; text-align: center; width: 100%;
+      outline: none; margin-bottom: 5px;
+    }
+    .team-score {
+      font-size: 56px; font-weight: 900; color: var(--color-indigo);
+      text-shadow: 0 0 30px rgba(99, 102, 241, 0.4); line-height: 1;
+    }
+    .team-players-area {
+      display: flex; flex: 1; gap: 0; position: relative;
+    }
+    .pos-group {
+      display: flex; flex-direction: column; align-items: center; flex: 1;
+    }
+    .pos-group.alpha {
+      flex: 2;
+      border-right: 2px dashed rgba(255,255,255,0.15); padding-right: 10px;
+      position: relative;
+    }
+    .pos-group.beta {
+      flex: 1;
+      padding-left: 10px;
+    }
+    .pos-label {
+      font-size: 12px; font-weight: 900; color: var(--color-blue);
+      margin-bottom: 5px; opacity: 0.8; letter-spacing: 1px;
+    }
+    .beta .pos-label { color: var(--color-cyan); }
+    
+    .alpha-shared-points {
+      position: absolute;
+      top: 50%;
+      left: 50%; 
+      transform: translate(-50%, -50%);
+      font-size: 40px; 
+      font-weight: 900;
+      color: var(--text-main);
+      z-index: 10;
+      pointer-events: none; 
+    }
+
+    .players-wrap {
+      display: flex; width: 100%; justify-content: center; gap: 10px; height: 100%;
+      flex: 1;
+    }
+    .player-col {
+      display: flex; flex-direction: column; align-items: center;
+      background: rgba(255,255,255,0.03); border-radius: 8px;
+      padding: 10px 5px; position: relative; border: 1px solid transparent;
+      transition: all 0.2s; flex: 1; min-width: 0;
+    }
+    .name-input {
+      writing-mode: vertical-rl; text-orientation: upright;
+      background: transparent; border: none; color: var(--text-muted);
+      font-weight: 700; font-size: 16px; height: 120px; width: 24px;
+      text-align: center; letter-spacing: 2px; margin-bottom: 5px;
+      transition: color 0.2s;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+    
+    .player-points { font-size: 32px; font-weight: 800; color: var(--text-main); margin: 5px 0; }
+    
+    .pos-group.alpha .player-col .player-points { display: none; }
+
+    .wrong-marks { height: 24px; font-size: 18px; font-weight: 900; color: var(--color-red); letter-spacing: 2px; }
+    .buttons { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: auto; }
+    .btn-op {
+      border: none; padding: 8px 0; border-radius: 6px; cursor: pointer;
+      font-weight: 900; font-size: 14px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s; width: 100%;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+    .player-col.lock {
+      opacity: 0.5; background: rgba(15, 23, 42, 0.8); border-color: var(--color-red);
+    }
+    .player-col.lock::after {
+      content: "LOCK"; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); font-weight: 900; color: var(--color-red);
+      font-size: 18px; pointer-events: none; text-shadow: 0 0 10px #000;
+    }
+    .player-col.lock .btn-op { pointer-events: none; opacity: 0; }
+    
+    .player-col.reach {
+      border-color: var(--color-green); 
+      background: rgba(16, 185, 129, 0.05);
+      box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+    }
+    .player-col.reach .name-input { color: var(--text-main); }
+    .player-col.reach .player-points { color: var(--text-main); }
+
+
+    .team-card.winner {
+      border-color: var(--color-gold);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+    }
+    .team-card.winner .team-score { color: var(--color-gold); text-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+    .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
+    @media (max-width: 900px) {
+      .arena { flex-direction: column; }
+      .team-score { font-size: 48px; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title-group">
+    <div class="logo">巴</div>
+    <h1>TOMOE</h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>WIN</label>
+      <input type="number" id="winPoints" min="1" value="30">
+    </div>
+    <div class="control-group">
+      <label>限定問題数</label>
+      <input type="number" id="maxQ" min="1" value="25">
+    </div>
+    <div style="flex:1"></div>
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="skipBtn" class="btn-action">スルー</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+    <div class="q-count">Q.<span id="qCountVal">0</span></div>
+  </div>
+</header>
+<div class="arena">
+  <div class="team-card" id="teamA">
+    <div class="team-header">
+      <input class="team-name" value="Team A">
+      <div class="team-score" id="scoreA">0</div>
+    </div>
+    <div class="team-players-area" id="playersA"></div>
+  </div>
+  <div class="team-card" id="teamB">
+    <div class="team-header">
+      <input class="team-name" value="Team B">
+      <div class="team-score" id="scoreB">0</div>
+    </div>
+    <div class="team-players-area" id="playersB"></div>
+    </div>
+</div>
+<script>
+(function(){
+  const winInput = document.getElementById('winPoints');
+  const maxQInput = document.getElementById('maxQ');
+  const qCountVal = document.getElementById('qCountVal');
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const skipBtn = document.getElementById('skipBtn');
+  const undoBtn = document.getElementById('undoGlobal');
+  const scoreElA = document.getElementById('scoreA');
+  const scoreElB = document.getElementById('scoreB');
+  const containerA = document.getElementById('playersA');
+  const containerB = document.getElementById('playersB');
+  const teamCardA = document.getElementById('teamA');
+  const teamCardB = document.getElementById('teamB');
+
+  const TEAM_SIZE = 3;
+  let qCount = 0;
+  let teams = [[], []];
+  let historyStack = [];
+
+  function initData(){
+    teams = [
+      [
+        { points: 1, wrong: 0, isLocked: false },
+        { points: 0, wrong: 0, isLocked: false },
+        { points: 1, wrong: 0, isLocked: false }
+      ],
+      [
+        { points: 1, wrong: 0, isLocked: false },
+        { points: 0, wrong: 0, isLocked: false },
+        { points: 1, wrong: 0, isLocked: false }
+      ]
+    ];
+    qCount = 0;
+    historyStack = [];
+    render();
+    resetBtn.disabled = false;
+  }
+
+  function pushHistory(){
+    historyStack.push({ teams: JSON.parse(JSON.stringify(teams)), qCount: qCount });
+    if(historyStack.length > 500) historyStack.shift();
+    updateUndoBtn();
+  }
+
+  function updateUndoBtn(){ undoBtn.disabled = historyStack.length === 0; }
+
+  function calculateScore(p0, p1, p2) {
+    return (p0 + p1) * p2;
+  }
+
+  function getTeamScore(teamIndex){
+    const t = teams[teamIndex];
+    return calculateScore(t[0].points, t[1].points, t[2].points);
+  }
+
+  function getAlphaSum(teamIndex){
+      const t = teams[teamIndex];
+      return t[0].points + t[1].points;
+  }
+
+  function getPotentialScore(teamIndex, playerIdx) {
+    const t = teams[teamIndex];
+    let p0 = t[0].points;
+    let p1 = t[1].points;
+    let p2 = t[2].points;
+    
+    if (playerIdx === 0) p0++;
+    else if (playerIdx === 1) p1++;
+    else if (playerIdx === 2) p2++;
+
+    return calculateScore(p0, p1, p2);
+  }
+
+  function isAlphaReach(teamIndex, winScore, currentTeamScore) {
+      return (getPotentialScore(teamIndex, 0) >= winScore || getPotentialScore(teamIndex, 1) >= winScore) 
+             && currentTeamScore < winScore;
+  }
+
+  function reviveTeam(teamIndex){
+    teams[teamIndex].forEach(p => { if(p.isLocked) p.isLocked = false; });
+  }
+
+  function checkMaxQ(){
+    const max = parseInt(maxQInput.value || 30);
+    return qCount >= max;
+  }
+
+  function handleCorrect(teamIdx, playerIdx){
+    if(checkMaxQ()) return;
+    const p = teams[teamIdx][playerIdx];
+    if(p.isLocked) return;
+    pushHistory();
+    qCount++;
+    p.points += 1;
+    reviveTeam(teamIdx);
+    render(teamIdx);
+  }
+
+  function handleWrong(teamIdx, playerIdx){
+    if(checkMaxQ()) return;
+    const p = teams[teamIdx][playerIdx];
+    if(p.isLocked) return;
+    pushHistory();
+    qCount++;
+    p.wrong += 1;
+    p.isLocked = true;
+    render(teamIdx);
+  }
+
+  function handleSkip(){
+    if(checkMaxQ()) return;
+    pushHistory();
+    qCount++;
+    render();
+  }
+
+  function createPlayerEl(teamIdx, playerIdx, pData, winScore, currentTeamScore){
+    const div = document.createElement('div');
+    div.className = 'player-col';
+    div.setAttribute('data-idx', playerIdx);
+    
+    const pointsHtml = (playerIdx === 2) ? `<div class="player-points">${pData.points}</div>` : '';
+
+    div.innerHTML = `
+      <input class="name-input" value="プレイヤー${playerIdx+1}" />
+      ${pointsHtml}
+      <div class="wrong-marks">${'×'.repeat(pData.wrong)}</div>
+      <div class="buttons">
+        <button class="btn-op btn-correct">正解</button>
+        <button class="btn-op btn-wrong">誤答</button>
+      </div>
+    `;
+    div.querySelector('.btn-correct').addEventListener('click', () => handleCorrect(teamIdx, playerIdx));
+    div.querySelector('.btn-wrong').addEventListener('click', () => handleWrong(teamIdx, playerIdx));
+    return div;
+  }
+
+  function updateTeamDOM(teamIdx, container, winScore, teamScore){
+    const teamData = teams[teamIdx];
+    const alphaSum = getAlphaSum(teamIdx); 
+    const isAlphaGrpReach = isAlphaReach(teamIdx, winScore, teamScore);
+
+    if(container.children.length === 0){
+      const alphaGroup = document.createElement('div');
+      alphaGroup.className = 'pos-group alpha';
+      alphaGroup.innerHTML = `
+        <div class="pos-label">Position α</div>
+        <div class="players-wrap"></div>
+        <div class="alpha-shared-points"></div>
+      `;
+      
+      const betaGroup = document.createElement('div');
+      betaGroup.className = 'pos-group beta';
+      betaGroup.innerHTML = `
+        <div class="pos-label">Position β</div>
+        <div class="players-wrap"></div>
+      `;
+      
+      container.appendChild(alphaGroup);
+      container.appendChild(betaGroup);
+
+      const alphaWrap = alphaGroup.querySelector('.players-wrap');
+      const betaWrap = betaGroup.querySelector('.players-wrap');
+
+      teamData.forEach((pData, idx) => {
+        const el = createPlayerEl(teamIdx, idx, pData, winScore, teamScore);
+        if(idx < 2) alphaWrap.appendChild(el);
+        else betaWrap.appendChild(el);
+      });
+    }
+
+    const alphaPointsEl = container.querySelector('.alpha-shared-points');
+    alphaPointsEl.textContent = alphaSum;
+    alphaPointsEl.classList.toggle('reach', isAlphaGrpReach); 
+
+    const allPlayerEls = container.querySelectorAll('.player-col');
+    allPlayerEls.forEach((div) => {
+      const idx = parseInt(div.getAttribute('data-idx'));
+      const pData = teamData[idx];
+      
+      if (idx === 2) {
+        div.querySelector('.player-points').textContent = pData.points;
+      }
+      
+      div.querySelector('.wrong-marks').textContent = '×'.repeat(pData.wrong);
+      
+      div.classList.remove('lock', 'reach');
+      if(pData.isLocked) div.classList.add('lock');
+      else {
+        const potential = getPotentialScore(teamIdx, idx);
+        
+        if (idx < 2) {
+             if (isAlphaGrpReach) div.classList.add('reach');
+        } 
+        else {
+            if(potential >= winScore && teamScore < winScore) {
+                 div.classList.add('reach');
+            }
+        }
+      }
+    });
+  }
+
+  function render(animateTeamIdx = -1){
+    const winScore = parseInt(winInput.value || 50);
+    const scoreA = getTeamScore(0);
+    const scoreB = getTeamScore(1);
+    
+    scoreElA.textContent = scoreA;
+    scoreElB.textContent = scoreB;
+    qCountVal.textContent = qCount;
+
+    teamCardA.classList.remove('winner');
+    teamCardB.classList.remove('winner');
+    if(scoreA >= winScore) teamCardA.classList.add('winner');
+    if(scoreB >= winScore) teamCardB.classList.add('winner');
+
+    if(animateTeamIdx === 0) {
+      scoreElA.classList.remove('pop-anim'); void scoreElA.offsetWidth; scoreElA.classList.add('pop-anim');
+    } else if(animateTeamIdx === 1) {
+      scoreElB.classList.remove('pop-anim'); void scoreElB.offsetWidth; scoreElB.classList.add('pop-anim');
+    }
+
+    updateTeamDOM(0, containerA, winScore, scoreA);
+    updateTeamDOM(1, containerB, winScore, scoreB);
+    updateUndoBtn();
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const prev = historyStack.pop();
+    teams = prev.teams;
+    qCount = prev.qCount;
+    render();
+  }
+
+  setupBtn.addEventListener('click', initData);
+  resetBtn.addEventListener('click', initData);
+  skipBtn.addEventListener('click', handleSkip);
+  undoBtn.addEventListener('click', undoGlobal);
+  winInput.addEventListener('input', () => render());
+
+  initData();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>500問耐久クイズ</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-yellow: #fbbf24;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-yellow), var(--color-gold));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 50px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-yellow); }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    #addPlayerBtn { background: var(--color-green); }
+    #setupBtn { background: var(--color-blue); }
+    #resetAll { background: var(--color-red); }
+    #undoBtn { background: #64748b; }
+    #throughBtn { background: #64748b; }
+    #nextSetBtn { background: var(--color-yellow); color: #000; }
+
+    .scoreboard {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+    #grid {
+      display: grid;
+      gap: 15px;
+      align-items: start;
+    }
+
+    .column {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .name-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 24px;
+      height: 240px;
+      width: 40px;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      transition: color 0.2s;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+
+    .score-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      width: 100%;
+      position: relative;
+    }
+
+    .correct-count {
+      font-size: 56px;
+      font-weight: 800;
+      color: var(--color-blue);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+      min-height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    .top-rank .correct-count {
+      color: var(--color-gold);
+      text-shadow: 0 0 25px rgba(251, 191, 36, 0.8);
+    }
+    
+    .status-info {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-height: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 5px;
+      gap: 3px;
+    }
+
+    .star-display {
+      color: var(--color-yellow);
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .yellow-display {
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .buttons { display: flex; gap: 8px; width: 100%; }
+    .btn-op {
+      flex: 1; border: none; padding: 12px 0; border-radius: 8px;
+      cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+    .btn-select { background: var(--color-yellow); color: #000; }
+    .btn-op:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .column.dq {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(239, 68, 68, 0.2);
+      opacity: 0.5;
+    }
+    .column.dq .name-input { color: #334155; }
+    .column.dq .correct-count { font-size: 24px; color: #475569; text-shadow: none; }
+
+    .column.top-rank {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.1), rgba(30, 41, 59, 0.8));
+    }
+
+    .column.tie-loser {
+      border-color: var(--color-red);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+      transform: scale(1.05);
+    }
+
+    .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+      .controls { justify-content: space-between; }
+      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .correct-count { font-size: 36px; }
+      .status-info { font-size: 12px; }
+      .btn-op { padding: 8px 0; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">500</div>
+    <h1>500問耐久クイズ - SET <span id="setNum">1</span></h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>Q</label>
+      <input type="text" id="qDisplay" value="1/50" readonly style="width:70px; border:none;">
+    </div>
+    <div class="control-group">
+      <label>限定問題数</label>
+      <input type="number" id="qPerSet" min="1" value="50">
+    </div>
+    <div class="control-group">
+      <label>セット数</label>
+      <input type="number" id="sets" min="1" value="5">
+    </div>
+    <div class="control-group">
+      <label>正解pt</label>
+      <input type="number" id="ptCorrect" value="1">
+    </div>
+    <div class="control-group">
+      <label>誤答pt</label>
+      <input type="number" id="ptWrong" value="-1">
+    </div>
+    <div class="control-group">
+      <label>スターpt</label>
+      <input type="number" id="starPts" min="1" value="10">
+    </div>
+    <div class="control-group">
+      <label>スター獲得人数</label>
+      <input type="number" id="playerThreshold" min="1" value="6">
+    </div>
+    <div class="control-group">
+      <label>レッドカード</label>
+      <input type="number" id="redQs" min="0" value="2">
+    </div>
+    <div class="control-group">
+      <label>イエロー失格</label>
+      <input type="number" id="dqYellows" min="1" value="2">
+    </div>
+    <div class="control-group">
+      <label>PLAYER</label>
+      <input type="number" id="playerCount" min="1" max="20" value="6">
+    </div>
+    <div style="flex:1"></div>
+    <button id="addPlayerBtn" class="btn-action">+1人</button>
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoBtn" class="btn-action">戻る</button>
+    <button id="throughBtn" class="btn-action">スルー</button>
+    <button id="nextSetBtn" class="btn-action" style="display:none;">次SET</button>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div id="grid" aria-label="scoreboard-grid"></div>
+</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const setNumEl = document.getElementById('setNum');
+  const qDisplayEl = document.getElementById('qDisplay');
+  const countInput = document.getElementById('playerCount');
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoBtn');
+  const addPlayerBtn = document.getElementById('addPlayerBtn');
+  const throughBtn = document.getElementById('throughBtn');
+  const nextSetBtn = document.getElementById('nextSetBtn');
+
+  let config = {
+    qPerSet: 50,
+    sets: 5,
+    ptCorrect: 1,
+    ptWrong: -1,
+    starPts: 10,
+    playerThreshold: 6,
+    redQs: 2,
+    dqYellows: 2
+  };
+
+  function loadConfig(){
+    config.qPerSet = parseInt(document.getElementById('qPerSet').value) || 50;
+    config.sets = parseInt(document.getElementById('sets').value) || 5;
+    config.ptCorrect = parseInt(document.getElementById('ptCorrect').value) || 1;
+    config.ptWrong = parseInt(document.getElementById('ptWrong').value) || -1;
+    config.starPts = parseInt(document.getElementById('starPts').value) || 10;
+    config.playerThreshold = parseInt(document.getElementById('playerThreshold').value) || 6;
+    config.redQs = parseInt(document.getElementById('redQs').value) || 2;
+    config.dqYellows = parseInt(document.getElementById('dqYellows').value) || 2;
+  }
+
+  let state = {
+    currentSet: 1,
+    setQ: 0,
+    players: [],
+    redCardQuestions: [],
+    history: [],
+    phase: 'PLAYING'
+  };
+
+  function setGridColumnsByCount(count){
+    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+  }
+
+  function pushHistory(){
+    state.history.push(JSON.stringify({
+      players: state.players,
+      currentSet: state.currentSet,
+      setQ: state.setQ,
+      redCardQuestions: state.redCardQuestions,
+      phase: state.phase
+    }));
+    if(state.history.length > 500) state.history.shift();
+    updateUndoState();
+  }
+
+  function updateUndoState(){
+    undoBtn.disabled = state.history.length === 0;
+  }
+
+  function createGrid(count){
+    loadConfig();
+    grid.innerHTML = '';
+    state.players = [];
+    state.history = [];
+    state.currentSet = 1;
+    setupNewSet();
+    setGridColumnsByCount(count);
+
+    for(let i=0;i<count;i++){
+      state.players.push({
+        name: `プレイヤー${i+1}`,
+        score: 0,
+        stars: 0,
+        yellows: 0,
+        isDQ: false,
+        dqReason: '',
+        starObtainedInSet: false
+      });
+    }
+
+    renderAll(false);
+    updateUndoState();
+  }
+
+  function setupNewSet(){
+    state.setQ = 0;
+    state.phase = 'PLAYING';
+    state.players.forEach(p => {
+      p.score = 0;
+      p.starObtainedInSet = false;
+    });
+    state.redCardQuestions = [];
+    if(state.currentSet < config.sets){
+      while(state.redCardQuestions.length < config.redQs){
+        let r = Math.floor(Math.random() * config.qPerSet) + 1;
+        if(!state.redCardQuestions.includes(r)) state.redCardQuestions.push(r);
+      }
+    }
+  }
+
+  function handleCorrect(idx){
+    if(state.phase !== 'PLAYING') return;
+    const p = state.players[idx];
+    if(p.isDQ) return;
+
+    pushHistory();
+    p.score += config.ptCorrect;
+    state.setQ++;
+
+    const activeCount = state.players.filter(pl => !pl.isDQ).length;
+    if(state.currentSet < config.sets && activeCount >= config.playerThreshold){
+      if(p.score >= config.starPts && !p.starObtainedInSet){
+        p.stars++;
+        p.starObtainedInSet = true;
+        alert(`${p.name}\n★ STAR GET!`);
+      }
+    }
+
+    checkSetLimit();
+    renderAll(true, idx);
+  }
+
+  function handleWrong(idx){
+    if(state.phase !== 'PLAYING') return;
+    const p = state.players[idx];
+    if(p.isDQ) return;
+
+    pushHistory();
+    state.setQ++;
+
+    if(state.currentSet === config.sets){
+      if(p.stars > 0){
+        p.stars--;
+        p.score += config.ptWrong;
+        alert(`${p.name} 誤答\nSTAR消費で回避`);
+      } else {
+        p.isDQ = true;
+        p.dqReason = 'red';
+        alert(`${p.name}\nLOSE (No Stars)`);
+      }
+    } else {
+      if(state.redCardQuestions.includes(state.setQ)){
+        p.isDQ = true;
+        p.dqReason = 'red';
+        alert(`Q.${state.setQ} RED CARD!\n\n${p.name} LOSE`);
+      } else {
+        p.score += config.ptWrong;
+      }
+    }
+
+    checkSetLimit();
+    renderAll(true, idx);
+  }
+
+  function checkSetLimit(){
+    if(state.setQ >= config.qPerSet){
+      processSetEndLogic();
+    }
+  }
+
+  function processSetEndLogic(){
+    const activePlayers = state.players.filter(p => !p.isDQ);
+    if(activePlayers.length === 0){
+      state.phase = 'SET_FINISHED';
+      alert('SET FINISHED\nAll eliminated');
+      renderAll(false);
+      return;
+    }
+
+    const minScore = Math.min(...activePlayers.map(p => p.score));
+    const losers = activePlayers.filter(p => p.score === minScore);
+
+    if(losers.length === 1){
+      assignYellowCard(state.players.indexOf(losers[0]));
+    } else {
+      state.phase = 'YELLOW_SELECT';
+      alert(`SET FINISHED\n最下位タイ: ${losers.length}名\n敗者を選択してください`);
+      renderAll(false);
+    }
+  }
+
+  function handleSelectLoser(idx){
+    pushHistory();
+    assignYellowCard(idx);
+  }
+
+  function assignYellowCard(idx){
+    const p = state.players[idx];
+    p.yellows++;
+    let msg = `${p.name}\nYELLOW CARD (+1)`;
+
+    if(p.yellows >= config.dqYellows){
+      p.isDQ = true;
+      p.dqReason = 'yellow';
+      msg += `\n\n→ LOSE (Yellow x${config.dqYellows})`;
+    }
+
+    const activePlayers = state.players.filter(pl => !pl.isDQ);
+    if(activePlayers.length < config.playerThreshold){
+      const maxScore = Math.max(...activePlayers.map(pl => pl.score));
+      activePlayers.filter(pl => pl.score === maxScore).forEach(pl => {
+        pl.stars++;
+        msg += `\n\n(Top: ${pl.name} ★GET)`;
+      });
+    }
+
+    alert(msg);
+    state.phase = 'SET_FINISHED';
+    renderAll(false);
+  }
+
+  function goToNextSet(){
+    if(state.currentSet >= config.sets){
+      const active = state.players.filter(p => !p.isDQ);
+      if(active.length > 0){
+        active.sort((a,b) => b.score - a.score);
+        alert(`ALL SETS COMPLETED\n\nCHAMPION:\n${active[0].name}`);
+      } else {
+        alert('GAME OVER\nNO WINNER');
+      }
+      return;
+    }
+    state.currentSet++;
+    setupNewSet();
+    renderAll(false);
+  }
+
+  function renderAll(animate=true, activeIdx=-1){
+    setNumEl.textContent = state.currentSet;
+    qDisplayEl.value = `${Math.min(state.setQ + 1, config.qPerSet)}/${config.qPerSet}`;
+    nextSetBtn.style.display = state.phase === 'SET_FINISHED' ? 'block' : 'none';
+
+    grid.innerHTML = '';
+
+    const activePlayers = state.players.filter(p => !p.isDQ);
+    const minScore = (state.phase === 'YELLOW_SELECT' && activePlayers.length > 0) ? Math.min(...activePlayers.map(p => p.score)) : null;
+    const maxScore = (activePlayers.length > 0 && state.phase === 'PLAYING') ? Math.max(...activePlayers.map(p => p.score)) : null;
+
+    state.players.forEach((p, idx) => {
+      const col = document.createElement('div');
+      let classes = ['column'];
+      if(p.isDQ) classes.push('dq');
+      else if(maxScore !== null && p.score === maxScore && activePlayers.length > 1) classes.push('top-rank');
+      if(state.phase === 'YELLOW_SELECT' && !p.isDQ && p.score === minScore) classes.push('tie-loser');
+
+      col.className = classes.join(' ');
+
+      let btns = '';
+      if(state.phase === 'PLAYING'){
+        btns = `
+          <div class="buttons">
+            <button class="btn-op btn-correct" onclick="handleCorrect(${idx})" ${p.isDQ?'disabled':''}>正解</button>
+            <button class="btn-op btn-wrong" onclick="handleWrong(${idx})" ${p.isDQ?'disabled':''}>誤答</button>
+          </div>`;
+      } else if(state.phase === 'YELLOW_SELECT'){
+        if(!p.isDQ && p.score === minScore){
+          btns = `<div class="buttons"><button class="btn-op btn-select" onclick="handleSelectLoser(${idx})">LOSE</button></div>`;
+        } else {
+          btns = `<div class="buttons" style="opacity:0.3;"><button class="btn-op" disabled>WAIT</button></div>`;
+        }
+      } else {
+        btns = `<div class="buttons" style="opacity:0.3;"><button class="btn-op" disabled>--</button></div>`;
+      }
+
+      col.innerHTML = `
+        <input class="name-input" value="${p.name}" onchange="state.players[${idx}].name = this.value">
+        <div class="score-area">
+          <div class="correct-count"><span class="correct-num">${p.isDQ ? (p.dqReason === 'red' ? 'LOSE' : 'DQ') : p.score}</span></div>
+          <div class="status-info">
+            <div class="star-display">${'★'.repeat(p.stars)}</div>
+            <div class="yellow-display">${'🟨'.repeat(p.yellows)}</div>
+          </div>
+        </div>
+        ${btns}
+      `;
+      grid.appendChild(col);
+
+      if(animate && idx === activeIdx){
+        const scoreEl = col.querySelector('.correct-num');
+        if(scoreEl){
+          scoreEl.classList.remove('pop-anim');
+          void scoreEl.offsetWidth;
+          scoreEl.classList.add('pop-anim');
+        }
+      }
+    });
+
+    updateUndoState();
+  }
+
+  function handleUndo(){
+    if(state.history.length === 0) return;
+    const prev = JSON.parse(state.history.pop());
+    state.players = prev.players;
+    state.currentSet = prev.currentSet;
+    state.setQ = prev.setQ;
+    state.redCardQuestions = prev.redCardQuestions;
+    state.phase = prev.phase;
+    renderAll(false);
+  }
+
+  function handleThrough(){
+    if(state.phase !== 'PLAYING') return;
+    pushHistory();
+    state.setQ++;
+    checkSetLimit();
+    renderAll(false);
+  }
+
+  function addPlayer(){
+    pushHistory();
+    state.players.push({
+      name: `Player ${state.players.length + 1}`,
+      score: 0,
+      stars: 0,
+      yellows: 0,
+      isDQ: false,
+      dqReason: '',
+      starObtainedInSet: false
+    });
+    setGridColumnsByCount(state.players.length);
+    renderAll(false);
+  }
+
+  function resetAll(){
+    state.players.forEach((p,i) => {
+      p.score = 0; p.stars = 0; p.yellows = 0; p.isDQ = false; p.dqReason = ''; p.starObtainedInSet = false;
+      p.name = `プレイヤー${i+1}`;
+    });
+    state.currentSet = 1;
+    state.history = [];
+    setupNewSet();
+    renderAll(false);
+  }
+
+  setupBtn.addEventListener('click', () => {
+    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    createGrid(cnt);
+  });
+
+  addPlayerBtn.addEventListener('click', addPlayer);
+  resetBtn.addEventListener('click', resetAll);
+  undoBtn.addEventListener('click', handleUndo);
+  throughBtn.addEventListener('click', handleThrough);
+  nextSetBtn.addEventListener('click', goToNextSet);
+
+  window.handleCorrect = handleCorrect;
+  window.handleWrong = handleWrong;
+  window.handleSelectLoser = handleSelectLoser;
+
+  createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+
+  window.addEventListener('resize', () => {
+    const cnt = state.players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    setGridColumnsByCount(cnt);
+  });
+
+})();
+</script>
+</body>
+</html>

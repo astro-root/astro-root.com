@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swedish</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #facc15;
+      --color-sw-blue: #006aa7;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+      flex-shrink: 0;
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-gold), var(--color-sw-blue));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; white-space: nowrap; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 40px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-gold); }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: #000;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    #setupBtn { background: var(--color-gold); }
+    #resetAll { background: var(--color-red); color: #fff; }
+    #undoGlobal { background: #64748b; color: #fff; }
+    #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .scoreboard {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    #grid {
+      display: grid;
+      gap: 15px;
+      align-items: start;
+      padding-bottom: 20px;
+    }
+
+    .column {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    
+    .name-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 24px;
+      height: 240px; 
+      width: 40px;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      transition: color 0.2s;
+      z-index: 2;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+
+    .score-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 15px;
+      width: 100%;
+      z-index: 2;
+    }
+
+    .correct-count {
+      font-size: 64px;
+      font-weight: 800;
+      color: var(--color-gold);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+      min-height: 70px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .cross-bar {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+      gap: 7px; 
+      min-height: 40px; 
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+    }
+    
+    .mark {
+      width: 20px; 
+      height: 15px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      transition: all 0.2s;
+    }
+    
+    .mark.fill { 
+      background: var(--color-red); 
+      box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);
+    }
+    
+    .mark.next { 
+      background: transparent;
+      border: 2px solid var(--color-red);
+      animation: pulse 1.5s infinite; 
+    }
+    
+    .mark.empty { 
+      background: rgba(255,255,255,0.05); 
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+      100% { opacity: 0.3; transform: scale(0.9); }
+    }
+
+    .buttons { display: flex; gap: 8px; width: 100%; z-index: 2; margin-top: auto; }
+    .btn-op {
+      flex: 1; border: none; padding: 12px 0; border-radius: 8px;
+      cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+
+    .column.eliminated {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .column.eliminated .name-input { color: #334155; }
+    .column.eliminated .correct-count { font-size: 24px; color: #475569; text-shadow: none; }
+    .column.eliminated .cross-bar { opacity: 0.3; }
+    .column.eliminated .btn-op { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+
+    .column.winner {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 30px rgba(250, 204, 21, 0.2);
+      background: linear-gradient(180deg, rgba(250, 204, 21, 0.1), rgba(30, 41, 59, 0.8));
+    }
+    .column.winner .correct-count {
+      color: var(--color-gold);
+      text-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+      font-size: 40px; 
+    }
+    .column.winner .cross-bar { display: none; }
+
+    .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .shake-anim { animation: shake 0.3s ease-in-out; }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
+    @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+      .controls { justify-content: space-between; }
+      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .correct-count { font-size: 40px; min-height: 50px; }
+      .btn-op { padding: 12px 0; font-size: 16px; }
+      .mark { width: 14px; height: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">SW</div>
+    <h1>Swedish</h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>WIN/LOSE</label>
+      <input type="number" id="winThresh" min="1" value="10">
+    </div>
+    <div class="control-group">
+      <label>PLAYER</label>
+      <input type="number" id="playerCount" min="1" max="20" value="6">
+    </div>
+    
+    <div style="flex:1"></div>
+    
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div id="grid" aria-label="scoreboard-grid"></div>
+</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const winInput = document.getElementById('winThresh');
+  const countInput = document.getElementById('playerCount');
+  
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoGlobal');
+
+  let players = []; 
+  let historyStack = [];
+  let winners = [];
+
+  function ordinalLabel(n){
+    if(n % 100 >= 11 && n % 100 <= 13) return n + 'th';
+    const last = n % 10;
+    if(last === 1) return n + 'st';
+    if(last === 2) return n + 'nd';
+    if(last === 3) return n + 'rd';
+    return n + 'th';
+  }
+
+  function setGridColumnsByCount(count){
+    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+  }
+
+  function crossesForCorrect(c){
+    let t = 1;
+    while( (t*(t+1))/2 <= c ) t++;
+    return t;
+  }
+
+  function pushHistory(){
+    historyStack.push({
+      players: JSON.parse(JSON.stringify(players.map(p => ({
+        correct: p.correct, crosses: p.crosses, rank: p.rank, eliminated: p.eliminated
+      })))),
+      winners: [...winners]
+    });
+    if(historyStack.length > 500) historyStack.shift();
+    updateUndoState();
+  }
+
+  function updateUndoState(){
+    undoBtn.disabled = historyStack.length === 0;
+  }
+
+  function createGrid(count){
+    grid.innerHTML = '';
+    players = [];
+    historyStack = [];
+    winners = [];
+    setGridColumnsByCount(count);
+
+    for(let i=0;i<count;i++){
+      const col = document.createElement('div');
+      col.className = 'column';
+      col.innerHTML = `
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <div class="score-area">
+          <div class="correct-count"><span class="correct-num">0</span></div>
+          <div class="cross-bar"></div>
+        </div>
+        <div class="buttons">
+          <button class="btn-op btn-correct">正解</button>
+          <button class="btn-op btn-wrong">誤答</button>
+        </div>
+      `;
+      grid.appendChild(col);
+
+      const nameEl = col.querySelector('.name-input');
+      const correctNumEl = col.querySelector('.correct-num');
+      const correctScoreEl = col.querySelector('.correct-count');
+      const crossBar = col.querySelector('.cross-bar');
+      const btnC = col.querySelector('.btn-correct');
+      const btnW = col.querySelector('.btn-wrong');
+
+      const p = { 
+        idx:i, 
+        el:col, 
+        nameEl, 
+        correctNumEl, 
+        correctScoreEl,
+        crossBar,
+        btnC, 
+        btnW, 
+        correct:0, 
+        crosses:0, 
+        eliminated:false,
+        rank:0
+      };
+
+      btnC.addEventListener('click', () => handleCorrect(p));
+      btnW.addEventListener('click', () => handleWrong(p));
+      p.nameEl.addEventListener('focus', function() { this.select(); });
+
+      players.push(p);
+    }
+    
+    renderAll(false);
+    updateUndoState();
+  }
+
+  function handleCorrect(actor){
+    if(actor.rank > 0 || actor.eliminated) return;
+    pushHistory();
+    
+    actor.correct++;
+    checkStatus(actor);
+    renderAll(true, actor.idx, 'correct');
+  }
+
+  function handleWrong(actor){
+    if(actor.rank > 0 || actor.eliminated) return;
+    pushHistory();
+
+    const penalty = crossesForCorrect(actor.correct);
+    actor.crosses += penalty;
+    
+    checkStatus(actor);
+    renderAll(true, actor.idx, 'wrong');
+  }
+
+  function checkStatus(p){
+    const winTh = Math.max(1, parseInt(winInput.value || 10));
+    
+    if(!p.eliminated && p.crosses >= winTh){
+      p.eliminated = true;
+    }
+
+    if(!p.eliminated && p.rank === 0 && p.correct >= winTh){
+      winners.push(p.idx);
+      p.rank = winners.length;
+    }
+  }
+
+  function renderAll(animate=true, activeIdx = -1, type=''){
+    const winTh = Math.max(1, parseInt(winInput.value || 10));
+
+    players.forEach(p=>{
+      p.el.classList.remove('eliminated', 'winner');
+      
+      const nextPenalty = crossesForCorrect(p.correct);
+      let barsHtml = '';
+      
+      for(let k=1; k <= winTh; k++){
+        if(k <= p.crosses){
+          barsHtml += `<div class="mark fill"></div>`;
+        } else if (k <= p.crosses + nextPenalty) {
+          barsHtml += `<div class="mark next"></div>`;
+        } else {
+          barsHtml += `<div class="mark empty"></div>`;
+        }
+      }
+      p.crossBar.innerHTML = barsHtml;
+
+      if(p.eliminated){
+        p.el.classList.add('eliminated');
+        p.correctNumEl.textContent = 'LOSE';
+        p.btnC.disabled = true;
+        p.btnW.disabled = true;
+        p.nameEl.disabled = true;
+      } else if(p.rank > 0){
+        p.el.classList.add('winner');
+        p.correctNumEl.textContent = ordinalLabel(p.rank);
+        p.btnC.disabled = true;
+        p.btnW.disabled = true;
+        p.nameEl.disabled = true;
+      } else {
+        p.correctNumEl.textContent = p.correct;
+        p.btnC.disabled = false;
+        p.btnW.disabled = false;
+        p.nameEl.disabled = false;
+      }
+
+      if(animate && p.idx === activeIdx){
+        if(type === 'correct'){
+          p.correctScoreEl.classList.remove('pop-anim');
+          void p.correctScoreEl.offsetWidth;
+          p.correctScoreEl.classList.add('pop-anim');
+        } else if(type === 'wrong'){
+          p.el.classList.remove('shake-anim');
+          void p.el.offsetWidth;
+          p.el.classList.add('shake-anim');
+        }
+      }
+    });
+
+    updateUndoState();
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const prev = historyStack.pop();
+    winners = [...prev.winners];
+    
+    players.forEach((p, i) => {
+      const state = prev.players[i];
+      p.correct = state.correct;
+      p.crosses = state.crosses;
+      p.rank = state.rank;
+      p.eliminated = state.eliminated;
+    });
+    
+    renderAll(false);
+  }
+
+  function resetAll(){
+    if(!confirm('リセットしますか？')) return;
+    players.forEach((p, i) => {
+      p.correct = 0; p.crosses = 0; p.eliminated = false; p.rank = 0;
+      p.nameEl.value = `プレイヤー${i+1}`;
+    });
+    historyStack = [];
+    winners = [];
+    renderAll(false);
+  }
+
+  setupBtn.addEventListener('click', ()=>{
+    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    createGrid(cnt);
+  });
+
+  resetBtn.addEventListener('click', resetAll);
+  undoBtn.addEventListener('click', undoGlobal);
+
+  createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+  
+  window.addEventListener('resize', ()=> {
+    const cnt = players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    setGridColumnsByCount(cnt);
+  });
+
+})();
+</script>
+</body>
+</html>

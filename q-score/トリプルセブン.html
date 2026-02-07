@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>トリプルセブン</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    @keyframes scorePop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .pop-anim { animation: scorePop 0.2s ease-out; }
+
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px;
+      margin-bottom: 20px; padding: 15px 20px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border); border-radius: 12px; backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-blue), var(--color-cyan)); border-radius: 8px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px; color:#fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; }
+    
+    .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .control-group { display:flex; align-items:center; gap:8px; background: rgba(255,255,255,0.03); padding:6px 10px; border-radius:6px; border:1px solid var(--card-border); }
+    .control-group label { font-size:12px; color:var(--text-muted); font-weight:700; }
+    .control-group input { background:transparent; border:none; color:var(--text-main); font-weight:700; font-size:14px; width:48px; text-align:center; border-bottom:2px solid rgba(255,255,255,0.06); }
+    
+    .btn-action { border:none; padding:8px 14px; border-radius:6px; font-weight:700; cursor:pointer; color:white; transition:all 0.1s; }
+    .btn-action:active { transform: translateY(2px); }
+    #setupBtn { background:var(--color-blue); }
+    #addPlayer { background:#64748b; }
+    #resetAll { background:var(--color-red); }
+    #undoGlobal { background:#64748b; }
+    #undoGlobal:disabled { opacity:0.5; cursor:not-allowed; }
+
+    .set-status-bar { display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+    .set-status-box {
+      display:flex; align-items:center; gap:20px; 
+      background:rgba(15, 23, 42, 0.6); 
+      padding:10px 40px; border-radius:50px; 
+      border:1px solid var(--color-gold);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+    }
+    .set-label { font-size:14px; font-weight:700; color:var(--text-muted); letter-spacing:0.1em; margin-right:-10px; }
+    .set-current { font-size:36px; font-weight:900; color:var(--color-gold); line-height:1; }
+    .set-divider { font-size:24px; color:rgba(255,255,255,0.2); }
+    .set-max { font-size:24px; font-weight:700; color:rgba(255,255,255,0.4); line-height:1; }
+
+    .scoreboard { flex:1; width:100%; min-height:0; }
+    #grid { display:grid; gap:15px; align-items:start; transition: all 0.3s; }
+    
+    .column { 
+      background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px; 
+      display:flex; flex-direction:column; align-items:center; position:relative; 
+      transition: background 0.3s, border-color 0.3s, transform 0.2s;
+    }
+    
+    .stars { font-size:30px; height:43px; margin-bottom:6px; color: var(--color-gold); letter-spacing: 2px; }
+    .name-input { background:transparent; border:none; color:var(--text-muted); font-weight:800; font-size:24px; height:240px; width:42px; writing-mode:vertical-rl; text-orientation:upright; letter-spacing:2px; text-align:center; transition: color 0.2s; }
+    .name-input:focus { color: var(--text-main); outline: none; }
+
+    .score-area { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; margin-bottom:8px; }
+    
+    .correct-count { 
+      font-size:48px; font-weight:900; color:var(--color-blue); 
+      min-height:56px; display:flex; align-items:center; justify-content:center; 
+      transition: color 0.2s; 
+    }
+    
+    .wrong-count { font-size:18px; font-weight:800; color:var(--color-red); height:26px; margin-top:6px; letter-spacing: 2px; }
+    
+    .buttons { display:flex; gap:8px; width:100%; }
+    .btn-op { flex:1; border:none; padding:10px 0; border-radius:8px; cursor:pointer; font-weight:900; font-size:15px; color:rgba(255,255,255,0.9); transition: transform 0.1s; }
+    .btn-op:active:not(:disabled) { transform: translateY(2px); }
+    .btn-correct { background:var(--color-green); color:#064e3b; }
+    .btn-wrong { background:var(--color-red); color:#450a0a; }
+
+    .column.set-eliminated { background: rgba(15,23,42,0.95); border-color: rgba(239,68,68,0.2); opacity: 0.7; }
+    .column.set-winner { border-color: var(--color-gold); background: rgba(245, 158, 11, 0.1); box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+    .match-winner { box-shadow: 0 0 50px rgba(245,158,11,0.4) !important; border: 2px solid var(--color-gold) !important; transform: scale(1.02); z-index: 10; }
+
+    @media (max-width:768px){ 
+      header{flex-direction:column;} 
+      .name-input{height:90px;font-size:14px;width:30px;} 
+      .correct-count{font-size:36px;} 
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title-group">
+    <div class="logo">3-7</div>
+    <h1>トリプルセブン</h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>Set WIN</label>
+      <input type="number" id="perSetWin" min="1" value="7">
+    </div>
+    <div class="control-group">
+      <label>Set LOSE</label>
+      <input type="number" id="perSetLose" min="1" value="3">
+    </div>
+    <div class="control-group">
+      <label>Sets</label>
+      <input type="number" id="matchTarget" min="1" max="7" value="3">
+    </div>
+    <div class="control-group">
+      <label>PLAYER</label>
+      <input type="number" id="playerCount" min="1" max="20" value="6">
+    </div>
+    <div style="flex:1"></div>
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="addPlayer" class="btn-action">追加</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div class="set-status-bar">
+    <div class="set-status-box">
+      <div class="set-label">SET: </div>
+      <div class="set-current"><span id="setsPlayed">0</span></div>
+      <div class="set-divider">/</div>
+      <div class="set-max"><span id="maxSetsDisplay">5</span></div>
+    </div>
+  </div>
+  <div id="grid" aria-label="scoreboard-grid"></div>
+</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const perSetWin = document.getElementById('perSetWin');
+  const perSetLose = document.getElementById('perSetLose');
+  const matchTarget = document.getElementById('matchTarget');
+  const countInput = document.getElementById('playerCount');
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoGlobal');
+  const addBtn = document.getElementById('addPlayer');
+  const setsPlayedEl = document.getElementById('setsPlayed');
+  const maxSetsDisplay = document.getElementById('maxSetsDisplay');
+
+  let players = [];
+  let historyStack = [];
+  let setsPlayed = 0;
+  let matchOver = false;
+
+  function computeMaxSets(){
+    const target = Math.max(1, parseInt(matchTarget.value || 1));
+    const playerCount = players.length;
+    return target * 1 + (target - 1) * (playerCount - 1);
+  }
+
+  function updateDisplays(){
+    setsPlayedEl.textContent = String(setsPlayed);
+    maxSetsDisplay.textContent = String(computeMaxSets());
+  }
+
+  function setGridColumnsByCount(count){
+    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+    if(window.innerWidth < 800) {
+       grid.style.gridTemplateColumns = `repeat(auto-fit, minmax(100px, 1fr))`;
+    }
+  }
+
+  function pushHistorySnapshot(){
+    const snap = {
+      players: players.map(p=>({ idx:p.idx, correct:p.correct, wrong:p.wrong, setFinished:p.setFinished, setsWon:p.setsWon })),
+      setsPlayed, matchOver
+    };
+    historyStack.push(JSON.parse(JSON.stringify(snap)));
+    if(historyStack.length>500) historyStack.shift();
+    updateUndoState();
+  }
+
+  function updateUndoState(){
+    undoBtn.disabled = historyStack.length === 0;
+  }
+
+  function createPlayerObject(i){
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.innerHTML = `
+      <div class="stars">◯</div>
+      <input class="name-input" value="プレイヤー${i+1}" />
+      <div class="score-area">
+        <div class="correct-count"><span class="correct-num">0</span></div>
+        <div class="wrong-count"></div>
+      </div>
+      <div class="buttons">
+        <button class="btn-op btn-correct">正解</button>
+        <button class="btn-op btn-wrong">誤答</button>
+      </div>
+    `;
+    grid.appendChild(col);
+
+    const starsEl = col.querySelector('.stars');
+    const nameEl = col.querySelector('.name-input');
+    const correctNumEl = col.querySelector('.correct-num');
+    const wrongEl = col.querySelector('.wrong-count');
+    const btnC = col.querySelector('.btn-correct');
+    const btnW = col.querySelector('.btn-wrong');
+
+    const p = { idx:i, el:col, starsEl, nameEl, correctNumEl, wrongEl, btnC, btnW, correct:0, wrong:0, setFinished:false, setsWon:0 };
+
+    btnC.addEventListener('click', ()=>{
+      if(matchOver) return;
+      if(p.setFinished) return;
+      pushHistorySnapshot();
+      p.correct++;
+      checkSetFinish(p);
+      renderAll(true, p.idx);
+    });
+
+    btnW.addEventListener('click', ()=>{
+      if(matchOver) return;
+      if(p.setFinished) return;
+      pushHistorySnapshot();
+      p.wrong++;
+      checkSetFinish(p);
+      renderAll(true, p.idx);
+    });
+
+    return p;
+  }
+
+  function createGrid(count){
+    grid.innerHTML = '';
+    players = [];
+    historyStack = [];
+    setsPlayed = 0+1;
+    matchOver = false;
+    setGridColumnsByCount(count);
+    for(let i=0;i<count;i++) players.push(createPlayerObject(i));
+    updateDisplays();
+    renderAll(false);
+    updateUndoState();
+  }
+
+  function checkSetFinish(p){
+    const winTh = Math.max(1, parseInt(perSetWin.value || 1));
+    const loseTh = Math.max(1, parseInt(perSetLose.value || 1));
+
+    if(!p.setFinished && p.wrong >= loseTh){
+      p.setFinished = true;
+      p.eliminatedThisSet = true;
+    }
+
+    if(!p.setFinished && p.correct >= winTh){
+      p.setFinished = true;
+      p.setWonThisSet = true;
+    }
+
+    if(p.setWonThisSet){
+      finalizeSet();
+      return;
+    }
+
+    const activePlayers = players.filter(pl => !pl.setFinished);
+    
+    if(activePlayers.length === 1){
+      const last = activePlayers[0];
+      last.setFinished = true;
+      last.setWonThisSet = true;
+      finalizeSet();
+      return;
+    }
+
+    if(activePlayers.length === 0){
+      finalizeSet();
+      return;
+    }
+  }
+
+  function finalizeSet(){
+    const winnersThisSet = players.filter(p=>p.setWonThisSet);
+    if(winnersThisSet.length>0){
+      winnersThisSet.forEach(p=>{ p.setsWon = (p.setsWon||0) + 1; });
+    }
+
+    setsPlayed++;
+    updateDisplays();
+
+    const target = Math.max(1, parseInt(matchTarget.value || 1));
+    const champ = players.find(p=>p.setsWon >= target);
+    if(champ){
+      matchOver = true;
+      champ.el.classList.add('match-winner');
+    }
+
+    if(setsPlayed >= computeMaxSets()){
+      matchOver = true;
+    }
+
+    players.forEach(p=>{
+      p.correct = 0; p.wrong = 0; p.setFinished = false; p.eliminatedThisSet = false; p.setWonThisSet = false; p.setWinRank = 0;
+      p.el.classList.remove('set-winner','set-eliminated');
+    });
+
+    renderAll(false);
+  }
+
+  function renderAll(animate=true, activeIdx=-1){
+    players.forEach(p=>{
+      p.starsEl.textContent = p.setsWon > 0 ? '★'.repeat(p.setsWon) : '';
+
+      p.el.classList.remove('set-eliminated','set-winner');
+      p.correctNumEl.textContent = p.setFinished && p.setWonThisSet ? 'WIN' : (p.setFinished && p.eliminatedThisSet ? 'LOSE' : String(p.correct));
+      p.wrongEl.textContent = (p.wrong>0? '×'.repeat(p.wrong): '');
+
+      if(p.setFinished){
+        if(p.setWonThisSet) p.el.classList.add('set-winner');
+        if(p.eliminatedThisSet) p.el.classList.add('set-eliminated');
+        p.btnC.disabled = true; p.btnW.disabled = true; p.nameEl.disabled = true;
+      } else {
+        p.btnC.disabled = matchOver; p.btnW.disabled = matchOver; p.nameEl.disabled = matchOver;
+      }
+
+      if(animate && p.idx === activeIdx){
+        p.correctNumEl.classList.remove('pop-anim'); 
+        void p.correctNumEl.offsetWidth; 
+        p.correctNumEl.classList.add('pop-anim');
+      }
+
+      if(matchOver && p.setsWon >= Math.max(1, parseInt(matchTarget.value||1))){
+        p.el.classList.add('match-winner');
+      }
+    });
+
+    updateUndoState();
+    updateDisplays();
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const snap = historyStack.pop();
+    if(!snap) return;
+    setsPlayed = snap.setsPlayed;
+    matchOver = snap.matchOver;
+    snap.players.forEach(s=>{
+      const p = players.find(x=>x.idx===s.idx);
+      if(p){ p.correct = s.correct; p.wrong = s.wrong; p.setFinished = s.setFinished; p.setsWon = s.setsWon; }
+    });
+    renderAll(false);
+    updateDisplays();
+  }
+
+  function resetMatch(){
+    if(!confirm('リセットしますか？')) return;
+    players.forEach((p,i)=>{
+      p.correct = 0; p.wrong = 0; p.setFinished = false; p.setsWon = 0; p.eliminatedThisSet = false; p.setWonThisSet = false; p.setWinRank = 0;
+      p.starsEl.textContent = '';
+      p.nameEl.value = `プレイヤー${i+1}`;
+      p.nameEl.disabled = false; p.btnC.disabled = false; p.btnW.disabled = false;
+      p.el.classList.remove('set-eliminated','set-winner','match-winner');
+    });
+    historyStack = [];
+    setsPlayed = 0; matchOver = false;
+    updateDisplays(); renderAll(false); updateUndoState();
+  }
+
+  function addPlayer(){
+    const currentCount = players.length;
+    const max = 20;
+    if(currentCount >= max) return;
+    const newIdx = currentCount;
+    const p = createPlayerObject(newIdx);
+    players.push(p);
+    countInput.value = players.length;
+    setGridColumnsByCount(players.length);
+    updateDisplays();
+    renderAll(false);
+  }
+
+  setupBtn.addEventListener('click', ()=>{
+    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    createGrid(cnt);
+  });
+  resetBtn.addEventListener('click', resetMatch);
+  undoBtn.addEventListener('click', undoGlobal);
+  addBtn.addEventListener('click', addPlayer);
+
+  matchTarget.addEventListener('input', updateDisplays);
+  countInput.addEventListener('input', updateDisplays);
+
+  createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+  updateDisplays();
+  window.addEventListener('resize', ()=>{ 
+    const cnt = players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6))); 
+    setGridColumnsByCount(cnt); 
+  });
+})();
+</script>
+</body>
+</html>

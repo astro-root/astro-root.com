@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>m◯n休</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      --color-purple: #a855f7;
+      --color-orange: #f97316;
+      --color-ice: #a5f3fc;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-blue), var(--color-cyan));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 40px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-blue); }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    #setupBtn { background: var(--color-blue); }
+    #resetAll { background: var(--color-red); }
+    #undoGlobal { background: #64748b; }
+    #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
+    #addPlayer { background: #64748b; }
+    #throughBtn { background: var(--color-cyan); color: #000; }
+
+    .scoreboard {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+    #grid {
+      display: grid;
+      gap: 15px;
+      align-items: start;
+    }
+
+    .column {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .tower-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(to top, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.5));
+      z-index: 0;
+      transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    
+    .name-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+      height: 200px;
+      width: 100%;
+      margin-bottom: 5px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .subname-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--color-cyan);
+      font-weight: 400;
+      font-size: 13px;
+      height: 100%;
+      width: 24px;
+      text-align: center;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      padding: 0;
+    }
+    .subname-input:focus { outline: none; opacity: 1; }
+
+    .name-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 24px;
+      height: 100%;
+      width: 40px;
+      text-align: center;
+      letter-spacing: 2px;
+      transition: color 0.2s;
+      padding: 0;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+
+    .score-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      width: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .correct-count {
+      font-size: 56px;
+      font-weight: 800;
+      color: var(--color-blue);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+      min-height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.3s, opacity 0.3s;
+    }
+    
+    .wrong-count {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--color-red);
+      margin-top: 4px;
+      min-height: 20px;
+    }
+
+    .rest-icons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2px;
+      width: 100%;
+      margin-top: 4px;
+      min-height: 20px;
+      font-size: 16px;
+      color: var(--color-ice);
+      text-shadow: 0 0 5px rgba(165, 243, 252, 0.5);
+    }
+
+    .buttons { display: flex; gap: 8px; width: 100%; z-index: 2; position: relative; }
+    .btn-op {
+      flex: 1; border: none; padding: 12px 0; border-radius: 8px;
+      cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+
+    .column.eliminated {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .column.eliminated .tower-bar { display: none; }
+    .column.eliminated .name-input { color: #334155; }
+    .column.eliminated .subname-input { opacity: 0.3; }
+    .column.eliminated .correct-count { font-size: 24px; color: #475569; text-shadow: none; }
+    .column.eliminated .wrong-count { opacity: 0.5; }
+    .column.eliminated .btn-op { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+
+    .column.winner {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
+    }
+    .column.winner .tower-bar {
+      background: linear-gradient(to top, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.6));
+      height: 100% !important;
+    }
+    .column.winner .correct-count {
+      color: var(--color-gold);
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+      font-size: 40px;
+    }
+
+    .column.frozen {
+      border-color: var(--color-cyan);
+      background: linear-gradient(180deg, rgba(6, 182, 212, 0.15), rgba(30, 41, 59, 0.9));
+    }
+
+    .column.frozen::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle, transparent 30%, rgba(165, 243, 252, 0.1));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .column.frozen .correct-count {
+      opacity: 0.6;
+    }
+
+    .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+      .controls { justify-content: space-between; }
+      .name-group { height: 120px; gap: 0; }
+      .name-input { font-size: 14px; width: 30px; letter-spacing: 0; }
+      .subname-input { font-size: 10px; width: 16px; }
+      .correct-count { font-size: 36px; }
+      .wrong-count { font-size: 12px; }
+      .btn-op { padding: 8px 0; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">休</div>
+    <h1>m◯n休</h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>WIN</label>
+      <input type="number" id="winThresh" min="1" value="5">
+    </div>
+    <div class="control-group">
+      <label>LOSE</label>
+      <input type="number" id="loseThresh" min="0" value="0">
+    </div>
+    <div class="control-group">
+      <label>休み</label>
+      <input type="number" id="restThresh" min="0" value="1">
+    </div>
+    <div class="control-group">
+      <label>PLAYER</label>
+      <input type="number" id="playerCount" min="1" max="20" value="6">
+    </div>
+    <div style="flex:1"></div>
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="addPlayer" class="btn-action">追加</button>
+    <button id="throughBtn" class="btn-action">スルー</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div id="grid" aria-label="scoreboard-grid"></div>
+</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const winInput = document.getElementById('winThresh');
+  const loseInput = document.getElementById('loseThresh');
+  const restInput = document.getElementById('restThresh');
+  const countInput = document.getElementById('playerCount');
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoGlobal');
+  const addBtn = document.getElementById('addPlayer');
+  const throughBtn = document.getElementById('throughBtn');
+
+  let players = []; 
+  let historyStack = [];
+  let winners = [];
+
+  function ordinalLabel(n){
+    if(n % 100 >= 11 && n % 100 <= 13) return n + 'th';
+    const last = n % 10;
+    if(last === 1) return n + 'st';
+    if(last === 2) return n + 'nd';
+    if(last === 3) return n + 'rd';
+    return n + 'th';
+  }
+
+  function setGridColumnsByCount(count){
+    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+  }
+
+  function pushHistory(){
+    const snapshot = {
+      players: players.map(p => ({
+        correct: p.correct,
+        wrong: p.wrong,
+        eliminated: p.eliminated,
+        rank: p.rank,
+        restCount: p.restCount
+      })),
+      winners: winners.slice()
+    };
+    historyStack.push(snapshot);
+    if(historyStack.length > 500) historyStack.shift();
+    updateUndoState();
+  }
+
+  function updateUndoState(){
+    undoBtn.disabled = historyStack.length === 0;
+  }
+
+  function decreaseAllRest(){
+    players.forEach(p => {
+      if(p.restCount > 0 && !p.eliminated && p.rank === 0){
+        p.restCount--;
+      }
+    });
+  }
+
+  function createPlayerObject(i){
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.innerHTML = `
+      <div class="tower-bar"></div>
+      <div class="name-group">
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <input class="subname-input" placeholder="二つ名" />
+      </div>
+      <div class="score-area">
+        <div class="correct-count"><span class="correct-num">0</span></div>
+        <div class="wrong-count"></div>
+        <div class="rest-icons"></div>
+      </div>
+      <div class="buttons">
+        <button class="btn-op btn-correct">正解</button>
+        <button class="btn-op btn-wrong">誤答</button>
+      </div>
+    `;
+    grid.appendChild(col);
+
+    const nameEl = col.querySelector('.name-input');
+    const subnameEl = col.querySelector('.subname-input');
+    const correctNumEl = col.querySelector('.correct-num');
+    const wrongEl = col.querySelector('.wrong-count');
+    const restIconsEl = col.querySelector('.rest-icons');
+    const towerBar = col.querySelector('.tower-bar');
+    const btnC = col.querySelector('.btn-correct');
+    const btnW = col.querySelector('.btn-wrong');
+
+    const p = { 
+      idx: i, 
+      el: col, 
+      nameEl,
+      subnameEl,
+      correctNumEl, 
+      wrongEl, 
+      restIconsEl,
+      towerBar,
+      btnC, 
+      btnW, 
+      correct: 0, 
+      wrong: 0, 
+      eliminated: false, 
+      rank: 0,
+      restCount: 0
+    };
+
+    btnC.addEventListener('click', ()=>{
+      if(p.eliminated || p.rank > 0 || p.restCount > 0) return;
+      
+      pushHistory();
+      
+      p.correct++;
+      
+      decreaseAllRest();
+      
+      checkFinishAndEliminate(p);
+      renderAll(true, p.idx);
+    });
+
+    btnW.addEventListener('click', ()=>{
+      if(p.eliminated || p.rank > 0 || p.restCount > 0) return;
+      
+      pushHistory();
+      
+      p.wrong++;
+      
+      decreaseAllRest();
+      
+      const restTh = Math.max(0, parseInt(restInput.value || 0));
+      p.restCount = restTh;
+      
+      checkFinishAndEliminate(p);
+      renderAll(true, p.idx);
+    });
+
+    return p;
+  }
+
+  function createGrid(count){
+    grid.innerHTML = '';
+    players = [];
+    historyStack = [];
+    winners = [];
+    setGridColumnsByCount(count);
+
+    for(let i=0;i<count;i++){
+      const p = createPlayerObject(i);
+      players.push(p);
+    }
+
+    renderAll(false);
+    updateUndoState();
+  }
+
+  function checkFinishAndEliminate(p){
+    const winTh = Math.max(1, parseInt(winInput.value || 1));
+    const loseTh = parseInt(loseInput.value || 0);
+
+    if(loseTh > 0 && !p.eliminated && p.wrong >= loseTh){
+      p.eliminated = true;
+      p.rank = 0;
+      p.restCount = 0;
+    }
+
+    if(!p.eliminated && p.rank === 0 && p.correct >= winTh){
+      winners.push(p.idx);
+      p.rank = winners.length;
+      p.restCount = 0;
+    }
+  }
+
+  function renderAll(animate=true, activeIdx = -1){
+    const winTh = Math.max(1, parseInt(winInput.value || 1));
+    
+    players.forEach(p=>{
+      p.el.classList.remove('eliminated', 'winner', 'frozen');
+      
+      const pct = Math.min(100, Math.max(0, (p.correct / winTh) * 100));
+      p.towerBar.style.height = pct + '%';
+      
+      if(p.eliminated){
+        p.el.classList.add('eliminated');
+        p.correctNumEl.textContent = 'LOSE';
+        p.wrongEl.textContent = p.wrong > 0 ? '×'.repeat(p.wrong) : '';
+        p.restIconsEl.textContent = '';
+        p.btnC.disabled = true;
+        p.btnW.disabled = true;
+        p.nameEl.disabled = true;
+        p.subnameEl.disabled = true;
+      } else {
+        if(p.rank > 0){
+          p.el.classList.add('winner');
+          p.correctNumEl.textContent = ordinalLabel(p.rank);
+          p.wrongEl.textContent = '';
+          p.restIconsEl.textContent = '';
+          p.btnC.disabled = true;
+          p.btnW.disabled = true;
+          p.nameEl.disabled = true;
+          p.subnameEl.disabled = true;
+        } else {
+          p.correctNumEl.textContent = String(p.correct);
+          p.wrongEl.textContent = p.wrong > 0 ? '×'.repeat(p.wrong) : '';
+          p.restIconsEl.textContent = p.restCount > 0 ? '❄'.repeat(p.restCount) : '';
+          
+          if(p.restCount > 0){
+            p.el.classList.add('frozen');
+            p.btnC.disabled = true;
+            p.btnW.disabled = true;
+          } else {
+            p.btnC.disabled = false;
+            p.btnW.disabled = false;
+          }
+          p.nameEl.disabled = false;
+          p.subnameEl.disabled = false;
+        }
+      }
+
+      if(animate && p.idx === activeIdx){
+        p.correctNumEl.classList.remove('pop-anim');
+        void p.correctNumEl.offsetWidth;
+        p.correctNumEl.classList.add('pop-anim');
+      }
+    });
+
+    updateUndoState();
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const last = historyStack.pop();
+    if(!last) return;
+    
+    winners = last.winners.slice();
+    
+    players.forEach((p, i) => {
+      const saved = last.players[i];
+      p.correct = saved.correct;
+      p.wrong = saved.wrong;
+      p.eliminated = saved.eliminated;
+      p.rank = saved.rank;
+      p.restCount = saved.restCount;
+    });
+    
+    renderAll(true);
+  }
+
+  function addPlayer(){
+    const currentCount = players.length;
+    const max = 20;
+    if(currentCount >= max) return;
+    const newIdx = currentCount;
+    setGridColumnsByCount(currentCount + 1);
+    const p = createPlayerObject(newIdx);
+    players.push(p);
+    countInput.value = players.length;
+    renderAll(false);
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  function handleThrough(){
+    pushHistory();
+    decreaseAllRest();
+    renderAll(false);
+  }
+
+  setupBtn.addEventListener('click', ()=>{
+    if(players.length === 0){
+      const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+      createGrid(cnt);
+    } else {
+      players.forEach(p=>{
+        p.correct = 0; 
+        p.wrong = 0; 
+        p.eliminated = false; 
+        p.rank = 0;
+        p.restCount = 0;
+        p.btnC.disabled = false;
+        p.btnW.disabled = false;
+        p.nameEl.disabled = false;
+        p.subnameEl.disabled = false;
+        p.el.classList.remove('eliminated', 'winner', 'frozen');
+      });
+      historyStack = [];
+      winners = [];
+      renderAll(false);
+      updateUndoState();
+    }
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    createGrid(cnt);
+  });
+
+  undoBtn.addEventListener('click', undoGlobal);
+  addBtn.addEventListener('click', addPlayer);
+  throughBtn.addEventListener('click', handleThrough);
+
+  winInput.addEventListener('input', ()=> {
+    players.forEach(p => {
+      if(!p.eliminated && p.rank === 0 && p.correct >= parseInt(winInput.value || 1)){
+        winners.push(p.idx);
+        p.rank = winners.length;
+      }
+    });
+    renderAll(false);
+  });
+  
+  loseInput.addEventListener('input', ()=> {
+    const loseVal = parseInt(loseInput.value || 0);
+    if(loseVal > 0){
+      players.forEach(p => {
+        if(!p.eliminated && p.wrong >= loseVal) {
+          p.eliminated = true;
+          p.restCount = 0;
+        }
+      });
+    }
+    renderAll(false);
+  });
+
+  createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+  
+  window.addEventListener('resize', ()=> {
+    const cnt = players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+    setGridColumnsByCount(cnt);
+  });
+
+})();
+</script>
+</body>
+</html>

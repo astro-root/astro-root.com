@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>螺旋階段</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.8);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+      z-index: 10;
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #a855f7, var(--color-cyan));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 11px; color: var(--text-muted); font-weight: bold; white-space: nowrap; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 35px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-blue); }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    #setupBtn { background: var(--color-blue); }
+    #resetAll { background: var(--color-red); }
+    #undoGlobal { background: #64748b; }
+    #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
+    #addPlayer { background: var(--color-green); }
+
+    .scoreboard {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      position: relative;
+    }
+    #grid {
+      display: grid;
+      gap: 15px;
+      align-items: start;
+      position: relative;
+    }
+
+    .column {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      box-shadow: var(--shadow-soft);
+      will-change: transform;
+    }
+    
+    .rank-indicator {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--color-cyan);
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+      margin-bottom: 8px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .name-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 18px;
+      height: 240px;
+      width: 40px;
+      text-align: center;
+      letter-spacing: 2px;
+      transition: color 0.2s;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      padding-left: 5px;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+
+    .big-score-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-around;
+      height: 140px;
+    }
+
+    .score-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+    }
+    
+    .score-label {
+      font-size: 10px;
+      opacity: 0.6;
+      margin-bottom: 2px;
+      font-weight: bold;
+    }
+
+    .big-num {
+      font-size: 42px;
+      font-weight: 800;
+      font-family: 'Arial', sans-serif;
+    }
+    
+    .num-c { color: var(--color-green); text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+    .num-w { color: var(--color-red); text-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+
+    .streak-container {
+      width: 100%;
+      height: 24px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .streak-badge {
+      font-size: 12px;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .streak-win {
+      color: #fff;
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+    .streak-lose {
+      color: #fff;
+      background: linear-gradient(90deg, #ef4444, #b91c1c);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+
+    .buttons { display: flex; gap: 8px; width: 100%; }
+    .btn-op {
+      flex: 1; border: none; padding: 12px 0; border-radius: 8px;
+      cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+
+    .column.eliminated {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(239, 68, 68, 0.2);
+      opacity: 0.6;
+      transform: scale(0.95);
+    }
+    .column.eliminated .name-input { color: #334155; border-color: transparent; }
+    .column.eliminated .rank-indicator { color: #475569; text-shadow: none; font-size: 16px; }
+    .column.eliminated .big-num { filter: grayscale(1); opacity: 0.5; }
+    .column.eliminated .btn-op { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+
+    .column.winner {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.9));
+      z-index: 5;
+    }
+    .column.winner .rank-indicator {
+      color: var(--color-gold);
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+      font-size: 24px;
+    }
+
+    .column.rank-top {
+      border: 1px solid rgba(245, 158, 11, 0.6);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.05);
+    }
+    .column.rank-bottom {
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+    }
+
+    .animating {
+      transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+    }
+
+    .pop-anim { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.4);} 100%{transform: scale(1);} }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:translateY(0);} }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+      .controls { justify-content: space-between; }
+      .name-input { height: 100px; font-size: 14px; width: 24px; letter-spacing: 0; }
+      .big-num { font-size: 28px; }
+      .big-score-area { height: 100px; }
+      .rank-indicator { font-size: 16px; }
+      .btn-op { padding: 10px 0; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">上座</div>
+    <h1>螺旋階段</h1>
+  </div>
+  <div class="controls">
+    <div class="control-group">
+      <label>正解↑</label>
+      <input type="number" id="upSteps" min="1" value="1" title="アップ数 (m)">
+    </div>
+    <div class="control-group">
+      <label>誤答↓</label>
+      <input type="number" id="downSteps" min="1" value="1" title="ダウン数 (n)">
+    </div>
+    <div class="control-group">
+      <label>WIN</label>
+      <input type="number" id="winCount" min="1" value="3" title="勝ち抜けリーチ (p)">
+    </div>
+    <div class="control-group">
+      <label>LOSE</label>
+      <input type="number" id="loseCount" min="1" value="3" title="失格リーチ (q)">
+    </div>
+    <div class="control-group">
+      <label>PLAYER</label>
+      <input type="number" id="playerCount" min="2" max="20" value="6">
+    </div>
+    <div style="flex:1"></div>
+    <button id="setupBtn" class="btn-action">開始</button>
+    <button id="addPlayer" class="btn-action">追加</button>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div id="grid" aria-label="scoreboard-grid"></div>
+</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const upStepsInput = document.getElementById('upSteps');
+  const downStepsInput = document.getElementById('downSteps');
+  const winCountInput = document.getElementById('winCount');
+  const loseCountInput = document.getElementById('loseCount');
+  const playerCountInput = document.getElementById('playerCount');
+  
+  const setupBtn = document.getElementById('setupBtn');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoGlobal');
+  const addBtn = document.getElementById('addPlayer');
+
+  let players = []; 
+  let historyStack = [];
+  let winnersList = [];
+  let nextPlayerId = 0;
+
+  function ordinalLabel(n){
+    if(n % 100 >= 11 && n % 100 <= 13) return n + 'th';
+    const last = n % 10;
+    if(last === 1) return n + 'st';
+    if(last === 2) return n + 'nd';
+    if(last === 3) return n + 'rd';
+    return n + 'th';
+  }
+
+  function setGridColumnsByCount(count){
+    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+  }
+
+  function pushHistory(){
+    const snapshot = {
+      players: players.map(p => ({
+        id: p.id,
+        name: p.nameEl.value,
+        position: p.position,
+        correct: p.correct,
+        wrong: p.wrong,
+        topStreak: p.topStreak,
+        bottomStreak: p.bottomStreak,
+        eliminated: p.eliminated,
+        winner: p.winner
+      })),
+      winnersList: winnersList.slice()
+    };
+    historyStack.push(snapshot);
+    if(historyStack.length > 500) historyStack.shift();
+    updateUndoState();
+  }
+
+  function updateUndoState(){
+    undoBtn.disabled = historyStack.length === 0;
+  }
+
+  function createPlayer(id, initialPosition){
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.id = `player-${id}`;
+    col.innerHTML = `
+      <div class="rank-indicator">1st</div>
+      <div class="streak-container">
+        <div class="streak-badge streak-win">REACH 1/3</div>
+        <div class="streak-badge streak-lose">LOSE 2/3</div>
+      </div>
+      <div class="main-content">
+        <input class="name-input" value="プレイヤー${id+1}" />
+        <div class="big-score-area">
+          <div class="score-group">
+            <span class="score-label">CORRECT</span>
+            <span class="big-num num-c">0</span>
+          </div>
+          <div class="score-group">
+            <span class="score-label">WRONG</span>
+            <span class="big-num num-w">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="btn-op btn-correct">正解</button>
+        <button class="btn-op btn-wrong">誤答</button>
+      </div>
+    `;
+    
+    const rankEl = col.querySelector('.rank-indicator');
+    const nameEl = col.querySelector('.name-input');
+    const numCEl = col.querySelector('.num-c');
+    const numWEl = col.querySelector('.num-w');
+    const streakWinEl = col.querySelector('.streak-win');
+    const streakLoseEl = col.querySelector('.streak-lose');
+    const btnC = col.querySelector('.btn-correct');
+    const btnW = col.querySelector('.btn-wrong');
+
+    const p = {
+      id: id,
+      el: col,
+      rankEl, nameEl, numCEl, numWEl, streakWinEl, streakLoseEl, btnC, btnW,
+      position: initialPosition,
+      correct: 0,
+      wrong: 0,
+      topStreak: 0,
+      bottomStreak: 0,
+      eliminated: false,
+      winner: false
+    };
+
+    btnC.addEventListener('click', () => handleActionWithAnimation(p, true));
+    btnW.addEventListener('click', () => handleActionWithAnimation(p, false));
+
+    return p;
+  }
+
+  function handleActionWithAnimation(player, isCorrect){
+    if(player.eliminated || player.winner) return;
+
+    const firstRects = new Map();
+    players.forEach(p => {
+      if(p.el.parentNode){
+        firstRects.set(p.id, p.el.getBoundingClientRect());
+      }
+    });
+
+    const activeCount = players.filter(p => !p.eliminated && !p.winner).length;
+    const wasAtTop = (player.position === 0);
+    const wasAtBottom = (player.position === activeCount - 1);
+
+    pushHistory();
+    if(isCorrect) {
+      player.correct++;
+      moveRank(player, -parseInt(upStepsInput.value || 1));
+    } else {
+      player.wrong++;
+      moveRank(player, parseInt(downStepsInput.value || 1));
+    }
+
+    renderAndCheckStreaks(true, player.id, isCorrect, wasAtTop, wasAtBottom);
+
+    requestAnimationFrame(() => {
+      players.forEach(p => {
+        const first = firstRects.get(p.id);
+        if(!first) return;
+        
+        const last = p.el.getBoundingClientRect();
+        const dx = first.left - last.left;
+        const dy = first.top - last.top;
+
+        if(dx !== 0 || dy !== 0) {
+          p.el.classList.remove('animating');
+          p.el.style.transform = `translate(${dx}px, ${dy}px)`;
+          
+          requestAnimationFrame(() => {
+            p.el.classList.add('animating');
+            p.el.style.transform = '';
+          });
+        } else {
+          p.el.style.transform = '';
+        }
+      });
+    });
+  }
+
+  function moveRank(player, delta){
+    let activePlayers = players.filter(p => !p.eliminated && !p.winner);
+    activePlayers.sort((a,b) => a.position - b.position);
+
+    const currentIdx = activePlayers.findIndex(p => p.id === player.id);
+    if(currentIdx === -1) return;
+
+    let newIdx = currentIdx + delta;
+    if(newIdx < 0) newIdx = 0;
+    if(newIdx > activePlayers.length - 1) newIdx = activePlayers.length - 1;
+
+    activePlayers.splice(currentIdx, 1);
+    activePlayers.splice(newIdx, 0, player);
+
+    activePlayers.forEach((p, index) => {
+      p.position = index;
+    });
+  }
+
+  function createGrid(count){
+    grid.innerHTML = '';
+    players = [];
+    historyStack = [];
+    winnersList = [];
+    nextPlayerId = 0;
+    setGridColumnsByCount(count);
+
+    for(let i=0; i<count; i++){
+      const p = createPlayer(nextPlayerId++, i);
+      players.push(p);
+    }
+    
+    renderAndCheckStreaks(false);
+  }
+
+  function renderAndCheckStreaks(animate = false, activeId = -1, isCorrectAction = null, wasAtTop = false, wasAtBottom = false){
+    let activePlayers = players.filter(p => !p.eliminated && !p.winner);
+    activePlayers.sort((a,b) => a.position - b.position);
+
+    if(activeId !== -1 && isCorrectAction !== null){
+      const actor = players.find(p => p.id === activeId);
+      
+      if(actor && !actor.eliminated && !actor.winner){
+        const actorRankIdx = activePlayers.findIndex(p => p.id === activeId);
+        const totalActive = activePlayers.length;
+
+        if(actorRankIdx === 0){
+          if(isCorrectAction && wasAtTop){
+            actor.topStreak++;
+          } else {
+            actor.topStreak = 0;
+          }
+        } else {
+          actor.topStreak = 0;
+        }
+
+        activePlayers.forEach((p, idx) => {
+          if(idx !== 0) p.topStreak = 0;
+        });
+
+        if(totalActive > 1 && actorRankIdx === totalActive - 1){
+          if(!isCorrectAction && wasAtBottom){
+            actor.bottomStreak++;
+          } else {
+            actor.bottomStreak = 0;
+          }
+        } else {
+          actor.bottomStreak = 0;
+        }
+
+        activePlayers.forEach((p, idx) => {
+          if(idx !== totalActive - 1) p.bottomStreak = 0;
+        });
+      }
+    }
+
+    const winTh = Math.max(1, parseInt(winCountInput.value || 3));
+    const loseTh = Math.max(1, parseInt(loseCountInput.value || 3));
+
+    activePlayers.forEach((p, idx) => {
+      if(idx === 0 && p.topStreak >= winTh){
+        p.winner = true;
+        winnersList.push(p.id);
+      }
+      if(activePlayers.length > 1 && idx === activePlayers.length - 1 && p.bottomStreak >= loseTh){
+        p.eliminated = true;
+      }
+    });
+
+    const sortedWinners = winnersList.map(wid => players.find(p => p.id === wid));
+    const finalActive = players.filter(p => !p.eliminated && !p.winner).sort((a,b) => a.position - b.position);
+    const eliminated = players.filter(p => p.eliminated);
+    
+    finalActive.forEach((p, i) => p.position = i);
+
+    const displayOrder = [...sortedWinners, ...finalActive, ...eliminated];
+
+    displayOrder.forEach(p => {
+      if(p) grid.appendChild(p.el);
+    });
+    setGridColumnsByCount(players.length);
+
+    updateCardVisuals(animate, activeId);
+    updateUndoState();
+  }
+
+  function updateCardVisuals(animate, activeId){
+    const winTh = Math.max(1, parseInt(winCountInput.value || 3));
+    const loseTh = Math.max(1, parseInt(loseCountInput.value || 3));
+    
+    const activePlayers = players.filter(p => !p.eliminated && !p.winner);
+    activePlayers.sort((a,b) => a.position - b.position);
+
+    players.forEach(p => {
+      p.el.classList.remove('eliminated', 'winner', 'rank-top', 'rank-bottom');
+      p.streakWinEl.style.display = 'none';
+      p.streakLoseEl.style.display = 'none';
+
+      p.numCEl.textContent = p.correct;
+      p.numWEl.textContent = p.wrong;
+
+      if(p.winner){
+        p.el.classList.add('winner');
+        const rank = winnersList.indexOf(p.id) + 1;
+        p.rankEl.textContent = ordinalLabel(rank);
+        p.btnC.disabled = true;
+        p.btnW.disabled = true;
+        p.nameEl.disabled = true;
+      } else if(p.eliminated){
+        p.el.classList.add('eliminated');
+        p.rankEl.textContent = 'LOSE';
+        p.btnC.disabled = true;
+        p.btnW.disabled = true;
+        p.nameEl.disabled = true;
+      } else {
+        p.btnC.disabled = false;
+        p.btnW.disabled = false;
+        p.nameEl.disabled = false;
+        
+        const rankIdx = activePlayers.findIndex(pl => pl.id === p.id);
+        const rank = rankIdx + 1;
+        p.rankEl.textContent = ordinalLabel(rank);
+
+        if(rank === 1){
+          p.el.classList.add('rank-top');
+          p.streakWinEl.style.display = 'block';
+          p.streakWinEl.textContent = `WIN REACH: ${p.topStreak} / ${winTh}`;
+        }
+        if(activePlayers.length > 1 && rank === activePlayers.length){
+          p.el.classList.add('rank-bottom');
+          p.streakLoseEl.style.display = 'block';
+          p.streakLoseEl.textContent = `LOSE REACH: ${p.bottomStreak} / ${loseTh}`;
+        }
+      }
+
+      if(animate && p.id === activeId){
+        p.numCEl.classList.remove('pop-anim');
+        p.numWEl.classList.remove('pop-anim');
+        void p.numCEl.offsetWidth;
+        p.numCEl.classList.add('pop-anim');
+        p.numWEl.classList.add('pop-anim');
+      }
+    });
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const snapshot = historyStack.pop();
+    
+    winnersList = snapshot.winnersList.slice();
+    
+    snapshot.players.forEach(saved => {
+      const p = players.find(pl => pl.id === saved.id);
+      if(p){
+        p.nameEl.value = saved.name;
+        p.position = saved.position;
+        p.correct = saved.correct;
+        p.wrong = saved.wrong;
+        p.topStreak = saved.topStreak;
+        p.bottomStreak = saved.bottomStreak;
+        p.eliminated = saved.eliminated;
+        p.winner = saved.winner;
+      }
+    });
+    
+    renderAndCheckStreaks(false);
+  }
+
+  function addPlayer(){
+    if(players.length >= 20) return;
+    pushHistory();
+    const activeCount = players.filter(p=>!p.eliminated && !p.winner).length;
+    const p = createPlayer(nextPlayerId++, activeCount);
+    players.push(p);
+    playerCountInput.value = players.length;
+    renderAndCheckStreaks(false);
+  }
+
+  setupBtn.addEventListener('click', ()=>{
+    if(players.length === 0){
+      createGrid(Math.max(2, Math.min(20, parseInt(playerCountInput.value || 6))));
+    } else {
+      players.forEach((p, idx) => {
+        p.correct = 0; p.wrong = 0; 
+        p.topStreak = 0; p.bottomStreak = 0;
+        p.eliminated = false; p.winner = false;
+        p.position = idx; 
+      });
+      players.sort((a,b)=> a.id - b.id).forEach((p,i)=> p.position = i);
+      historyStack = [];
+      winnersList = [];
+      renderAndCheckStreaks(false);
+    }
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    createGrid(Math.max(2, Math.min(20, parseInt(playerCountInput.value || 6))));
+  });
+
+  undoBtn.addEventListener('click', undoGlobal);
+  addBtn.addEventListener('click', addPlayer);
+
+  createGrid(Math.max(2, Math.min(20, parseInt(playerCountInput.value || 6))));
+
+})();
+</script>
+</body>
+</html>

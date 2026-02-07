@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>AQL/10by10by10mini</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-red: #ef4444;
+      --color-gold: #f59e0b;
+      --color-cyan: #06b6d4;
+      --color-teal: #14b8a6;
+      --color-orange: #f97316;
+      
+      --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      --shadow-glow: 0 0 15px rgba(20, 184, 166, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+    
+    html, body { 
+      min-height: 100vh; 
+      margin: 0; 
+      padding: 0; 
+      font-family: var(--font-family); 
+    }
+    
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--color-teal), var(--color-blue));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px; color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .control-group {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; }
+    .control-group input {
+      background: transparent; border: none; color: var(--text-main);
+      font-weight: bold; font-size: 16px; width: 60px; text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+    .control-group input:focus { outline: none; border-color: var(--color-teal); }
+
+    .btn-action {
+      border: none; padding: 8px 16px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; color: white;
+      transition: all 0.2s; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    #setupBtn { background: var(--color-blue); }
+    #resetAll { background: var(--color-red); }
+    #undoGlobal { background: #64748b; }
+    #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
+    #btnThrough { background: var(--color-orange); }
+
+    .game-status {
+      font-weight: 900;
+      font-size: 20px;
+      color: var(--color-gold);
+      margin: 0 20px;
+      display: none;
+      text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+      letter-spacing: 1px;
+    }
+
+    .arena {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      flex: 1;
+      align-items: flex-start;
+    }
+
+    .team-card {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-soft);
+      min-width: 0;
+      height: auto;
+      transition: all 0.3s ease;
+    }
+
+    .team-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 15px;
+    }
+
+    .team-name {
+      background: transparent; border: none; 
+      color: var(--text-main); font-weight: 900; font-size: 24px;
+      text-align: center; width: 100%; outline: none;
+      margin-bottom: 5px;
+    }
+
+    .team-score {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--color-teal);
+      text-shadow: 0 0 30px rgba(20, 184, 166, 0.4);
+      line-height: 1;
+    }
+
+    .team-players {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      flex: 1; 
+    }
+
+    .player-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      padding: 10px 5px;
+      position: relative;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .name-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 24px;
+      height: 240px;
+      width: 30px;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      transition: color 0.2s;
+    }
+    .name-input:focus { outline: none; color: var(--text-main); }
+
+    .player-points {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 5px 0;
+    }
+    
+    .wrong-marks {
+      height: 36px;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--color-red);
+      letter-spacing: 2px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+      margin-top: auto; 
+    }
+    .btn-op {
+      border: none; padding: 8px 0; border-radius: 6px;
+      cursor: pointer; font-weight: 900; font-size: 14px; color: rgba(0,0,0,0.6);
+      transition: transform 0.1s;
+      width: 100%;
+    }
+    .btn-op:active { transform: scale(0.95); }
+    .btn-correct { background: var(--color-green); color: #064e3b; }
+    .btn-wrong { background: var(--color-red); color: #450a0a; }
+
+    .player-col.reach {
+      border-color: var(--color-gold);
+      background: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+    }
+    .player-col.reach .player-points { color: var(--color-gold); }
+
+    .player-col.rest {
+      opacity: 0.4;
+      background: #000;
+    }
+    .player-col.rest .player-points { text-decoration: line-through; }
+    .player-col.rest .btn-op { pointer-events: none; }
+    .player-col.rest::after {
+      content: "LOCK";
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 900;
+      color: #fff;
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .team-card.winner {
+      border-color: var(--color-gold);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+    }
+    .team-card.winner .team-score { color: var(--color-gold); }
+
+    .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
+
+    @media (max-width: 900px) {
+      .arena { flex-direction: column; }
+      .team-score { font-size: 48px; }
+      .name-input { height: 80px; font-size: 14px; }
+      .player-points { font-size: 24px; }
+      header { gap: 10px; }
+      .game-status { width: 100%; text-align: center; order: 3; margin: 5px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <div class="logo">AQL</div>
+    <h1>AQL/10by10by10mini</h1>
+  </div>
+  
+  <div class="game-status" id="gameInfo"></div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>WIN</label>
+      <input type="number" id="winPoints" min="1" value="200">
+    </div>
+    <div class="control-group">
+      <label>限定問題数</label>
+      <input type="number" id="limitQs" min="1" value="40">
+    </div>
+    
+    <button id="btnThrough" class="btn-action">スルー</button>
+    <div style="width:10px"></div>
+    <button id="resetAll" class="btn-action">リセット</button>
+    <button id="undoGlobal" class="btn-action">戻る</button>
+  </div>
+</header>
+
+<div class="arena">
+  <div class="team-card" id="teamA">
+    <div class="team-header">
+      <input class="team-name" value="Team A">
+      <div class="team-score" id="scoreA">1</div>
+    </div>
+    <div class="team-players" id="playersA"></div>
+  </div>
+
+  <div class="team-card" id="teamB">
+    <div class="team-header">
+      <input class="team-name" value="Team B">
+      <div class="team-score" id="scoreB">1</div>
+    </div>
+    <div class="team-players" id="playersB"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const winInput = document.getElementById('winPoints');
+  const limitInput = document.getElementById('limitQs');
+  const resetBtn = document.getElementById('resetAll');
+  const undoBtn = document.getElementById('undoGlobal');
+  const throughBtn = document.getElementById('btnThrough');
+  const gameInfo = document.getElementById('gameInfo');
+
+  const scoreElA = document.getElementById('scoreA');
+  const scoreElB = document.getElementById('scoreB');
+  const containerA = document.getElementById('playersA');
+  const containerB = document.getElementById('playersB');
+  const teamCardA = document.getElementById('teamA');
+  const teamCardB = document.getElementById('teamB');
+
+  const TEAM_SIZE = 5;
+  
+  let teams = [[], []]; 
+  let currentQuestionCount = 0;
+  let historyStack = [];
+
+  function initData(){
+    teams = [
+      Array.from({length: TEAM_SIZE}, () => ({ points: 1, wrong: 0, isRest: false })),
+      Array.from({length: TEAM_SIZE}, () => ({ points: 1, wrong: 0, isRest: false }))
+    ];
+    currentQuestionCount = 0;
+    historyStack = [];
+    render();
+  }
+
+  function pushHistory(){
+    const snapshot = {
+      teams: JSON.parse(JSON.stringify(teams)),
+      count: currentQuestionCount
+    };
+    historyStack.push(snapshot);
+    if(historyStack.length > 500) historyStack.shift();
+    updateUndoBtn();
+  }
+
+  function updateUndoBtn(){
+    undoBtn.disabled = historyStack.length === 0;
+  }
+
+  function getTeamScore(teamIndex){
+    return teams[teamIndex].reduce((acc, p) => acc * p.points, 1);
+  }
+
+  function reviveTeam(teamIndex){
+    let revived = false;
+    teams[teamIndex].forEach(p => {
+      if(p.isRest){
+        p.points = 1;
+        p.wrong = 1;
+        p.isRest = false;
+        revived = true;
+      }
+    });
+    return revived;
+  }
+
+  function handleCorrect(teamIdx, playerIdx){
+    const p = teams[teamIdx][playerIdx];
+    if(p.isRest) return;
+
+    pushHistory();
+    p.points += 1;
+    currentQuestionCount += 1;
+    render(teamIdx);
+  }
+
+  function handleWrong(teamIdx, playerIdx){
+    const p = teams[teamIdx][playerIdx];
+    if(p.isRest) return;
+
+    pushHistory();
+    p.points = 1;
+    p.wrong += 1;
+    if(p.wrong >= 2){
+      p.isRest = true;
+    }
+    
+    const opponentIdx = teamIdx === 0 ? 1 : 0;
+    reviveTeam(opponentIdx);
+    
+    currentQuestionCount += 1;
+    render(teamIdx);
+  }
+
+  function handleThrough(){
+    pushHistory();
+    currentQuestionCount += 1;
+    render();
+  }
+
+  function createPlayerEl(teamIdx, playerIdx, pData, winScore, teamScore){
+    const div = document.createElement('div');
+    div.className = 'player-col';
+    
+    div.innerHTML = `
+      <input class="name-input" value="プレイヤー${playerIdx+1}" />
+      <div class="player-points">${pData.points}</div>
+      <div class="wrong-marks">${'×'.repeat(pData.wrong)}</div>
+      <div class="buttons">
+        <button class="btn-op btn-correct">正解</button>
+        <button class="btn-op btn-wrong">誤答</button>
+      </div>
+    `;
+
+    const btnC = div.querySelector('.btn-correct');
+    const btnW = div.querySelector('.btn-wrong');
+    
+    btnC.addEventListener('click', () => handleCorrect(teamIdx, playerIdx));
+    btnW.addEventListener('click', () => handleWrong(teamIdx, playerIdx));
+
+    return div;
+  }
+
+  function render(animateTeamIdx = -1){
+    const winScore = parseInt(winInput.value || 200);
+    const limitQs = parseInt(limitInput.value || 9999);
+    
+    const scoreA = getTeamScore(0);
+    const scoreB = getTeamScore(1);
+
+    scoreElA.textContent = scoreA;
+    scoreElB.textContent = scoreB;
+
+    teamCardA.classList.remove('winner');
+    teamCardB.classList.remove('winner');
+    gameInfo.style.display = 'none';
+
+    let isGameEnd = false;
+
+    if(scoreA >= winScore || scoreB >= winScore) {
+      isGameEnd = true;
+      if(scoreA >= winScore) teamCardA.classList.add('winner');
+      if(scoreB >= winScore) teamCardB.classList.add('winner');
+    }
+
+    if(!isGameEnd && currentQuestionCount >= limitQs) {
+      isGameEnd = true;
+      if(scoreA > scoreB) {
+        teamCardA.classList.add('winner');
+      } else if (scoreB > scoreA) {
+        teamCardB.classList.add('winner');
+      } else {
+        teamCardA.classList.add('winner');
+        teamCardB.classList.add('winner');
+      }
+    }
+
+    if(isGameEnd) {
+      gameInfo.textContent = `${currentQuestionCount}問 / ${limitInput.value}問`;
+      gameInfo.style.display = 'block';
+    }
+
+    if(animateTeamIdx === 0) {
+      scoreElA.classList.remove('pop-anim');
+      void scoreElA.offsetWidth;
+      scoreElA.classList.add('pop-anim');
+    } else if(animateTeamIdx === 1) {
+      scoreElB.classList.remove('pop-anim');
+      void scoreElB.offsetWidth;
+      scoreElB.classList.add('pop-anim');
+    }
+
+    updateTeamDOM(0, containerA, winScore, scoreA);
+    updateTeamDOM(1, containerB, winScore, scoreB);
+
+    updateUndoBtn();
+  }
+
+  function updateTeamDOM(teamIdx, container, winScore, teamScore){
+    const teamData = teams[teamIdx];
+    
+    if(container.children.length === 0){
+      teamData.forEach((pData, idx) => {
+        container.appendChild(createPlayerEl(teamIdx, idx, pData, winScore, teamScore));
+      });
+    }
+
+    Array.from(container.children).forEach((div, idx) => {
+      const pData = teamData[idx];
+      const ptEl = div.querySelector('.player-points');
+      const wrEl = div.querySelector('.wrong-marks');
+      
+      ptEl.textContent = pData.points;
+      wrEl.textContent = '×'.repeat(pData.wrong);
+
+      div.classList.remove('rest', 'reach');
+      if(pData.isRest) {
+        div.classList.add('rest');
+      } else {
+         const potentialTeamScore = (teamScore / pData.points) * (pData.points + 1);
+         if(potentialTeamScore >= winScore && teamScore < winScore){
+           div.classList.add('reach');
+         }
+      }
+    });
+  }
+
+  function undoGlobal(){
+    if(historyStack.length === 0) return;
+    const snapshot = historyStack.pop();
+    teams = snapshot.teams;
+    currentQuestionCount = snapshot.count;
+    render();
+  }
+
+  resetBtn.addEventListener('click', initData);
+  undoBtn.addEventListener('click', undoGlobal);
+  throughBtn.addEventListener('click', handleThrough);
+  winInput.addEventListener('input', () => render());
+  limitInput.addEventListener('input', () => render());
+
+  initData();
+
+})();
+</script>
+</body>
+</html>

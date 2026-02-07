@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイムレース用タイマー</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030508;
+            --panel-bg: rgba(15, 20, 35, 0.85);
+            --primary-hue: 200;
+            --accent-color: hsl(var(--primary-hue), 100%, 50%);
+            --accent-glow: hsla(var(--primary-hue), 100%, 50%, 0.4);
+            --text-main: #ffffff;
+            --grid-line: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(0deg, transparent 24%, var(--grid-line) 25%, var(--grid-line) 26%, transparent 27%, transparent 74%, var(--grid-line) 75%, var(--grid-line) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-line) 25%, var(--grid-line) 26%, transparent 27%, transparent 74%, var(--grid-line) 75%, var(--grid-line) 76%, transparent 77%, transparent);
+            background-size: 40px 40px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, var(--bg-color) 90%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            position: relative;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 
+                0 0 40px rgba(0, 0, 0, 0.5),
+                inset 0 0 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 500px;
+            transition: box-shadow 0.3s;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.2), transparent 80%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            margin: 0 0 2rem 0;
+            font-weight: 800;
+        }
+
+        .timer-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg) scaleY(-1);
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .progress-ring__circle-bg {
+            fill: transparent;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 6;
+        }
+
+        .progress-ring__circle {
+            fill: transparent;
+            stroke: var(--accent-color);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 880;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.1s linear, stroke 0.5s ease;
+        }
+
+        #timer-display {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 5rem;
+            font-weight: 700;
+            z-index: 2;
+            color: #fff;
+            text-shadow: 0 0 20px var(--accent-glow);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -3px;
+            transition: color 0.5s;
+        }
+
+        .input-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 15, 25, 0.95);
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .input-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-group input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 3.5rem;
+            width: 90px;
+            text-align: center;
+            font-family: 'Roboto Mono', monospace;
+            padding: 5px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .input-group span {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 14px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #startStopBtn {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        #startStopBtn:hover {
+            background: #fff;
+            box-shadow: 0 0 25px var(--accent-glow);
+        }
+
+        #startStopBtn.running {
+            background: transparent;
+            border-color: #ff4444;
+            color: #ff4444;
+            box-shadow: none;
+        }
+
+        #startStopBtn.running:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .settings-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1.2rem;
+            padding: 8px;
+            width: auto;
+            border-radius: 50%;
+        }
+
+        .settings-toggle:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            transform: none;
+        }
+
+        .time-up-state {
+            animation: flashRed 1s infinite;
+        }
+
+        @keyframes flashRed {
+            0%, 100% { box-shadow: 0 0 40px rgba(255, 0, 0, 0.2); border-color: rgba(255, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 60px rgba(255, 0, 0, 0.5); border-color: rgba(255, 0, 0, 0.8); }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 1.5rem; }
+            .timer-wrapper { width: 260px; height: 260px; }
+            #timer-display { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <button class="settings-toggle" onclick="toggleSettings()">⚙</button>
+        <h1>Timer</h1>
+
+        <div class="timer-wrapper">
+            <svg class="progress-ring" width="300" height="300">
+                <circle class="progress-ring__circle-bg" cx="150" cy="150" r="140"></circle>
+                <circle class="progress-ring__circle" id="progressCircle" cx="150" cy="150" r="140"></circle>
+            </svg>
+            <div id="timer-display">03:00</div>
+
+            <div class="input-overlay" id="inputOverlay">
+                <div class="input-area">
+                    <div class="input-group">
+                        <input type="number" id="inputMin" value="3" min="0" max="99">
+                        <span>MIN</span>
+                    </div>
+                    <div style="font-size: 2rem; color: rgba(255,255,255,0.3); margin-bottom: 20px;">:</div>
+                    <div class="input-group">
+                        <input type="number" id="inputSec" value="0" min="0" max="59">
+                        <span>SEC</span>
+                    </div>
+                </div>
+                <button onclick="toggleSettings()" style="position:absolute; bottom: 20%; width: auto; padding: 10px 40px;">OK</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startStopBtn" onclick="toggleTimer()">START</button>
+            <button id="resetBtn" onclick="resetTimer()">RESET</button>
+        </div>
+    </div>
+
+    <script>
+        let totalTimeMs = 0;
+        let initialTimeMs = 0;
+        let endTime = 0;
+        let timerInterval;
+        let isRunning = false;
+        let audioCtx = null;
+
+        const circle = document.getElementById('progressCircle');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = 0;
+
+        const display = document.getElementById('timer-display');
+        const startStopBtn = document.getElementById('startStopBtn');
+        const inputMin = document.getElementById('inputMin');
+        const inputSec = document.getElementById('inputSec');
+        const inputOverlay = document.getElementById('inputOverlay');
+        const container = document.getElementById('mainContainer');
+
+        const root = document.documentElement;
+
+        updateDisplayFromInput();
+
+        inputMin.addEventListener('change', validateAndUpdate);
+        inputMin.addEventListener('input', validateAndUpdate);
+        inputSec.addEventListener('change', validateAndUpdate);
+        inputSec.addEventListener('input', validateAndUpdate);
+
+        function validateAndUpdate() {
+            if (this.value < 0) this.value = 0;
+            if (this.id === 'inputSec' && this.value > 59) this.value = 59;
+            updateDisplayFromInput();
+        }
+
+        function updateDisplayFromInput() {
+            let m = parseInt(inputMin.value) || 0;
+            let s = parseInt(inputSec.value) || 0;
+            display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            resetVisuals();
+        }
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function updateThemeColor(percent) {
+            let hue;
+            if (percent > 50) {
+                hue = 200; 
+            } else if (percent > 20) {
+                hue = 45; 
+            } else {
+                hue = 0; 
+            }
+            root.style.setProperty('--primary-hue', hue);
+        }
+
+        function toggleSettings() {
+            if (isRunning && !inputOverlay.classList.contains('active')) {
+                toggleTimer();
+            }
+            inputOverlay.classList.toggle('active');
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTimeUpSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            
+            const createBeep = (startTime, freq) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                gain.gain.setValueAtTime(0.2, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+                osc.stop(startTime + 0.3);
+            };
+
+            createBeep(now, 523.25);
+            createBeep(now + 0.4, 523.25); 
+            createBeep(now + 0.8, 783.99); 
+        }
+
+        function toggleTimer() {
+            initAudio(); 
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                const remaining = endTime - Date.now();
+                totalTimeMs = remaining;
+                isRunning = false;
+                startStopBtn.textContent = 'RESUME';
+                startStopBtn.classList.remove('running');
+            } else {
+                if (startStopBtn.textContent === 'START') {
+                    let m = parseInt(inputMin.value) || 0;
+                    let s = parseInt(inputSec.value) || 0;
+                    totalTimeMs = (m * 60 + s) * 1000;
+                    initialTimeMs = totalTimeMs;
+                    if(totalTimeMs <= 0) return;
+                    inputOverlay.classList.remove('active');
+                }
+                
+                endTime = Date.now() + totalTimeMs;
+                timerInterval = setInterval(updateTimer, 16);
+                isRunning = true;
+                startStopBtn.textContent = 'STOP';
+                startStopBtn.classList.add('running');
+            }
+        }
+
+        function updateTimer() {
+            const remaining = endTime - Date.now();
+            
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                display.textContent = "00.0";
+                setProgress(0);
+                isRunning = false;
+                startStopBtn.textContent = 'START';
+                startStopBtn.classList.remove('running');
+                
+                container.classList.add('time-up-state');
+                playTimeUpSound();
+                return;
+            }
+
+            if (remaining < 60000) {
+                 const seconds = (remaining / 1000).toFixed(1);
+                 display.textContent = seconds;
+            } else {
+                const totalSeconds = Math.ceil(remaining / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            const percentage = (remaining / initialTimeMs) * 100;
+            setProgress(percentage);
+            updateThemeColor(percentage);
+        }
+
+        function resetVisuals() {
+            container.classList.remove('time-up-state');
+            root.style.setProperty('--primary-hue', 200);
+            setProgress(100);
+            circle.style.strokeDashoffset = 0;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startStopBtn.textContent = 'START';
+            startStopBtn.classList.remove('running');
+            
+            updateDisplayFromInput();
+            inputOverlay.classList.add('active');
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                toggleTimer();
+            }
+            if (event.code === 'KeyR') {
+                resetTimer();
+            }
+            if (event.code === 'KeyS') {
+                toggleSettings();
+            }
+        });
+    </script>
+</body>
+</html>

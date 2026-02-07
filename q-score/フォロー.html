@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Presenter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root{
+      --bg-color: #121212;
+      --bg-gradient: radial-gradient(circle at center, #1e2530 0%, #0d1117 100%);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --text-main: #ffffff;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --answer-color: #f2cc60;
+      --font-base: "Noto Sans JP", sans-serif;
+      --font-mono: "Roboto Mono", monospace;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      font-family: var(--font-base);
+      overflow: hidden;
+    }
+
+    .container {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      z-index: 100;
+    }
+
+    .logo {
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* 設定パネル */
+    #settings-panel {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #settings-panel.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .settings-box {
+      background: #1c2128;
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid #30363d;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .settings-box h2 { margin-top: 0; color: var(--accent); }
+    
+    /* メイン表示エリア */
+    .stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .q-card {
+      width: 100%;
+      padding: 40px;
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .q-card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .question-text {
+      font-size: clamp(24px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      min-height: 1.4em;
+      white-space: pre-wrap;
+    }
+
+    .standby-mode .question-text {
+      font-family: var(--font-mono);
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    /* 正解エリアのスタイル調整 */
+    .answer-box {
+      margin-top: 20px;
+      padding: 10px 20px;
+      min-height: 2em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      
+      /* 初期状態: 完全に隠す */
+      opacity: 0;
+      visibility: hidden; 
+      transform: scale(0.95);
+      
+      /* アニメーション設定 */
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0.4s;
+    }
+    
+    /* 正解表示時 */
+    .answer-box.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+    }
+
+    .answer-text {
+      font-size: clamp(20px, 4vw, 48px);
+      font-weight: 900;
+      color: var(--answer-color);
+      text-shadow: 0 0 15px rgba(242, 204, 96, 0.3);
+    }
+
+    .alt-text {
+      font-size: clamp(14px, 2vw, 24px);
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      padding-bottom: 20px;
+    }
+
+    .btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: var(--font-base);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { background: #30363d; color: #fff; }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: 0.3; cursor: default; }
+    .btn-primary { background: #238636; border-color: rgba(27,31,35,0.15); color: #fff; font-weight: bold; }
+    .btn-primary:hover { background: #2ea043; }
+
+    .btn-icon {
+      width: 40px; height: 40px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 18px;
+    }
+
+    .meta-info {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      font-size: 14px;
+      background: rgba(0,0,0,0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    input[type="text"], input[type="number"], textarea {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 8px;
+      border-radius: 6px;
+      width: 100%;
+      box-sizing: border-box;
+      font-family: var(--font-base);
+      margin-bottom: 10px;
+    }
+    input[type="file"] {
+      padding: 10px;
+      border: 1px dashed #30363d;
+      width: 100%;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    
+    .shortcut-hint {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="settings-panel" class="active">
+    <div class="settings-box">
+      <h2>データ読み込み設定</h2>
+      <p style="font-size:14px; color:#8b949e; margin-bottom:20px;">
+        CSVファイルを選択するか、テキストを貼り付けてください。<br>
+        <small>※形式: 問題文, 正解, 補足</small>
+      </p>
+      <label style="display:block; margin-bottom:8px; font-weight:bold;">ファイルから:</label>
+      <input id="file" type="file" accept=".csv,text/csv" />
+      <div style="margin: 20px 0; text-align:center; color:#555;">OR</div>
+      <label style="display:block; margin-bottom:8px; font-weight:bold;">テキスト貼り付け:</label>
+      <textarea id="csvtext" rows="4" placeholder="ここにCSVテキストを貼り付け..."></textarea>
+      
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button id="btn-load-text" class="btn btn-primary">読み込んで開始</button>
+        <button id="btn-close-settings" class="btn">閉じる</button>
+      </div>
+      <div style="margin-top:10px; text-align:right;">
+          <button id="btn-clear" class="btn" style="font-size:12px; padding:4px 8px;">データをクリア</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="logo">QUIZ PRESENTER</div>
+      <div style="display:flex; gap:10px;">
+        <button id="btn-open-settings" class="btn">📂 データ設定</button>
+        <button id="btn-fullscreen" class="btn" title="全画面表示">⛶</button>
+      </div>
+    </header>
+
+    <div class="stage">
+      <div id="q-card" class="q-card">
+        <div class="question-text" id="question">Ready?</div>
+        
+        <div id="answer-area" class="answer-box">
+          <div class="answer-text" id="answer"></div>
+          <div class="alt-text" id="alt"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <button id="back" class="btn btn-icon" disabled>◀</button>
+      
+      <div class="meta-info">
+        NO. <span id="current-num">0</span> / <span id="total-num">0</span>
+      </div>
+
+      <button id="next" class="btn btn-icon" disabled>▶</button>
+      
+      <div style="display:flex; align-items:center; gap:5px; margin-left:15px;">
+        <input id="jumpNum" type="number" min="1" placeholder="#" style="width:60px; margin:0; text-align:center;">
+        <button id="jumpBtn" class="btn" style="padding: 4px 10px;">Go</button>
+      </div>
+    </footer>
+    
+    <div class="shortcut-hint">Space: 正解表示 / 矢印: 移動 / S: 設定</div>
+  </div>
+
+  <script>
+    // --- CSV Parser ---
+    function parseCSV(text){
+      const rows=[];
+      let cur='';
+      let row=[];
+      let inQuotes=false;
+      for(let i=0;i<text.length;i++){
+        const ch=text[i];
+        if(inQuotes){
+          if(ch==='"'){
+            if(i+1<text.length && text[i+1]==='"'){ cur += '"'; i++; }
+            else { inQuotes=false; }
+          } else { cur += ch; }
+        } else {
+          if(ch==='"'){ inQuotes=true; }
+          else if(ch===','){ row.push(cur); cur=''; }
+          else if(ch==='\r'){ }
+          else if(ch==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+          else { cur += ch; }
+        }
+      }
+      if(cur!=='' || row.length>0){ row.push(cur); rows.push(row); }
+      return rows;
+    }
+
+    // --- Elements ---
+    const els = {
+      question: document.getElementById('question'),
+      answer: document.getElementById('answer'),
+      alt: document.getElementById('alt'),
+      qCard: document.getElementById('q-card'),
+      answerArea: document.getElementById('answer-area'),
+      back: document.getElementById('back'),
+      next: document.getElementById('next'),
+      curNum: document.getElementById('current-num'),
+      totNum: document.getElementById('total-num'),
+      jumpNum: document.getElementById('jumpNum'),
+      settings: document.getElementById('settings-panel')
+    };
+
+    // --- State ---
+    let data = [];
+    let idx = -2; 
+    let isAnswerVisible = false;
+
+    // --- Logic ---
+    function init(){
+      document.getElementById('file').addEventListener('change', loadFile);
+      document.getElementById('btn-load-text').addEventListener('click', loadTextData);
+      document.getElementById('btn-clear').addEventListener('click', clearData);
+      
+      document.getElementById('btn-open-settings').addEventListener('click', ()=> toggleSettings(true));
+      document.getElementById('btn-close-settings').addEventListener('click', ()=> toggleSettings(false));
+      
+      els.back.addEventListener('click', ()=> nav(-1));
+      els.next.addEventListener('click', ()=> nav(1));
+      document.getElementById('jumpBtn').addEventListener('click', jump);
+      document.getElementById('btn-fullscreen').addEventListener('click', toggleFullScreen);
+
+      window.addEventListener('keydown', handleKey);
+      document.querySelector('.stage').addEventListener('click', toggleAnswer);
+
+      updateDisplay();
+    }
+
+    function toggleSettings(show){
+      if(show) els.settings.classList.add('active');
+      else els.settings.classList.remove('active');
+    }
+
+    function loadFile(e){
+      const f = e.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = ev => processCSV(ev.target.result);
+      reader.readAsText(f, 'utf-8');
+      e.target.value = '';
+    }
+
+    function loadTextData(){
+      const txt = document.getElementById('csvtext').value;
+      if(!txt.trim()){ alert('テキストが空です'); return; }
+      processCSV(txt);
+    }
+
+    function processCSV(text){
+      if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const rows = parseCSV(text);
+      const mapped = [];
+      for(let row of rows){
+        const r = row.map(c=>c.trim());
+        if(r.every(c=>c==='')) continue;
+        mapped.push(r);
+      }
+      
+      if(mapped.length === 0){ alert('有効なデータがありません'); return; }
+      
+      const first = mapped[0];
+      if(first[0] && (first[0].includes('問題')||first[0].includes('Q')) && (first[1] && (first[1].includes('答')||first[1].includes('A')))){
+        mapped.shift();
+      }
+
+      data = mapped.map(row => ({ q: row[0]||'', a: row[1]||'', alt: row[2]||'' }));
+      idx = -1; // Ready mode
+      toggleSettings(false);
+      updateDisplay();
+    }
+
+    function clearData(){
+      if(confirm('データをクリアしますか？')){
+        data = []; idx = -2;
+        updateDisplay();
+      }
+    }
+
+    function nav(dir){
+      if(!data || data.length === 0) return;
+      if(idx === -1 && dir === 1) {
+        idx = 0;
+        updateDisplay();
+        return;
+      }
+      const newIdx = idx + dir;
+      if(newIdx >= 0 && newIdx < data.length){
+        idx = newIdx;
+        updateDisplay();
+      }
+    }
+
+    function jump(){
+      const n = parseInt(els.jumpNum.value, 10);
+      if(isNaN(n) || n < 1 || n > data.length){ alert('範囲外です'); return; }
+      idx = n - 1;
+      updateDisplay();
+    }
+
+    function updateDisplay(){
+      // 1. カードのアニメーションリセット（一度消す）
+      els.qCard.classList.remove('show');
+      void els.qCard.offsetWidth; // 強制リフロー（アニメーション再始動用）
+
+      // 2. ★ここで正解を確実に隠す (状態リセット)
+      setAnswerVisibility(false);
+      
+      // 3. データ処理
+      if(!data || data.length === 0){
+        els.question.textContent = 'CSVを読み込んでください';
+        els.qCard.classList.remove('standby-mode');
+        els.curNum.textContent = 0;
+        els.totNum.textContent = 0;
+        els.back.disabled = true;
+        els.next.disabled = true;
+      } else if(idx === -1) {
+        els.question.textContent = 'DATA LOADED';
+        els.alt.textContent = '「▶」ボタンで開始';
+        els.answer.textContent = ''; 
+        els.qCard.classList.add('standby-mode');
+        els.curNum.textContent = 0;
+        els.totNum.textContent = data.length;
+        els.back.disabled = true;
+        els.next.disabled = false;
+      } else {
+        const item = data[idx];
+        els.qCard.classList.remove('standby-mode');
+        els.question.textContent = item.q || '...';
+        
+        // 正解のテキストも更新しておく（表示はまだされない）
+        els.answer.textContent = item.a || '';
+        els.alt.textContent = item.alt || '';
+        
+        els.curNum.textContent = idx + 1;
+        els.totNum.textContent = data.length;
+        
+        els.back.disabled = (idx <= 0);
+        els.next.disabled = (idx >= data.length - 1);
+      }
+      
+      // 4. カードを表示アニメーション
+      els.qCard.classList.add('show');
+    }
+
+    function toggleAnswer(){
+      if(idx < 0 || !data || data.length === 0) return;
+      setAnswerVisibility(!isAnswerVisible);
+    }
+
+    function setAnswerVisibility(visible){
+      isAnswerVisible = visible;
+      if(visible){
+        els.answerArea.classList.add('visible');
+      } else {
+        els.answerArea.classList.remove('visible');
+      }
+    }
+
+    function handleKey(e){
+      if(els.settings.classList.contains('active')){
+        if(e.key === 'Escape') toggleSettings(false);
+        return;
+      }
+
+      switch(e.key){
+        case 'ArrowRight': 
+        case 'l':
+          if(!els.next.disabled) nav(1); 
+          break;
+        case 'ArrowLeft': 
+        case 'j':
+          if(!els.back.disabled) nav(-1); 
+          break;
+        case ' ':
+        case 'Enter':
+          e.preventDefault();
+          toggleAnswer();
+          break;
+        case 's':
+        case 'S':
+          toggleSettings(true);
+          break;
+        case 'f':
+          toggleFullScreen();
+          break;
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
