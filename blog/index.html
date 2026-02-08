@@ -5,28 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog | るーとの研究室</title>
     <meta name="description" content="話したいと思ったことを記事にして発信しています。">
-    <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
+    <link rel="icon" type="image/png" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://astro-root.com/css/common.css">
-    <link rel="stylesheet" href="https://astro-root.com/css/blog.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/blog.css">
 </head>
 <body>
+    <div class="loading-screen">
+        <div class="loading-logo">
+            <i class="fa-solid fa-flask"></i> Loading...
+        </div>
+    </div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
     <div class="cosmic-bg"></div>
     <div class="stars"></div>
 
     <nav>
         <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <i class="fa-solid fa-flask"></i> Root's Lab
-            </a>
-            <button class="menu-toggle" aria-label="Menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            <a href="/" class="nav-logo"><i class="fa-solid fa-flask"></i> Root's Lab</a>
+            <button class="menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="nav-links">
-                <a href="https://astro-root.com">TOP</a>
+                <a href="/">TOP</a>
                 <a href="https://astro-root.com/blog/" class="active">Blog</a>
                 <a href="/about.html">About</a>
                 <a href="/privacy-policy.html">Privacy Policy</a>
@@ -36,12 +39,12 @@
     </nav>
 
     <div class="container">
-        <div class="page-header">
+        <div class="page-header scroll-reveal">
             <h1>Blog</h1>
             <p>Knowledge, Thoughts, and Updates.</p>
         </div>
 
-        <div class="filter-bar">
+        <div class="filter-bar scroll-reveal">
             <button class="filter-btn active">All</button>
             <button class="filter-btn">Tech</button>
             <button class="filter-btn">Astronomy</button>
@@ -49,11 +52,11 @@
             <button class="filter-btn">Diary</button>
         </div>
 
-        <div class="coming-soon-card">
+        <div class="coming-soon-card scroll-reveal">
             <i class="fa-solid fa-rocket"></i>
             <h2>Coming Soon</h2>
             <p>現在記事を執筆中です。公開までしばらくお待ちください。</p>
-            <p style="margin-top: 16px;">更新情報は <a href="https://twitter.com/root_qscore" target="_blank" style="text-decoration: underline;">@root_qscore</a> にてお知らせします。</p>
+            <p style="margin-top: 16px;">更新情報は <a href="https://twitter.com/root_qscore" target="_blank">@root_qscore</a> にてお知らせします。</p>
         </div>
     </div>
 
@@ -69,22 +72,8 @@
             <p class="copyright">&copy; 2026 Root. All Rights Reserved.</p>
         </div>
     </footer>
-
-    <script>
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = menuToggle.querySelector('i');
-            if(navLinks.classList.contains('active')){
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
-        });
-    </script>
+    
+    <script src="js/common.js"></script>
+    <script src="js/blog.js"></script>
 </body>
 </html>
