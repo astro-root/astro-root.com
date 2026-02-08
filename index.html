@@ -5,27 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>るーとの研究室</title>
     <meta name="description" content="高校生/クイズプレイヤー/Webエンジニア/天文学者 るーとのポートフォリオサイト。">
-
     <meta property="og:type" content="website">
     <meta property="og:title" content="るーとの研究室">
-    <meta property="og:description" content="高校生/クイズプレイヤー/Webエンジニア/天文学者 るーとのポートフォリオサイト。">
     <meta property="og:url" content="https://astro-root.com/">
     <meta property="og:image" content="https://astro-root.github.io/astro-root.com/ogp-image.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
     <meta name="twitter:card" content="summary_large_image">
-
-    <link rel="icon" type="image/png" sizes="512x512" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
+    <link rel="icon" type="image/png" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/top.css">
 </head>
 <body>
+    <div class="loading-screen">
+        <div class="loading-logo">
+            <i class="fa-solid fa-flask"></i> Loading...
+        </div>
+    </div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    
     <div class="cosmic-bg"></div>
     <div class="stars"></div>
 
@@ -38,7 +41,7 @@
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div class="nav-links">
-                <a href="https://astro-root.com">TOP</a>
+                <a href="https://astro-root.com" class="active">TOP</a>
                 <a href="https://astro-root.com/blog/">Blog</a>
                 <a href="/about.html">About</a>
                 <a href="/privacy-policy.html">Privacy Policy</a>
@@ -48,7 +51,7 @@
     </nav>
 
     <div class="container">
-        <header>
+        <header class="scroll-reveal">
             <div class="profile-wrapper">
                 <div class="orbit"></div>
                 <div class="profile-img">
@@ -60,7 +63,7 @@
         </header>
 
         <div class="grid-layout">
-            <section class="card">
+            <section class="card card-glass scroll-reveal">
                 <h2 class="section-title"><i class="fa-solid fa-id-card"></i> Profile</h2>
                 <ul class="profile-list">
                     <li><i class="fa-solid fa-school"></i> 高校2年生</li>
@@ -78,7 +81,7 @@
                 </div>
             </section>
 
-            <section class="card">
+            <section class="card card-glass scroll-reveal" style="transition-delay: 0.1s;">
                 <h2 class="section-title"><i class="fa-solid fa-code"></i> Works & Tools</h2>
                 <div class="works-grid">
                     <a href="https://astro-root.com/q-score/" target="_blank" class="work-item">
@@ -109,15 +112,15 @@
             </section>
         </div>
 
-        <section class="full-section">
-            <h2 class="section-title"><i class="fa-solid fa-book"></i> Documentation</h2>
+        <section class="full-section scroll-reveal">
+            <h2 class="section-title" style="justify-content: center;"><i class="fa-solid fa-book"></i> Documentation</h2>
             <div class="docs-grid">
-                <a href="https://note.com/astro_root/n/n21ea1ba407fd?sub_rt=share_pb" target="_blank" class="info-card">
+                <a href="https://note.com/astro_root/n/n21ea1ba407fd?sub_rt=share_pb" target="_blank" class="card-glass info-card">
                     <h3><i class="fa-solid fa-book-open"></i> Q-Score Manual</h3>
                     <p>得点表示ツールの詳細なセットアップ方法、操作ガイドはこちら（Note）。</p>
                     <span class="work-link-arrow">Read More <i class="fa-solid fa-arrow-right"></i></span>
                 </a>
-                <a href="https://astro-root.com/q-mark/manual" target="_blank" class="info-card">
+                <a href="https://astro-root.com/q-mark/manual" target="_blank" class="card-glass info-card">
                     <h3><i class="fa-solid fa-laptop-code"></i> Q-Mark Manual</h3>
                     <p>デジタル採点ツールの導入から運用までの完全ガイド。</p>
                     <span class="work-link-arrow">Read More <i class="fa-solid fa-arrow-right"></i></span>
@@ -125,10 +128,10 @@
             </div>
         </section>
 
-        <section class="contact-section">
-            <h2 style="font-size: 2rem; margin-bottom: 16px; color: var(--text-main);">Feedback & Contact</h2>
+        <section class="contact-section scroll-reveal">
+            <h2 style="font-size: 2rem; margin-bottom: 24px; color: var(--text-main);">Feedback & Contact</h2>
             <p>バグ報告、開発依頼、その他のお問い合わせはこちらから</p>
-            <p style="margin-top: 8px;">Email: <span style="color: var(--accent-cyan);"><a href="mailto:astro.root.quiz@gmail.com" target="_blank">astro.root.quiz@gmail.com</a></span></p>
+            <p class="contact-info">Email: <a href="mailto:astro.root.quiz@gmail.com">astro.root.quiz@gmail.com</a></p>
             <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank" class="btn-primary">
                 お問い合わせフォーム <i class="fa-solid fa-paper-plane"></i>
             </a>
@@ -148,21 +151,7 @@
         </div>
     </footer>
 
-    <script>
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = menuToggle.querySelector('i');
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
-        });
-    </script>
+    <script src="js/common.js"></script>
+    <script src="js/top.js"></script>
 </body>
 </html>
