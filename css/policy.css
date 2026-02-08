@@ -1,0 +1,17 @@
+.container {
+    max-width: 900px;
+}
+
+.last-update {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+p {
+    margin-bottom: 16px;
+}
+
+ul {
+    margin-bottom: 16px;
+}
