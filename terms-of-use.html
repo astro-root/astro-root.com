@@ -4,38 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>利用規約 | るーとの研究室</title>
-    <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
+    <link rel="icon" type="image/png" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/policy.css">
 </head>
 <body>
+    <div class="loading-screen">
+        <div class="loading-logo">
+            <i class="fa-solid fa-flask"></i> Loading...
+        </div>
+    </div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
     <div class="cosmic-bg"></div>
     <div class="stars"></div>
 
     <nav>
         <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <i class="fa-solid fa-flask"></i> Root's Lab
-            </a>
-            <button class="menu-toggle" aria-label="Menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            <a href="/" class="nav-logo"><i class="fa-solid fa-flask"></i> Root's Lab</a>
+            <button class="menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="nav-links">
-                <a href="https://astro-root.com">TOP</a>
+                <a href="/">TOP</a>
                 <a href="https://astro-root.com/blog/">Blog</a>
                 <a href="/about.html">About</a>
                 <a href="/privacy-policy.html">Privacy Policy</a>
-                <a href="/terms-of-use.html">Terms of Use</a>
+                <a href="/terms-of-use.html" class="active">Terms of Use</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="policy-container">
+        <div class="policy-container scroll-reveal">
             <h1>利用規約</h1>
             <p>この利用規約（以下、「本規約」といいます。）は、るーとの研究室（以下、「運営者」といいます。）がこのウェブサイト上で提供するサービス（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
 
@@ -49,15 +52,20 @@
                 <li>犯罪行為に関連する行為</li>
                 <li>本サービスの内容等、本サービスに含まれる著作権、商標権ほか知的財産権を侵害する行為</li>
                 <li>運営者、ほかのユーザー、またはその他第三者のサーバーまたはネットワークの機能を破壊したり、妨害したりする行為</li>
+                <li>当サイトの情報を営利目的で不正に利用する行為</li>
             </ul>
 
             <h2>第3条（免責事項）</h2>
             <p>運営者は、本サービスに事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。</p>
+            <p>当サイトの利用により生じた損害について、運営者は一切の責任を負いません。</p>
 
-            <h2>第4条（利用規約の変更）</h2>
+            <h2>第4条（著作権）</h2>
+            <p>当サイトに掲載されている文章・画像・プログラム等の著作権は、運営者または各権利所有者に帰属します。法的に認められている範囲を超えての無断転載・複製・販売等を禁止します。</p>
+
+            <h2>第5条（利用規約の変更）</h2>
             <p>運営者は、必要と判断した場合には、ユーザーに通知することなくいつでも本規約を変更することができるものとします。</p>
 
-            <p style="text-align: right; margin-top: 40px; color: var(--text-sub);">最終更新日: 2026年2月7日</p>
+            <p style="text-align: right; margin-top: 40px; color: var(--text-sub); font-family: var(--font-en);">最終更新日: 2026年2月7日</p>
         </div>
     </div>
 
@@ -73,22 +81,7 @@
             <p class="copyright">&copy; 2026 Root. All Rights Reserved.</p>
         </div>
     </footer>
-
-    <script>
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = menuToggle.querySelector('i');
-            if(navLinks.classList.contains('active')){
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
-        });
-    </script>
+    <script src="js/common.js"></script>
+    <script src="js/terms.js"></script>
 </body>
 </html>
