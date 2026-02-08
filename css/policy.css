@@ -1,17 +1,39 @@
-.container {
-    max-width: 900px;
+.policy-container {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    padding: 48px;
 }
 
-.last-update {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-top: 8px;
+.policy-container h1 {
+    font-size: 2rem;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
 }
 
-p {
+.policy-container h2 {
+    font-size: 1.3rem;
+    margin-top: 40px;
     margin-bottom: 16px;
+    color: var(--text-main);
+    border-left: 4px solid var(--accent-cyan);
+    padding-left: 16px;
 }
 
-ul {
+.policy-container p, .policy-container li {
+    color: var(--text-sub);
     margin-bottom: 16px;
+    line-height: 1.8;
+}
+
+.policy-container ul {
+    padding-left: 24px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .policy-container {
+        padding: 24px;
+    }
 }
