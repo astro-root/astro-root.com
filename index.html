@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>るーとの研究室</title>
     <meta name="description" content="高校生Webエンジニア・天文学者 るーとのポートフォリオサイト。">
-    <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
+
+    <link rel="icon" type="image/png" sizes="480x480" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
+    <link rel="apple-touch-icon" sizes="480x480" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -116,7 +119,7 @@
         <section class="contact-section">
             <h2 style="font-size: 2rem; margin-bottom: 16px; color: var(--text-main);">Feedback & Contact</h2>
             <p>バグ報告、開発依頼、その他のお問い合わせはこちらから</p>
-            <p style="margin-top: 8px;">Email: <span style="color: var(--accent-cyan);"><a href="mailto:astro.root.quiz@gmail.com" target="_blank">astro.root.quiz@gmail.com</span></p>
+            <p style="margin-top: 8px;">Email: <span style="color: var(--accent-cyan);"><a href="mailto:astro.root.quiz@gmail.com" target="_blank">astro.root.quiz@gmail.com</a></span></p>
             <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank" class="btn-primary">
                 お問い合わせフォーム <i class="fa-solid fa-paper-plane"></i>
             </a>
@@ -139,11 +142,11 @@
     <script>
         const menuToggle = document.querySelector('.menu-toggle');
         const navLinks = document.querySelector('.nav-links');
-        
+
         menuToggle.addEventListener('click', () => {
             navLinks.classList.toggle('active');
             const icon = menuToggle.querySelector('i');
-            if(navLinks.classList.contains('active')){
+            if (navLinks.classList.contains('active')) {
                 icon.classList.remove('fa-bars');
                 icon.classList.add('fa-xmark');
             } else {
