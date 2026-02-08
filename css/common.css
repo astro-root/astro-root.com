@@ -37,7 +37,7 @@ body {
     flex-direction: column;
     overflow-x: hidden;
     position: relative;
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.5s ease;
 }
 
@@ -101,7 +101,7 @@ button:hover ~ .cursor-outline {
     height: 100%;
     background: #000;
     z-index: 99999;
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
