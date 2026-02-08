@@ -10,160 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-deep: #050508;
-            --bg-card: #0f0f13;
-            --text-main: #f0f0f2;
-            --text-sub: #a0a0a5;
-            --text-muted: #606065;
-            --accent-primary: #3b82f6;
-            --accent-cyan: #06b6d4;
-            --glass-bg: rgba(20, 20, 30, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --nav-height: 70px;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Noto Sans JP', 'JetBrains Mono', sans-serif;
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            min-height: 100vh;
-            line-height: 1.8;
-        }
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: var(--nav-height);
-            background: rgba(5, 5, 8, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .nav-container {
-            width: 100%;
-            max-width: 1200px;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--text-main);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .nav-logo i {
-            color: var(--accent-cyan);
-        }
-        .nav-links {
-            display: flex;
-            gap: 32px;
-        }
-        .nav-links a {
-            color: var(--text-sub);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: color 0.3s;
-        }
-        .nav-links a:hover {
-            color: var(--accent-cyan);
-        }
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: calc(var(--nav-height) + 60px) 24px 80px;
-        }
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        h2 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-top: 48px;
-            margin-bottom: 16px;
-            color: var(--accent-cyan);
-        }
-        h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-top: 32px;
-            margin-bottom: 12px;
-            color: var(--text-main);
-        }
-        p {
-            margin-bottom: 16px;
-            color: var(--text-sub);
-        }
-        ul {
-            margin-bottom: 16px;
-            padding-left: 24px;
-            color: var(--text-sub);
-        }
-        li {
-            margin-bottom: 8px;
-        }
-        .last-update {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 8px;
-        }
-        a {
-            color: var(--accent-cyan);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        footer {
-            border-top: 1px solid var(--glass-border);
-            padding: 40px 24px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            background: rgba(0,0,0,0.3);
-        }
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 20px;
-        }
-        .footer-links a {
-            color: var(--text-sub);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .footer-links a:hover {
-            color: var(--text-main);
-        }
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/policy.css">
 </head>
 <body>
 
@@ -185,14 +33,14 @@
         <h1>プライバシーポリシー</h1>
         <p class="last-update">最終更新日: 2026年2月7日</p>
 
-        <p>るーとの研究室（以下「当サイト」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。本プライバシーポリシーは、当サイトがどのように情報を収集・利用・保護するかを説明するものです。</p>
+        <p>るーとの研究室(以下「当サイト」)は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。本プライバシーポリシーは、当サイトがどのように情報を収集・利用・保護するかを説明するものです。</p>
 
         <h2>1. 収集する情報</h2>
         <p>当サイトでは、以下の情報を収集する場合があります。</p>
         <ul>
-            <li>アクセスログ（IPアドレス、ブラウザの種類、アクセス日時、参照元など）</li>
+            <li>アクセスログ(IPアドレス、ブラウザの種類、アクセス日時、参照元など)</li>
             <li>Cookieおよび類似技術による情報</li>
-            <li>お問い合わせフォームまたはメールで提供された情報（メールアドレス、お名前など）</li>
+            <li>お問い合わせフォームまたはメールで提供された情報(メールアドレス、お名前など)</li>
         </ul>
 
         <h2>2. 情報の利用目的</h2>
@@ -234,7 +82,7 @@
         <h2>5. 外部サービスの利用</h2>
         <p>当サイトでは、以下の外部サービスを利用しています。これらのサービスには独自のプライバシーポリシーが適用されます。</p>
         <ul>
-            <li>Twitter（X）: ソーシャルメディア連携</li>
+            <li>Twitter(X): ソーシャルメディア連携</li>
             <li>Google Forms: お問い合わせフォーム</li>
             <li>Font Awesome、Google Fonts: Webフォントの提供</li>
             <li>GitHub Pages: ホスティングサービス</li>
@@ -251,7 +99,7 @@
 
         <h2>9. お問い合わせ</h2>
         <p>本プライバシーポリシーに関するご質問やご不明な点がございましたら、以下よりお問い合わせください。</p>
-        <p><strong>Email:</strong> <a href="mailto:astro.root.quiz@gmail.com">astro.root.quiz@gmail.com</a></p>
+        <p><strong>Email:</strong> <a href="/cdn-cgi/l/email-protection#6e0f1d1a1c01401c01011a401f1b07142e09030f0702400d0103"><span class="__cf_email__" data-cfemail="d2b3a1a6a0bdfca0bdbda6fca3a7bba892b5bfb3bbbefcb1bdbf">[email&#160;protected]</span></a></p>
         <p><strong>お問い合わせフォーム:</strong> <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank">こちら</a></p>
 
     </div>
