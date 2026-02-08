@@ -10,176 +10,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-deep: #050508;
-            --bg-card: #0f0f13;
-            --text-main: #f0f0f2;
-            --text-sub: #a0a0a5;
-            --text-muted: #606065;
-            --accent-primary: #3b82f6;
-            --accent-cyan: #06b6d4;
-            --glass-bg: rgba(20, 20, 30, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --nav-height: 70px;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Noto Sans JP', 'JetBrains Mono', sans-serif;
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            min-height: 100vh;
-            line-height: 1.8;
-        }
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: var(--nav-height);
-            background: rgba(5, 5, 8, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .nav-container {
-            width: 100%;
-            max-width: 1200px;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--text-main);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .nav-logo i {
-            color: var(--accent-cyan);
-        }
-        .nav-links {
-            display: flex;
-            gap: 32px;
-        }
-        .nav-links a {
-            color: var(--text-sub);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: color 0.3s;
-        }
-        .nav-links a:hover {
-            color: var(--accent-cyan);
-        }
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: calc(var(--nav-height) + 60px) 24px 80px;
-        }
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        h2 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-top: 48px;
-            margin-bottom: 16px;
-            color: var(--accent-cyan);
-        }
-        h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-top: 32px;
-            margin-bottom: 12px;
-            color: var(--text-main);
-        }
-        p {
-            margin-bottom: 16px;
-            color: var(--text-sub);
-        }
-        ul {
-            margin-bottom: 16px;
-            padding-left: 24px;
-            color: var(--text-sub);
-        }
-        li {
-            margin-bottom: 8px;
-        }
-        .contact-box {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-top: 32px;
-        }
-        .contact-box h3 {
-            margin-top: 0;
-        }
-        a {
-            color: var(--accent-cyan);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        footer {
-            border-top: 1px solid var(--glass-border);
-            padding: 40px 24px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            background: rgba(0,0,0,0.3);
-        }
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 20px;
-        }
-        .footer-links a {
-            color: var(--text-sub);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .footer-links a:hover {
-            color: var(--text-main);
-        }
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/about.css">
 </head>
 <body>
+    <div class="cosmic-bg"></div>
+    <div class="stars"></div>
 
     <nav>
         <div class="nav-container">
             <a href="/" class="nav-logo">
                 <i class="fa-solid fa-flask"></i> Root's Lab
             </a>
+            <button class="menu-toggle" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <div class="nav-links">
                 <a href="https://astro-root.com/blog/">Blog</a>
-                <a href="/about.html">About</a>
+                <a href="/about.html" class="active">About</a>
                 <a href="/privacy-policy.html">Privacy Policy</a>
                 <a href="/terms-of-use.html">Terms of Use</a>
             </div>
@@ -187,95 +35,128 @@
     </nav>
 
     <div class="container">
-        <h1>About</h1>
+        <div class="about-header">
+            <h1>About</h1>
+            <p>Astronomer / Quiz Player / Web Engineer</p>
+        </div>
 
-        <h2>サイト概要</h2>
-        <p>「るーとの研究室（Root's Laboratory）」は、高校生Webエンジニア・天文学者である「るーと」が運営する個人ポートフォリオサイトです。</p>
-        <p>当サイトでは、早押しクイズ関連のWebツールの提供、技術情報の発信、天文学や物理学に関する情報共有を行っています。</p>
+        <section class="about-section">
+            <h2>サイト概要</h2>
+            <p>「るーとの研究室（Root's Laboratory）」は、高校生のるーとが運営する個人サイトです。</p>
+            <p>当サイトでは、早押しクイズ関連のWebツールの提供、技術情報の発信、天文学や物理学に関する情報共有を行っています。</p>
+        </section>
 
-        <h2>運営者について</h2>
-        <p><strong>名前:</strong> るーと (Root)</p>
-        <p><strong>所属:</strong></p>
-        <ul>
-            <li>高校2年生</li>
-            <li>M1QC（早押しクイズサークル）</li>
-            <li>日本物理学会 学生会友</li>
-        </ul>
-        <p><strong>専門分野:</strong></p>
-        <ul>
-            <li>Web開発（HTML/CSS/JavaScript）</li>
-            <li>天文学・物理学</li>
-            <li>早押しクイズ</li>
-        </ul>
+        <section class="about-section">
+            <h2>運営者について</h2>
+            <p><strong>名前:</strong> るーと (Root)</p>
+            <ul>
+                <li>高校2年生</li>
+                <li>M1QC（茨城県立水戸第一高等学校クイズ研究同好会）</li>
+                <li>日本物理学会 学生会友</li>
+            </ul>
+            <p><strong>専門分野:</strong></p>
+            <ul>
+                <li>Web開発（HTML/CSS/JavaScript）</li>
+                <li>天文学・物理学</li>
+                <li>早押しクイズ</li>
+            </ul>
+        </section>
 
-        <h2>主な活動</h2>
-        <h3>Web開発</h3>
-        <p>早押しクイズ関連のツール開発を中心に、ブラウザベースのアプリケーションを制作しています。全てのツールは無料で公開されており、誰でも利用可能です。</p>
-        <ul>
-            <li><strong>Q-Score:</strong> 早押しクイズの得点表示ツール</li>
-            <li><strong>Q-Panel:</strong> パネルクイズ形式のツール</li>
-            <li><strong>Q-Mark:</strong> ペーパークイズのデジタル採点ツール</li>
-        </ul>
+        <section class="about-section">
+            <h2>主な活動</h2>
+            <h3 style="margin-bottom:12px; color:var(--text-main);">Web開発</h3>
+            <p>早押しクイズ関連のツール開発を中心に、ブラウザベースのアプリケーションを制作しています。全てのツールは無料で公開されており、誰でも利用可能です。</p>
+            <ul>
+                <li><strong>Q-Score:</strong> 早押しクイズの得点表示ツール</li>
+                <li><strong>Q-Panel:</strong> パネルクイズ形式のツール</li>
+                <li><strong>Q-Mark:</strong> ペーパークイズのデジタル採点ツール</li>
+            </ul>
 
-        <h3>天文学・物理学</h3>
-        <p>高校生として天文学の研究に取り組んでおり、日本物理学会の学生会友として活動しています。天文現象の観測や理論研究に興味を持ち、将来的には専門的な研究者を目指しています。</p>
+            <h3 style="margin-bottom:12px; color:var(--text-main); margin-top:24px;">天文学・物理学</h3>
+            <p>高校生として天文学の研究に取り組んでおり、日本物理学会の学生会友として活動しています。天文現象の観測や理論研究に興味を持ち、将来的には専門的な研究者を目指しています。</p>
 
-        <h3>早押しクイズ</h3>
-        <p>M1QCに所属し、早押しクイズプレイヤーとして活動しています。競技としてのクイズだけでなく、クイズ大会の運営やツール開発を通じて、コミュニティへの貢献も行っています。</p>
+            <h3 style="margin-bottom:12px; color:var(--text-main); margin-top:24px;">早押しクイズ</h3>
+            <p>M1QCに所属し、クイズプレイヤーとして活動しています。競技としてのクイズだけでなく、クイズ大会の運営やツール開発を通じて、コミュニティへの貢献も行っています。</p>
+        </section>
 
-        <h2>サイトの目的</h2>
-        <p>当サイトは、以下の目的で運営されています。</p>
-        <ul>
-            <li>開発したツールの公開とドキュメント提供</li>
-            <li>技術情報やナレッジの共有</li>
-            <li>天文学・物理学・クイズに関する情報発信</li>
-            <li>同じ分野に興味を持つ人々との交流</li>
-            <li>個人のポートフォリオとしての活用</li>
-        </ul>
+        <section class="about-section">
+            <h2>サイトの目的</h2>
+            <p>当サイトは、以下の目的で運営されています。</p>
+            <ul>
+                <li>開発したツールの公開とドキュメント提供</li>
+                <li>技術情報やナレッジの共有</li>
+                <li>天文学・物理学・クイズに関する情報発信</li>
+                <li>同じ分野に興味を持つ人々との交流</li>
+                <li>個人のポートフォリオとしての活用</li>
+            </ul>
+        </section>
 
-        <h2>技術スタック</h2>
-        <p>当サイトおよび公開ツールで使用している主な技術:</p>
-        <ul>
-            <li>HTML5 / CSS3 / JavaScript（フロントエンド開発）</li>
-            <li>GitHub Pages（静的サイトホスティング）</li>
-            <li>Google Fonts, Font Awesome（デザインリソース）</li>
-            <li>レスポンシブデザイン対応</li>
-        </ul>
+        <section class="about-section">
+            <h2>技術スタック</h2>
+            <p>当サイトおよび公開ツールで使用している主な技術:</p>
+            <ul>
+                <li>HTML5 / CSS3 / JavaScript（フロントエンド開発）</li>
+                <li>GitHub Pages（静的サイトホスティング）</li>
+                <li>Google Fonts, Font Awesome（デザインリソース）</li>
+                <li>レスポンシブデザイン対応</li>
+            </ul>
+        </section>
 
-        <div class="contact-box">
+        <section class="contact-box">
             <h3><i class="fa-solid fa-envelope"></i> お問い合わせ</h3>
             <p>バグ報告、機能追加のご要望、コラボレーションのご相談、その他のお問い合わせは以下よりお願いします。</p>
             <p><strong>Email:</strong> <a href="mailto:astro.root.quiz@gmail.com">astro.root.quiz@gmail.com</a></p>
             <p><strong>お問い合わせフォーム:</strong> <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank">こちら</a></p>
             
             <h3 style="margin-top: 24px;"><i class="fa-brands fa-twitter"></i> SNS</h3>
-            <ul style="list-style: none; padding-left: 0;">
+            <ul style="border:none; padding:0; background:none;">
                 <li><strong>Personal:</strong> <a href="https://twitter.com/astro_root" target="_blank">@astro_root</a> - 日常の活動や雑談</li>
                 <li><strong>Official:</strong> <a href="https://twitter.com/root_qscore" target="_blank">@root_qscore</a> - ツールの更新情報</li>
             </ul>
-        </div>
+        </section>
 
-        <h2>更新履歴</h2>
-        <ul>
-            <li>2026/02/07 - サイトリニューアル、プライバシーポリシー・利用規約を追加</li>
-            <li>2026/02/07 - ブログページを開設</li>
-        </ul>
+        <section class="about-section" style="margin-top:40px;">
+            <h2>更新履歴</h2>
+            <ul>
+                <li>2026/02/07 - サイトリニューアル、プライバシーポリシー・利用規約を追加</li>
+                <li>2026/02/07 - ブログページを開設</li>
+            </ul>
+        </section>
 
-        <h2>ライセンスと利用について</h2>
-        <p>当サイトのコンテンツおよび公開ツールの利用については、<a href="/terms-of-use.html">利用規約</a>をご確認ください。個人利用・教育目的での利用は原則として自由です。商業利用をご検討の方は、事前にご連絡ください。</p>
-
+        <section class="about-section">
+            <h2>ライセンスと利用について</h2>
+            <p>当サイトのコンテンツおよび公開ツールの利用については、<a href="/terms-of-use.html">利用規約</a>をご確認ください。個人利用・教育目的での利用は原則として自由です。商業利用をご検討の方は、事前にご連絡ください。</p>
+        </section>
     </div>
 
     <footer>
-        <div class="footer-links">
-            <a href="/">TOP</a>
-            <a href="https://astro-root.com/blog/">Blog</a>
-            <a href="/about.html">About</a>
-            <a href="/privacy-policy.html">Privacy Policy</a>
-            <a href="/terms-of-use.html">Terms of Use</a>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/">TOP</a>
+                <a href="https://astro-root.com/blog/">Blog</a>
+                <a href="/about.html">About</a>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="/terms-of-use.html">Terms of Use</a>
+            </div>
+            <p class="copyright">&copy; 2026 Root. All Rights Reserved.</p>
         </div>
-        <p>&copy; 2026 Root. All rights reserved.</p>
     </footer>
 
+    <script>
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = menuToggle.querySelector('i');
+            if(navLinks.classList.contains('active')){
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        });
+    </script>
 </body>
 </html>
