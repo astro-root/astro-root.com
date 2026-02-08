@@ -4,38 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プライバシーポリシー | るーとの研究室</title>
-    <link rel="shortcut icon" href="https://astro-root.github.io/astro-root.com/favicon.ico">
+    <link rel="icon" type="image/png" href="https://astro-root.github.io/astro-root.com/quiz_icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/policy.css">
 </head>
 <body>
+    <div class="loading-screen">
+        <div class="loading-logo">
+            <i class="fa-solid fa-flask"></i> Loading...
+        </div>
+    </div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
     <div class="cosmic-bg"></div>
     <div class="stars"></div>
 
     <nav>
         <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <i class="fa-solid fa-flask"></i> Root's Lab
-            </a>
-            <button class="menu-toggle" aria-label="Menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            <a href="/" class="nav-logo"><i class="fa-solid fa-flask"></i> Root's Lab</a>
+            <button class="menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="nav-links">
-                <a href="https://astro-root.com">TOP</a>
+                <a href="/">TOP</a>
                 <a href="https://astro-root.com/blog/">Blog</a>
                 <a href="/about.html">About</a>
-                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="/privacy-policy.html" class="active">Privacy Policy</a>
                 <a href="/terms-of-use.html">Terms of Use</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="policy-container">
+        <div class="policy-container scroll-reveal">
             <h1>プライバシーポリシー</h1>
             <p>るーとの研究室（以下、「当サイト」といいます。）は、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。</p>
 
@@ -48,13 +51,23 @@
             <h2>3. 個人情報の第三者提供</h2>
             <p>当サイトは、法令に基づく場合を除き、個人情報を第三者に開示・提供することはいたしません。</p>
 
-            <h2>4. アクセス解析ツールについて</h2>
+            <h2>4. 広告配信について</h2>
+            <p>当サイトでは、第三者配信の広告サービス（Googleアドセンス）を利用しています。</p>
+            <p>このような広告配信事業者は、ユーザーの興味に応じた商品やサービスの広告を表示するため、当サイトや他サイトへのアクセスに関する情報「Cookie」（氏名、住所、メール アドレス、電話番号は含まれません）を使用することがあります。</p>
+            <p>またGoogleアドセンスに関して、このプロセスの詳細やこのような情報が広告配信事業者に使用されないようにする方法については、<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" style="color: var(--accent-cyan);">Googleのポリシーと規約</a>をご覧ください。</p>
+
+            <h2>5. アクセス解析ツールについて</h2>
             <p>当サイトでは、Googleによるアクセス解析ツール「Googleアナリティクス」を利用しています。このGoogleアナリティクスはトラフィックデータの収集のためにCookieを使用しています。このトラフィックデータは匿名で収集されており、個人を特定するものではありません。</p>
+            <p>この機能はCookieを無効にすることで収集を拒否することが出来ますので、お使いのブラウザの設定をご確認ください。</p>
 
-            <h2>5. 免責事項</h2>
+            <h2>6. 免責事項</h2>
             <p>当サイトからリンクやバナーなどによって他のサイトに移動された場合、移動先サイトで提供される情報、サービス等について一切の責任を負いません。</p>
+            <p>当サイトのコンテンツ・情報につきまして、可能な限り正確な情報を掲載するよう努めておりますが、誤情報が入り込んだり、情報が古くなっていることもございます。</p>
 
-            <p style="text-align: right; margin-top: 40px; color: var(--text-sub);">最終更新日: 2026年2月7日</p>
+            <h2>7. プライバシーポリシーの変更</h2>
+            <p>当サイトは、個人情報に関して適用される日本の法令を遵守するとともに、本ポリシーの内容を適宜見直しその改善に努めます。修正された最新のプライバシーポリシーは常に本ページにて開示されます。</p>
+
+            <p style="text-align: right; margin-top: 40px; color: var(--text-sub); font-family: var(--font-en);">最終更新日: 2026年2月7日</p>
         </div>
     </div>
 
@@ -70,22 +83,7 @@
             <p class="copyright">&copy; 2026 Root. All Rights Reserved.</p>
         </div>
     </footer>
-
-    <script>
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = menuToggle.querySelector('i');
-            if(navLinks.classList.contains('active')){
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
-        });
-    </script>
+    <script src="js/common.js"></script>
+    <script src="js/policy.js"></script>
 </body>
 </html>
