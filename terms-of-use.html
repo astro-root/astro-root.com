@@ -13,26 +13,28 @@
 </head>
 <body>
     <div class="loading-screen">
-        <div class="loading-logo">
-            <i class="fa-solid fa-flask"></i> Loading...
+        <div class="loading-content">
+            <div class="loading-logo"><i class="fa-solid fa-flask"></i> Loading...</div>
+            <div class="loading-bar"><div class="loading-progress"></div></div>
         </div>
     </div>
 
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
-    <div class="cosmic-bg"></div>
-    <div class="stars"></div>
+    <canvas id="star-canvas"></canvas>
+    <div class="cosmic-overlay"></div>
 
     <nav>
         <div class="nav-container">
-            <a href="/" class="nav-logo"><i class="fa-solid fa-flask"></i> Root's Lab</a>
-            <button class="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <a href="/" class="nav-logo magnetic-target"><i class="fa-solid fa-flask"></i> Root's Lab</a>
+            <button class="menu-toggle magnetic-target"><i class="fa-solid fa-bars"></i></button>
             <div class="nav-links">
-                <a href="/">TOP</a>
-                <a href="https://astro-root.com/blog/">Blog</a>
-                <a href="/about.html">About</a>
-                <a href="/privacy-policy.html">Privacy Policy</a>
-                <a href="/terms-of-use.html" class="active">Terms of Use</a>
+                <button class="menu-close"><i class="fa-solid fa-xmark"></i></button>
+                <a href="/" class="magnetic-target">TOP</a>
+                <a href="https://astro-root.com/blog/" class="magnetic-target">Blog</a>
+                <a href="/about.html" class="magnetic-target">About</a>
+                <a href="/privacy-policy.html" class="magnetic-target">Privacy Policy</a>
+                <a href="/terms-of-use.html" class="active magnetic-target">Terms of Use</a>
             </div>
         </div>
     </nav>
@@ -40,32 +42,31 @@
     <div class="container">
         <div class="policy-container scroll-reveal">
             <h1>利用規約</h1>
-            <p>この利用規約（以下、「本規約」といいます。）は、るーとの研究室（以下、「運営者」といいます。）がこのウェブサイト上で提供するサービス（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
+            <p>この利用規約（以下、「本規約」といいます。）は、るーとの研究室（以下、「運営者」といいます。）がこのウェブサイト上で提供するすべてのサービスおよびツール（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
 
             <h2>第1条（適用）</h2>
             <p>本規約は、ユーザーと運営者との間の本サービスの利用に関わる一切の関係に適用されるものとします。</p>
 
-            <h2>第2条（禁止事項）</h2>
-            <p>ユーザーは、本サービスの利用にあたり、以下の行為をしてはなりません。</p>
+            <h2>第2条（ツールの利用について）</h2>
+            <p>当サイトで公開しているツール（Q-Score, Q-Panel等）は、個人・法人、商用・非商用を問わず無料でご利用いただけます。ただし、ツールのソースコードの再配布、販売、リバースエンジニアリングは禁止いたします。</p>
+
+            <h2>第3条（禁止事項）</h2>
             <ul>
                 <li>法令または公序良俗に違反する行為</li>
-                <li>犯罪行為に関連する行為</li>
-                <li>本サービスの内容等、本サービスに含まれる著作権、商標権ほか知的財産権を侵害する行為</li>
-                <li>運営者、ほかのユーザー、またはその他第三者のサーバーまたはネットワークの機能を破壊したり、妨害したりする行為</li>
-                <li>当サイトの情報を営利目的で不正に利用する行為</li>
+                <li>当サイトのサーバーに過度の負担をかける行為</li>
+                <li>本サービスの運営を妨害するおそれのある行為</li>
+                <li>他のユーザーまたは第三者に不利益、損害、不快感を与える行為</li>
+                <li>当サイト上のコンテンツを無断で転載・複製する行為</li>
             </ul>
 
-            <h2>第3条（免責事項）</h2>
-            <p>運営者は、本サービスに事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。</p>
-            <p>当サイトの利用により生じた損害について、運営者は一切の責任を負いません。</p>
+            <h2>第4条（免責事項）</h2>
+            <p>運営者は、本サービスのシステム上の欠陥、エラーやバグ、セキュリティなどに関する不具合がないことを保証しておりません。</p>
+            <p>本サービスの利用、または利用できなかったことによって生じた、いかなる損害（大会運営のトラブル、データの消失等含む）についても、運営者は一切の責任を負いません。ツールの利用は自己責任で行ってください。</p>
 
-            <h2>第4条（著作権）</h2>
-            <p>当サイトに掲載されている文章・画像・プログラム等の著作権は、運営者または各権利所有者に帰属します。法的に認められている範囲を超えての無断転載・複製・販売等を禁止します。</p>
+            <h2>第5条（著作権）</h2>
+            <p>当サイトに掲載されている文章・画像・プログラム等の著作権は、運営者に帰属します。引用の範囲を超える無断転載を禁止します。</p>
 
-            <h2>第5条（利用規約の変更）</h2>
-            <p>運営者は、必要と判断した場合には、ユーザーに通知することなくいつでも本規約を変更することができるものとします。</p>
-
-            <p style="text-align: right; margin-top: 40px; color: var(--text-sub); font-family: var(--font-en);">最終更新日: 2026年2月7日</p>
+            <p style="text-align: right; margin-top: 40px; color: var(--text-sub); font-family: var(--font-en);">最終更新日: 2026年2月9日</p>
         </div>
     </div>
 
