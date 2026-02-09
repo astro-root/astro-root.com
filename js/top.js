@@ -1,3 +1,3 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Top Page Initialized');
+    console.log('Top Page Specific Logic Loaded');
 });
