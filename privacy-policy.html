@@ -13,26 +13,28 @@
 </head>
 <body>
     <div class="loading-screen">
-        <div class="loading-logo">
-            <i class="fa-solid fa-flask"></i> Loading...
+        <div class="loading-content">
+            <div class="loading-logo"><i class="fa-solid fa-flask"></i> Loading...</div>
+            <div class="loading-bar"><div class="loading-progress"></div></div>
         </div>
     </div>
 
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
-    <div class="cosmic-bg"></div>
-    <div class="stars"></div>
+    <canvas id="star-canvas"></canvas>
+    <div class="cosmic-overlay"></div>
 
     <nav>
         <div class="nav-container">
-            <a href="/" class="nav-logo"><i class="fa-solid fa-flask"></i> Root's Lab</a>
-            <button class="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <a href="/" class="nav-logo magnetic-target"><i class="fa-solid fa-flask"></i> Root's Lab</a>
+            <button class="menu-toggle magnetic-target"><i class="fa-solid fa-bars"></i></button>
             <div class="nav-links">
-                <a href="/">TOP</a>
-                <a href="https://astro-root.com/blog/">Blog</a>
-                <a href="/about.html">About</a>
-                <a href="/privacy-policy.html" class="active">Privacy Policy</a>
-                <a href="/terms-of-use.html">Terms of Use</a>
+                <button class="menu-close"><i class="fa-solid fa-xmark"></i></button>
+                <a href="/" class="magnetic-target">TOP</a>
+                <a href="https://astro-root.com/blog/" class="magnetic-target">Blog</a>
+                <a href="/about.html" class="magnetic-target">About</a>
+                <a href="/privacy-policy.html" class="active magnetic-target">Privacy Policy</a>
+                <a href="/terms-of-use.html" class="magnetic-target">Terms of Use</a>
             </div>
         </div>
     </nav>
@@ -40,34 +42,31 @@
     <div class="container">
         <div class="policy-container scroll-reveal">
             <h1>プライバシーポリシー</h1>
-            <p>るーとの研究室（以下、「当サイト」といいます。）は、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。</p>
+            <p>るーとの研究室（以下、「当サイト」といいます。）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシーを定めます。</p>
 
-            <h2>1. 個人情報の収集について</h2>
-            <p>当サイトでは、お問い合わせフォームやコメント機能などを通じて、名前やメールアドレス等の個人情報をご提供いただく場合があります。</p>
+            <h2>1. 個人情報の利用目的</h2>
+            <p>当サイトでは、お問い合わせや記事へのコメントの際、名前やメールアドレス等の個人情報をご入力いただく場合がございます。</p>
+            <p>取得した個人情報は、お問い合わせに対する回答や必要な情報を電子メールなどでご連絡する場合に利用させていただくものであり、これらの目的以外では利用いたしません。</p>
 
-            <h2>2. 個人情報の利用目的</h2>
-            <p>取得した個人情報は、お問い合わせへの回答や、必要な情報を電子メールなどでご連絡する場合に利用させていただきます。これらの目的以外では利用いたしません。</p>
+            <h2>2. 広告について（Google AdSense）</h2>
+            <p>当サイトでは、第三者配信の広告サービス（Google AdSense）を利用しており、ユーザーの興味に応じた商品やサービスの広告を表示するため、クッキー（Cookie）を使用しております。</p>
+            <p>クッキーを使用することで、当サイトはお客様のコンピュータを識別できるようになりますが、お客様個人を特定できるものではありません。</p>
+            <p>Cookieを無効にする方法やGoogleアドセンスに関する詳細は<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" class="policy-link">「広告 - ポリシーと規約 - Google」</a>をご確認ください。</p>
 
-            <h2>3. 個人情報の第三者提供</h2>
-            <p>当サイトは、法令に基づく場合を除き、個人情報を第三者に開示・提供することはいたしません。</p>
+            <h2>3. アクセス解析ツールについて</h2>
+            <p>当サイトでは、Googleによるアクセス解析ツール「Googleアナリティクス」を利用しています。このGoogleアナリティクスはトラフィックデータの収集のためにクッキー（Cookie）を使用しております。このトラフィックデータは匿名で収集されており、個人を特定するものではありません。</p>
 
-            <h2>4. 広告配信について</h2>
-            <p>当サイトでは、第三者配信の広告サービス（Googleアドセンス）を利用しています。</p>
-            <p>このような広告配信事業者は、ユーザーの興味に応じた商品やサービスの広告を表示するため、当サイトや他サイトへのアクセスに関する情報「Cookie」（氏名、住所、メール アドレス、電話番号は含まれません）を使用することがあります。</p>
-            <p>またGoogleアドセンスに関して、このプロセスの詳細やこのような情報が広告配信事業者に使用されないようにする方法については、<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" style="color: var(--accent-cyan);">Googleのポリシーと規約</a>をご覧ください。</p>
+            <h2>4. コメントについて</h2>
+            <p>当サイトへのコメントを残す際に、IP アドレスを収集しています。これはブログの標準機能としてサポートされている機能で、スパムや荒らしへの対応以外にこのIPアドレスを使用することはありません。なお、全てのコメントは管理人が事前にその内容を確認し、承認した上での掲載となります。</p>
 
-            <h2>5. アクセス解析ツールについて</h2>
-            <p>当サイトでは、Googleによるアクセス解析ツール「Googleアナリティクス」を利用しています。このGoogleアナリティクスはトラフィックデータの収集のためにCookieを使用しています。このトラフィックデータは匿名で収集されており、個人を特定するものではありません。</p>
-            <p>この機能はCookieを無効にすることで収集を拒否することが出来ますので、お使いのブラウザの設定をご確認ください。</p>
+            <h2>5. 免責事項</h2>
+            <p>当サイトからのリンクやバナーなどで移動したサイトで提供される情報、サービス等について一切の責任を負いません。</p>
+            <p>また当サイトのコンテンツ・情報について、できる限り正確な情報を掲載するよう努めておりますが、正確性や安全性を保証するものではありません。当サイトに掲載された内容によって生じた損害等の一切の責任を負いかねますのでご了承ください。</p>
 
-            <h2>6. 免責事項</h2>
-            <p>当サイトからリンクやバナーなどによって他のサイトに移動された場合、移動先サイトで提供される情報、サービス等について一切の責任を負いません。</p>
-            <p>当サイトのコンテンツ・情報につきまして、可能な限り正確な情報を掲載するよう努めておりますが、誤情報が入り込んだり、情報が古くなっていることもございます。</p>
-
-            <h2>7. プライバシーポリシーの変更</h2>
+            <h2>6. プライバシーポリシーの変更</h2>
             <p>当サイトは、個人情報に関して適用される日本の法令を遵守するとともに、本ポリシーの内容を適宜見直しその改善に努めます。修正された最新のプライバシーポリシーは常に本ページにて開示されます。</p>
 
-            <p style="text-align: right; margin-top: 40px; color: var(--text-sub); font-family: var(--font-en);">最終更新日: 2026年2月7日</p>
+            <p style="text-align: right; margin-top: 40px; color: var(--text-sub); font-family: var(--font-en);">最終更新日: 2026年2月9日</p>
         </div>
     </div>
 
