@@ -9,8 +9,60 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/common.css">
     <style>
+        :root {
+            --bg-deep: #050508;
+            --bg-accent: #0f172a;
+            --text-main: #f0f9ff;
+            --text-sub: #94a3b8;
+            --accent-cyan: #00f3ff;
+            --accent-blue: #3b82f6;
+            --accent-purple: #bd00ff;
+            --font-jp: 'Noto Sans JP', sans-serif;
+            --font-en: 'JetBrains Mono', monospace;
+            --easing: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* 通常のカーソルを表示 */
+            cursor: auto !important;
+        }
+        
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-jp);
+            line-height: 1.8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        #star-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        .cosmic-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, #000 120%);
+            z-index: -1;
+            pointer-events: none;
+        }
+        
         .error-container {
             min-height: 100vh;
             display: flex;
@@ -19,7 +71,10 @@
             align-items: center;
             text-align: center;
             padding: 40px 24px;
+            position: relative;
+            z-index: 1;
         }
+        
         .error-code {
             font-size: 8rem;
             font-weight: 800;
@@ -28,17 +83,21 @@
             margin-bottom: 24px;
             font-family: var(--font-en);
         }
+        
         .error-message {
             font-size: 1.5rem;
             margin-bottom: 16px;
             color: var(--text-main);
         }
+        
         .error-description {
             font-size: 1rem;
             color: var(--text-sub);
             margin-bottom: 40px;
             max-width: 600px;
+            line-height: 1.7;
         }
+        
         .error-link {
             display: inline-flex;
             align-items: center;
@@ -49,18 +108,30 @@
             font-weight: 800;
             border: 2px solid var(--accent-cyan);
             border-radius: 50px;
+            text-decoration: none;
             transition: all 0.3s var(--easing);
             font-family: var(--font-en);
+            cursor: pointer !important;
         }
+        
         .error-link:hover {
             background: var(--accent-cyan);
             color: #000;
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
             transform: scale(1.05);
         }
+        
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 5rem;
+            }
+            .error-message {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
-<body class="loaded">
+<body>
     <canvas id="star-canvas"></canvas>
     <div class="cosmic-overlay"></div>
     
@@ -76,6 +147,67 @@
         </a>
     </div>
     
-    <script src="js/common.js"></script>
+    <script>
+        // 星空アニメーション（シンプル版）
+        const canvas = document.getElementById('star-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            let stars = [];
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            class Star {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = (Math.random() - 0.5) * 0.5;
+                    this.size = Math.random() * 2;
+                    this.opacity = Math.random() * 0.5 + 0.3;
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0) this.x = width;
+                    if (this.x > width) this.x = 0;
+                    if (this.y < 0) this.y = height;
+                    if (this.y > height) this.y = 0;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            for (let i = 0; i < 80; i++) {
+                stars.push(new Star());
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                stars.forEach(star => {
+                    star.update();
+                    star.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            window.addEventListener('resize', () => {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+        }
+    </script>
 </body>
 </html>
