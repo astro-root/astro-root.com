@@ -207,6 +207,8 @@ input[type="range"] {
     flex-direction: column;
     align-items: flex-start; 
     padding: 40px;
+    /* タッチ操作のデフォルト動作を抑制 */
+    touch-action: none;
 }
 .canvas-container::-webkit-scrollbar { width: 10px; height: 10px; }
 .canvas-container::-webkit-scrollbar-track { background: var(--bg-base); }
@@ -450,12 +452,12 @@ canvas { display: block; width: 100%; height: auto; }
 <span>開始No:</span>
 <input type="number" id="gridStart" class="input-num" value="1">
 <select id="gridDir" class="input-num" style="width:auto; cursor:pointer;">
+<option value="h" selected>→ 横 (Z字)</option>
 <option value="v">↓ 縦 (N字)</option>
-<option value="h">→ 横 (Z字)</option>
 </select>
 <div class="divider"></div>
-<input type="number" id="gridRows" class="input-num" value="5"> 行 × 
-<input type="number" id="gridCols" class="input-num" value="2"> 列
+<input type="number" id="gridRows" class="input-num" value="20"> 行 × 
+<input type="number" id="gridCols" class="input-num" value="5"> 列
 <button class="btn btn-primary" style="height:32px;" onclick="generateGrid()">生成</button>
 <button class="btn" style="height:32px;" onclick="toggleLayoutMode()">完了</button>
 <button class="btn" onclick="clearZones()" style="height:32px; color:var(--danger);">全クリア</button>
@@ -533,7 +535,7 @@ keyFile: null,
 stuFiles: [],
 currIdx: 0,
 zoom: { left: 100, right: 100 },
-fitWidths: { left: 0, right: 0 }, // ピクセルベースの計算用
+fitWidths: { left: 0, right: 0 }, 
 marks: {}, 
 zones: [],
 tool: 'o',
@@ -616,7 +618,6 @@ await loadStudent(0);
 async function drawImage(file, cvId, wrapId, scrollId, side) {
 const cv = document.getElementById(cvId);
 const ctx = cv.getContext('2d');
-// 画像描画
 if (file.type === 'application/pdf') {
 const buff = await file.arrayBuffer();
 const doc = await pdfjsLib.getDocument({data: buff}).promise;
@@ -638,9 +639,7 @@ img.src = URL.createObjectURL(file);
 });
 }
 
-// 読み込み完了後にフィットサイズを計算
 const container = document.getElementById(scrollId);
-// コンテナ幅からパディング分(80px)を引いた値を基準(100%)とする
 const fitW = Math.max(200, container.clientWidth - 80);
 state.fitWidths[side] = fitW;
 state.zoom[side] = 100;
@@ -675,10 +674,35 @@ function applyZoom(side) {
 const z = state.zoom[side];
 const wrap = document.getElementById(side === 'left' ? 'wrapLeft' : 'wrapRight');
 document.getElementById(side === 'left' ? 'zoomValLeft' : 'zoomValRight').textContent = z + '%';
-// ピクセル単位でサイズを指定（ウィンドウ幅に依存しなくなる）
 const pxWidth = state.fitWidths[side] * (z / 100);
 wrap.style.width = pxWidth + 'px';
+if (side === 'right') renderMarks();
 }
+
+// --------------------------------------------------------
+// Wheel Event for Zoom (Touchpad Pinch / Ctrl+Wheel)
+// --------------------------------------------------------
+const scrollRight = document.getElementById('scrollRight');
+
+scrollRight.addEventListener('wheel', (e) => {
+    // Ctrlキーが押されている場合（タッチパッドのピンチ操作も含む）
+    if (e.ctrlKey) {
+        e.preventDefault();
+        
+        // 感度調整（スクロール量に応じてズーム幅を変更）
+        const delta = -e.deltaY;
+        const zoomStep = 5; 
+        
+        // 拡大か縮小か判定
+        if (delta > 0) {
+             addZoom('right', zoomStep);
+        } else {
+             addZoom('right', -zoomStep);
+        }
+    }
+}, { passive: false });
+// --------------------------------------------------------
+
 
 const wrapRight = document.getElementById('wrapRight');
 const guide = document.getElementById('cursorGuide');
@@ -701,7 +725,10 @@ const r = wrapRight.getBoundingClientRect();
 const x = e.clientX - r.left;
 const y = e.clientY - r.top;
 guide.style.display = 'block';
-document.documentElement.style.setProperty('--mark-size', state.globalMarkSize + 'px');
+
+const currentScale = state.zoom.right / 100;
+const currentSize = state.globalMarkSize * currentScale;
+document.documentElement.style.setProperty('--mark-size', currentSize + 'px');
 
 if (state.layoutMode) {
 guide.style.left = x + 'px'; guide.style.top = y + 'px';
@@ -712,18 +739,15 @@ return;
 }
 
 if (state.tool !== 'text' && state.zones.length > 0) {
-// ズーム倍率を考慮したスナップ範囲の計算（見た目の距離で一定にする）
-// 現在の表示幅(r.width)と元の基準幅(fitWidth)の比率を使用
 const scaleFactor = r.width / state.fitWidths['right'];
 const snapRange = (state.globalMarkSize / 2) * (100 / state.zoom.right) * 10; 
-// シンプルにピクセル距離で判定
 let target = null;
 let minDist = Infinity;
 state.zones.forEach(z => {
 const zx = (z.x / 100) * r.width;
 const zy = (z.y / 100) * r.height;
 const dist = Math.hypot(x - zx, y - zy);
-if (dist < 20 && dist < minDist) { // 20px以内
+if (dist < 20 && dist < minDist) { 
 minDist = dist;
 target = z;
 }
@@ -818,13 +842,16 @@ function renderMarks() {
 const lMarks = document.getElementById('layerMarks');
 const lZones = document.getElementById('layerZones');
 lMarks.innerHTML = ''; lZones.innerHTML = '';
-document.documentElement.style.setProperty('--mark-size', state.globalMarkSize + 'px');
+
+const currentScale = state.zoom.right / 100;
+const displaySize = state.globalMarkSize * currentScale;
+document.documentElement.style.setProperty('--mark-size', displaySize + 'px');
 
 state.zones.forEach(z => {
 const div = document.createElement('div');
 div.className = 'zone';
-div.style.width = state.globalMarkSize + 'px';
-div.style.height = (state.globalMarkSize * 0.6) + 'px';
+div.style.width = displaySize + 'px';
+div.style.height = (displaySize * 0.6) + 'px';
 div.style.left = z.x + '%'; div.style.top = z.y + '%';
 div.textContent = z.qNum;
 lZones.appendChild(div);
@@ -890,7 +917,6 @@ document.getElementById('scoreDisplay').textContent = Number.isInteger(score) ? 
 document.getElementById('nextQ').textContent = state.nextQ;
 }
 
-// Layout & Grid
 function toggleLayoutMode() {
 state.layoutMode = !state.layoutMode;
 document.getElementById('layoutBar').style.display = state.layoutMode ? 'flex' : 'none';
@@ -946,7 +972,6 @@ showToast("グリッドを生成しました");
 
 function clearZones() { state.zones = []; saveToStorage(); renderMarks(); }
 
-// Text Edit
 function startTextDrag(idx, el) {
 state.selectedText = idx;
 state.dragging = true;
@@ -983,7 +1008,6 @@ renderMarks();
 }
 });
 
-// Utils
 function undo() {
 const fname = state.stuFiles[state.currIdx].name;
 if (state.marks[fname]?.length) {
@@ -1005,7 +1029,6 @@ t.textContent = msg; t.classList.add('show');
 setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// Resizer Logic
 const resizer = document.getElementById('dragHandle');
 const paneLeft = document.getElementById('paneLeft');
 const paneRight = document.getElementById('paneRight');
@@ -1023,7 +1046,6 @@ paneRight.style.width = (100 - newLeftWidth) + '%';
 }
 });
 
-// Export
 async function downloadPDF() {
 showToast("PDF生成中...");
 const cv = document.getElementById('cvRight');
