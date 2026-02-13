@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                showMessage('お問い合わせを送信しました。ご連絡ありがとうございます！', 'success');
+                showMessage('お問い合わせを送信しました。ご連絡ありがとうございます!', 'success');
                 form.reset();
                 
                 setTimeout(() => {
