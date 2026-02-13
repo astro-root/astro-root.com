@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>AQL/10by10by10mini</title>
+  <title>AQL/10by10by10mini Extended</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root {
@@ -23,7 +23,6 @@
       
       --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
       --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-      --shadow-glow: 0 0 15px rgba(20, 184, 166, 0.3);
     }
 
     * { box-sizing: border-box; }
@@ -94,11 +93,12 @@
     .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
     .btn-action:active { transform: translateY(0); }
     
-    #setupBtn { background: var(--color-blue); }
+    #startBtn { background: var(--color-green); }
     #resetAll { background: var(--color-red); }
     #undoGlobal { background: #64748b; }
     #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
     #btnThrough { background: var(--color-orange); }
+    #toggleLimitBtn { background: var(--color-cyan); min-width: 80px; }
 
     .game-status {
       font-weight: 900;
@@ -130,6 +130,7 @@
       min-width: 0;
       height: auto;
       transition: all 0.3s ease;
+      position: relative;
     }
 
     .team-header {
@@ -139,6 +140,7 @@
       margin-bottom: 20px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       padding-bottom: 15px;
+      width: 100%;
     }
 
     .team-name {
@@ -154,6 +156,23 @@
       color: var(--color-teal);
       text-shadow: 0 0 30px rgba(20, 184, 166, 0.4);
       line-height: 1;
+      z-index: 2;
+    }
+
+    .team-graph-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      margin-top: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .team-graph-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-teal), var(--color-blue));
+      width: 0%;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .team-players {
@@ -173,6 +192,18 @@
       position: relative;
       border: 1px solid transparent;
       transition: all 0.2s;
+      overflow: hidden; 
+    }
+
+    .tower-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(to top, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.5));
+      z-index: 0;
+      transition: height 0.4s ease-out;
+      border-top: 1px solid rgba(59, 130, 246, 0.5);
     }
 
     .name-input {
@@ -189,6 +220,7 @@
       letter-spacing: 2px;
       margin-bottom: 5px;
       transition: color 0.2s;
+      z-index: 1; 
     }
     .name-input:focus { outline: none; color: var(--text-main); }
 
@@ -197,6 +229,8 @@
       font-weight: 800;
       color: var(--text-main);
       margin: 5px 0;
+      z-index: 1;
+      position: relative;
     }
     
     .wrong-marks {
@@ -205,6 +239,8 @@
       font-weight: 900;
       color: var(--color-red);
       letter-spacing: 2px;
+      z-index: 1;
+      position: relative;
     }
 
     .buttons {
@@ -213,6 +249,8 @@
       gap: 5px;
       width: 100%;
       margin-top: auto; 
+      z-index: 1;
+      position: relative;
     }
     .btn-op {
       border: none; padding: 8px 0; border-radius: 6px;
@@ -226,8 +264,11 @@
 
     .player-col.reach {
       border-color: var(--color-gold);
-      background: rgba(245, 158, 11, 0.1);
       box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+    }
+    .player-col.reach .tower-bar {
+      background: linear-gradient(to top, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.6));
+      border-top-color: var(--color-gold);
     }
     .player-col.reach .player-points { color: var(--color-gold); }
 
@@ -246,6 +287,7 @@
       color: #fff;
       font-size: 18px;
       pointer-events: none;
+      z-index: 10;
     }
 
     .team-card.winner {
@@ -254,6 +296,7 @@
       box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
     }
     .team-card.winner .team-score { color: var(--color-gold); }
+    .team-card.winner .team-graph-bar { background: var(--color-gold); }
 
     .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
@@ -283,11 +326,15 @@
       <label>WIN</label>
       <input type="number" id="winPoints" min="1" value="200">
     </div>
-    <div class="control-group">
+    
+    <div class="control-group" id="limitGroup">
       <label>限定問題数</label>
       <input type="number" id="limitQs" min="1" value="40">
     </div>
+    <button id="toggleLimitBtn" class="btn-action">限問:有</button>
     
+    <div style="width:10px"></div>
+    <button id="startBtn" class="btn-action">開始</button>
     <button id="btnThrough" class="btn-action">スルー</button>
     <div style="width:10px"></div>
     <button id="resetAll" class="btn-action">リセット</button>
@@ -300,6 +347,9 @@
     <div class="team-header">
       <input class="team-name" value="Team A">
       <div class="team-score" id="scoreA">1</div>
+      <div class="team-graph-container">
+        <div class="team-graph-bar" id="graphA"></div>
+      </div>
     </div>
     <div class="team-players" id="playersA"></div>
   </div>
@@ -308,6 +358,9 @@
     <div class="team-header">
       <input class="team-name" value="Team B">
       <div class="team-score" id="scoreB">1</div>
+      <div class="team-graph-container">
+        <div class="team-graph-bar" id="graphB"></div>
+      </div>
     </div>
     <div class="team-players" id="playersB"></div>
   </div>
@@ -317,6 +370,10 @@
 (function(){
   const winInput = document.getElementById('winPoints');
   const limitInput = document.getElementById('limitQs');
+  const limitGroup = document.getElementById('limitGroup');
+  const toggleLimitBtn = document.getElementById('toggleLimitBtn');
+  
+  const startBtn = document.getElementById('startBtn');
   const resetBtn = document.getElementById('resetAll');
   const undoBtn = document.getElementById('undoGlobal');
   const throughBtn = document.getElementById('btnThrough');
@@ -324,24 +381,55 @@
 
   const scoreElA = document.getElementById('scoreA');
   const scoreElB = document.getElementById('scoreB');
+  const graphA = document.getElementById('graphA');
+  const graphB = document.getElementById('graphB');
+  
   const containerA = document.getElementById('playersA');
   const containerB = document.getElementById('playersB');
   const teamCardA = document.getElementById('teamA');
   const teamCardB = document.getElementById('teamB');
 
   const TEAM_SIZE = 5;
+  const TOWER_MAX = 10;
   
   let teams = [[], []]; 
   let currentQuestionCount = 0;
   let historyStack = [];
+  let isLimitEnabled = true;
 
-  function initData(){
+  function resetGameData(){
     teams = [
       Array.from({length: TEAM_SIZE}, () => ({ points: 1, wrong: 0, isRest: false })),
       Array.from({length: TEAM_SIZE}, () => ({ points: 1, wrong: 0, isRest: false }))
     ];
     currentQuestionCount = 0;
     historyStack = [];
+  }
+
+  function softReset(){
+    if(!confirm("現在の設定・名前のままスコアをリセットして開始しますか？")) return;
+    resetGameData();
+    render();
+  }
+
+  function hardReset(){
+    if(!confirm("名前も含めてすべてリセットしますか？")) return;
+    resetGameData();
+    
+    document.querySelector('#teamA .team-name').value = "Team A";
+    document.querySelector('#teamB .team-name').value = "Team B";
+    
+    containerA.innerHTML = '';
+    containerB.innerHTML = '';
+    
+    render();
+  }
+
+  function toggleLimit(){
+    if(!confirm("本当に限定問題数を表示/非表示しますか？")) return;
+    isLimitEnabled = !isLimitEnabled;
+    toggleLimitBtn.textContent = isLimitEnabled ? "限問:有" : "限問:無";
+    limitGroup.style.opacity = isLimitEnabled ? "1" : "0.3";
     render();
   }
 
@@ -382,7 +470,9 @@
 
     pushHistory();
     p.points += 1;
-    currentQuestionCount += 1;
+    if(isLimitEnabled) {
+      currentQuestionCount += 1;
+    }
     render(teamIdx);
   }
 
@@ -400,13 +490,17 @@
     const opponentIdx = teamIdx === 0 ? 1 : 0;
     reviveTeam(opponentIdx);
     
-    currentQuestionCount += 1;
+    if(isLimitEnabled) {
+      currentQuestionCount += 1;
+    }
     render(teamIdx);
   }
 
   function handleThrough(){
     pushHistory();
-    currentQuestionCount += 1;
+    if(isLimitEnabled) {
+      currentQuestionCount += 1;
+    }
     render();
   }
 
@@ -415,6 +509,7 @@
     div.className = 'player-col';
     
     div.innerHTML = `
+      <div class="tower-bar"></div>
       <input class="name-input" value="プレイヤー${playerIdx+1}" />
       <div class="player-points">${pData.points}</div>
       <div class="wrong-marks">${'×'.repeat(pData.wrong)}</div>
@@ -443,6 +538,11 @@
     scoreElA.textContent = scoreA;
     scoreElB.textContent = scoreB;
 
+    const pctA = Math.min(100, (scoreA / winScore) * 100);
+    const pctB = Math.min(100, (scoreB / winScore) * 100);
+    graphA.style.width = `${pctA}%`;
+    graphB.style.width = `${pctB}%`;
+
     teamCardA.classList.remove('winner');
     teamCardB.classList.remove('winner');
     gameInfo.style.display = 'none';
@@ -455,7 +555,7 @@
       if(scoreB >= winScore) teamCardB.classList.add('winner');
     }
 
-    if(!isGameEnd && currentQuestionCount >= limitQs) {
+    if(!isGameEnd && isLimitEnabled && currentQuestionCount >= limitQs) {
       isGameEnd = true;
       if(scoreA > scoreB) {
         teamCardA.classList.add('winner');
@@ -468,8 +568,13 @@
     }
 
     if(isGameEnd) {
-      gameInfo.textContent = `${currentQuestionCount}問 / ${limitInput.value}問`;
-      gameInfo.style.display = 'block';
+      if(isLimitEnabled){
+        gameInfo.textContent = `${currentQuestionCount}問 / ${limitInput.value}問`;
+        gameInfo.style.display = 'block';
+      } else {
+        // Limited disabled: No "WINNER DECIDED" text
+        gameInfo.style.display = 'none';
+      }
     }
 
     if(animateTeamIdx === 0) {
@@ -501,9 +606,13 @@
       const pData = teamData[idx];
       const ptEl = div.querySelector('.player-points');
       const wrEl = div.querySelector('.wrong-marks');
+      const towerEl = div.querySelector('.tower-bar');
       
       ptEl.textContent = pData.points;
       wrEl.textContent = '×'.repeat(pData.wrong);
+
+      const towerHeight = Math.min(100, (pData.points / TOWER_MAX) * 100);
+      towerEl.style.height = `${towerHeight}%`;
 
       div.classList.remove('rest', 'reach');
       if(pData.isRest) {
@@ -525,13 +634,16 @@
     render();
   }
 
-  resetBtn.addEventListener('click', initData);
+  startBtn.addEventListener('click', softReset);
+  resetBtn.addEventListener('click', hardReset);
   undoBtn.addEventListener('click', undoGlobal);
   throughBtn.addEventListener('click', handleThrough);
   winInput.addEventListener('input', () => render());
   limitInput.addEventListener('input', () => render());
+  toggleLimitBtn.addEventListener('click', toggleLimit);
 
-  initData();
+  resetGameData();
+  render();
 
 })();
 </script>
