@@ -130,14 +130,7 @@
 
             <section class="card card-glass scroll-reveal" style="transition-delay: 0.1s;">
                 <h2 class="section-title"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send Message</h2>
-                <form id="contactForm" class="contact-form" action="https://api.web3forms.com/submit" method="POST">
-                    <!-- 重要: 下記のYOUR_WEB3FORMS_ACCESS_KEY_HEREを実際のWeb3FormsのアクセスキーIDに置き換えてください -->
-                    <!-- Web3Formsの登録: https://web3forms.com/ -->
-                    <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY_HERE">
-                    <input type="hidden" name="subject" value="るーとの研究室からの問い合わせ">
-                    <input type="hidden" name="redirect" value="https://astro-root.com/contact-success.html">
-                    <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
-
+                <form id="contactForm" class="contact-form">
                     <div class="form-group">
                         <label for="name">お名前 <span class="required">*</span></label>
                         <input type="text" id="name" name="name" required autocomplete="name" class="form-input" placeholder="例:山田 太郎">
@@ -207,6 +200,7 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="js/common.js"></script>
     <script src="js/contact.js"></script>
 </body>
