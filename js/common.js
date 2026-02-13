@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const canvas = document.getElementById('star-canvas');
-    if (canvas) {
+    if (canvas && window.innerWidth > 768 && !('ontouchstart' in window)) {
         const ctx = canvas.getContext('2d');
         let width, height;
         let stars = [];
