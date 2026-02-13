@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>送信完了 - るーとの研究室</title>
+    <meta name="robots" content="noindex, nofollow">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    
+    <style>
+        .success-container {
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 100px 24px;
+        }
+
+        .success-icon-wrapper {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 40px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.4);
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .success-icon i {
+            font-size: 3rem;
+            color: #000;
+        }
+
+        .orbit-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(0, 243, 255, 0.3);
+            border-radius: 50%;
+            animation: orbitRotate 8s linear infinite;
+        }
+
+        .orbit-ring::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-cyan);
+            transform: translateX(-50%);
+        }
+
+        .success-container h1 {
+            font-size: 2.5rem;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            font-family: var(--font-en);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .success-message {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            margin-bottom: 40px;
+            line-height: 1.8;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+            text-align: left;
+            backdrop-filter: blur(12px);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .info-box h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.2rem;
+        }
+
+        .info-box ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .info-box li {
+            padding: 12px 0;
+            color: var(--text-sub);
+            padding-left: 28px;
+            position: relative;
+            line-height: 1.7;
+        }
+
+        .info-box li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease-out 0.5s both;
+        }
+
+        .btn-secondary {
+            padding: 14px 32px;
+            background: transparent;
+            border: 2px solid var(--glass-border);
+            color: var(--text-sub);
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s var(--easing);
+            font-family: var(--font-en);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .countdown-text {
+            margin-top: 32px;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        .countdown-text span {
+            color: var(--accent-cyan);
+            font-weight: bold;
+            font-family: var(--font-en);
+        }
+
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 60px 24px;
+            }
+
+            .success-container h1 {
+                font-size: 2rem;
+            }
+
+            .success-icon-wrapper {
+                width: 120px;
+                height: 120px;
+            }
+
+            .success-icon {
+                width: 80px;
+                height: 80px;
+            }
+
+            .success-icon i {
+                font-size: 2.5rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="loaded">
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-outline" aria-hidden="true"></div>
+    
+    <canvas id="star-canvas" aria-hidden="true"></canvas>
+    <div class="cosmic-overlay" aria-hidden="true"></div>
+
+    <main class="success-container">
+        <div class="success-icon-wrapper">
+            <div class="orbit-ring" aria-hidden="true"></div>
+            <div class="success-icon">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+            </div>
+        </div>
+
+        <h1 class="scramble-text" data-text="Message Sent">Message Sent</h1>
+        
+        <p class="success-message">
+            お問い合わせありがとうございます。<br>
+            メッセージを正常に受信しました。
+        </p>
+
+        <div class="info-box">
+            <h3><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 次のステップ</h3>
+            <ul>
+                <li>通常1〜3営業日以内に返信いたします</li>
+                <li>迷惑メールフォルダもご確認ください</li>
+                <li>緊急のご用件はTwitterのDMもご利用いただけます</li>
+            </ul>
+        </div>
+
+        <div class="btn-group">
+            <a href="/" class="btn-primary magnetic-target">
+                <i class="fa-solid fa-house" aria-hidden="true"></i> TOPページへ
+            </a>
+            <a href="/contact.html" class="btn-secondary magnetic-target">
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> もう一度送信
+            </a>
+        </div>
+
+        <p class="countdown-text">
+            <span id="countdown">5</span>秒後に自動的にTOPページへ移動します
+        </p>
+    </main>
+
+    <script src="js/common.js"></script>
+    <script>
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = '/';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
