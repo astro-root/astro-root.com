@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - るーとの研究室 | お問い合わせ</title>
+    <title>Contact - るーとの研究室</title>
     <meta name="description" content="るーとの研究室へのお問い合わせページ。バグ報告、開発依頼、コラボレーションのご相談はこちらから。Q-Score、Q-Panel、Q-Markなどのツールに関するご質問も受け付けています。">
     <meta name="keywords" content="問い合わせ,コンタクト,るーと,早押しクイズ,Q-Score,開発依頼,バグ報告">
     <meta name="author" content="るーと / Root">
@@ -131,6 +131,8 @@
             <section class="card card-glass scroll-reveal" style="transition-delay: 0.1s;">
                 <h2 class="section-title"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send Message</h2>
                 <form id="contactForm" class="contact-form" action="https://api.web3forms.com/submit" method="POST">
+                    <!-- 重要: 下記のYOUR_WEB3FORMS_ACCESS_KEY_HEREを実際のWeb3FormsのアクセスキーIDに置き換えてください -->
+                    <!-- Web3Formsの登録: https://web3forms.com/ -->
                     <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY_HERE">
                     <input type="hidden" name="subject" value="るーとの研究室からの問い合わせ">
                     <input type="hidden" name="redirect" value="https://astro-root.com/contact-success.html">
@@ -138,7 +140,7 @@
 
                     <div class="form-group">
                         <label for="name">お名前 <span class="required">*</span></label>
-                        <input type="text" id="name" name="name" required autocomplete="name" class="form-input" placeholder="例：山田 太郎">
+                        <input type="text" id="name" name="name" required autocomplete="name" class="form-input" placeholder="例:山田 太郎">
                         <span class="error-message" id="nameError"></span>
                     </div>
 
