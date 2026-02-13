@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
     
-    const cards = document.querySelectorAll('.tilt-card, .work-item');
+    const cards = document.querySelectorAll('.tilt-card, .work-item, .card');
     cards.forEach(card => {
         card.addEventListener('mousemove', (e) => {
             const rect = card.getBoundingClientRect();
