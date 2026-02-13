@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    emailjs.init('yxzdXxEsQp6Ulyn1w');
+    
     const form = document.getElementById('contactForm');
     const submitBtn = document.getElementById('submitBtn');
     const btnText = submitBtn.querySelector('.btn-text');
@@ -105,26 +107,40 @@ document.addEventListener('DOMContentLoaded', () => {
         formMessage.classList.add('hidden');
 
         try {
-            const formData = new FormData(form);
-            
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const templateParams = {
+                from_name: fields.name.value,
+                from_email: fields.email.value,
+                category: fields.category.value,
+                message: fields.message.value,
+                sent_at: new Date().toLocaleString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }),
+            };
 
-            if (response.ok) {
-                showMessage('お問い合わせを送信しました。ご連絡ありがとうございます!', 'success');
-                form.reset();
-                
-                setTimeout(() => {
-                    window.location.href = 'https://astro-root.com/contact-success.html';
-                }, 2000);
-            } else {
-                throw new Error('送信に失敗しました');
-            }
+            await emailjs.send(
+                'astro_root',
+                'astro_root',
+                templateParams
+            );
+
+            await emailjs.send(
+                'astro_root',
+                'astro_root_mail',
+                templateParams
+            );
+
+            showMessage('お問い合わせを送信しました。ご連絡ありがとうございます！', 'success');
+            form.reset();
+            
+            setTimeout(() => {
+                formMessage.classList.add('hidden');
+            }, 8000);
+
         } catch (error) {
             console.error('Error:', error);
             showMessage('送信に失敗しました。時間をおいて再度お試しいただくか、直接メールでご連絡ください。', 'error');
