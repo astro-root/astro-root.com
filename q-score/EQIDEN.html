@@ -180,6 +180,9 @@
 
     .teams-wrap::-webkit-scrollbar { height: 8px; }
     .teams-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .btn-eliminate { background: #7f1d1d; color: #fca5a5; }
+    .btn-revive    { background: #14532d; color: #86efac; }
   </style>
 </head>
 <body>
@@ -302,12 +305,16 @@
     const btnC = document.createElement('button'); btnC.className='btn-mini btn-correct'; btnC.textContent='正解';
     const btnW = document.createElement('button'); btnW.className='btn-mini btn-wrong'; btnW.textContent='誤答';
     const btnU = document.createElement('button'); btnU.className='btn-mini btn-undo'; btnU.textContent='戻る';
-    
+    const btnE = document.createElement('button'); btnE.className='btn-mini btn-eliminate'; btnE.textContent='失格';
+    const btnR = document.createElement('button'); btnR.className='btn-mini btn-revive'; btnR.textContent='復活'; btnR.style.display='none';
+
     btnC.addEventListener('click', () => pushAction('correct', teamNo));
     btnW.addEventListener('click', () => pushAction('wrong', teamNo));
     btnU.addEventListener('click', () => undoTeamAction(teamNo));
+    btnE.addEventListener('click', () => { globalHistory.push({ type: 'eliminate', teamId: teamNo, manual: true }); recalcAndRender(); });
+    btnR.addEventListener('click', () => { undoEliminate(teamNo); });
 
-    ctl.append(btnC, btnW, btnU);
+    ctl.append(btnC, btnW, btnU, btnE, btnR);
 
     const ds = document.createElement('div'); ds.className = 'districts';
     for(let idx=0; idx<playersPerTeam; idx++){
@@ -321,6 +328,16 @@
 
     board.append(nameInput, currentDiv, limits, ctl, ds);
     return board;
+  }
+
+  function undoEliminate(teamId){
+    for(let i = globalHistory.length - 1; i >= 0; i--){
+      if(globalHistory[i].type === 'eliminate' && globalHistory[i].teamId === teamId){
+        globalHistory.splice(i, 1);
+        recalcAndRender();
+        return;
+      }
+    }
   }
 
   function pushAction(type, teamId){
@@ -385,14 +402,6 @@
         if(t.corrects[t.currentIdx] >= (needs[t.currentIdx] || 1)){
           t.currentIdx++;
           t.penaltyStartTurn = null;
-
-          const returnStart = Math.floor(playersPerTeam / 2);
-          if(priorIdx < returnStart && t.currentIdx >= returnStart){
-            const nextAction = globalHistory[index + 1];
-            if (!(nextAction && nextAction.type === 'eliminate' && nextAction.triggeredBy === index)) {
-              handleReturnElimination(teamsState, action.teamId, index);
-            }
-          }
         }
       } else if(action.type === 'wrong'){
         t.wrongsTotal++;
@@ -410,40 +419,6 @@
     for(let t=1; t<=teamCount; t++){
       updateTeamUI(t, teamsState[t], needs, playersPerTeam, c15, globalTurnCount);
     }
-  }
-
-  function handleReturnElimination(teamsState, advancingTeamId, actionIndex) {
-    const activeTeams = Object.entries(teamsState).filter(([id, s]) => !s.disqualified).map(([id])=>parseInt(id, 10));
-    if(activeTeams.length <= 1) return;
-
-    const stats = activeTeams.map(id => {
-      const s = teamsState[id];
-      return { id, totalCorrect: s.corrects.reduce((a,b)=>a+b,0), wrongsTotal: s.wrongsTotal };
-    });
-
-    let minCorrect = Math.min(...stats.map(x=>x.totalCorrect));
-    let candidates = stats.filter(x=>x.totalCorrect === minCorrect);
-
-    let chosenId = null;
-    if(candidates.length === 1) {
-      chosenId = candidates[0].id;
-    } else {
-      let maxWrong = Math.max(...candidates.map(x=>x.wrongsTotal));
-      let wrongCandidates = candidates.filter(x=>x.wrongsTotal === maxWrong);
-      if(wrongCandidates.length === 1) {
-        chosenId = wrongCandidates[0].id;
-      } else {
-        const listStr = wrongCandidates.map(c => {
-          const name = document.querySelector(`#team-card-${c.id} .team-name`).value;
-          return `${c.id}: ${name}`;
-        }).join('\n');
-        let input = prompt(`チーム ${advancingTeamId} が復路進出！脱落させるチームの番号を入力：\n${listStr}`);
-        chosenId = parseInt(input, 10);
-        if(isNaN(chosenId) || !wrongCandidates.find(c=>c.id === chosenId)) chosenId = wrongCandidates[0].id;
-      }
-    }
-    globalHistory.splice(actionIndex + 1, 0, { type: 'eliminate', teamId: chosenId, triggeredBy: actionIndex });
-    recalcAndRender();
   }
 
   function updateTeamUI(t, state, needs, playersPerTeam, c15, globalTurnCount) {
@@ -486,6 +461,13 @@
     }
     board.querySelector('.btn-correct').disabled = state.disqualified || state.currentIdx >= playersPerTeam || lockRemaining > 0;
     board.querySelector('.btn-wrong').disabled = state.disqualified || state.currentIdx >= playersPerTeam || lockRemaining > 0;
+
+    const btnE = board.querySelector('.btn-eliminate');
+    const btnR = board.querySelector('.btn-revive');
+    if(btnE && btnR){
+      btnE.style.display = state.disqualified ? 'none' : '';
+      btnR.style.display = state.disqualified ? '' : 'none';
+    }
   }
 
   globalSkipBtn.addEventListener('click', () => { globalHistory.push({ type: 'skip' }); recalcAndRender(); });
