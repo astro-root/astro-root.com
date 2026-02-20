@@ -261,16 +261,25 @@
   }
 
   function initUI(){
+    const savedData = {};
+    const existingCards = preview.querySelectorAll('.team-card');
+    existingCards.forEach(card => {
+      const tId = card.dataset.teamId;
+      const tName = card.querySelector('.team-name').value;
+      const pNames = Array.from(card.querySelectorAll('.player-input')).map(inp => inp.value);
+      savedData[tId] = { tName, pNames };
+    });
+
     const playersPerTeam = Math.max(1, Math.min(10, +playersPerTeamEl.value));
     const teamCount = Math.max(1, Math.min(30, +teamCountEl.value));
     preview.innerHTML = '';
     for(let t = 1; t <= teamCount; t++){
-      preview.appendChild(createTeamBoard(t, playersPerTeam));
+      preview.appendChild(createTeamBoard(t, playersPerTeam, savedData[t]));
     }
     recalcAndRender();
   }
 
-  function createTeamBoard(teamNo, playersPerTeam){
+  function createTeamBoard(teamNo, playersPerTeam, savedData){
     const board = document.createElement('div');
     board.className = 'team-card';
     board.id = `team-card-${teamNo}`;
@@ -278,7 +287,7 @@
 
     const nameInput = document.createElement('input');
     nameInput.className = 'team-name';
-    nameInput.value = `Team ${teamNo}`;
+    nameInput.value = savedData ? savedData.tName : `Team ${teamNo}`;
 
     const currentDiv = document.createElement('div');
     currentDiv.className = 'team-current';
@@ -305,7 +314,8 @@
       const cell = document.createElement('div');
       cell.className = 'district';
       cell.id = `t${teamNo}-d${idx}`;
-      cell.innerHTML = `<input class="player-input" value="プレイヤー${idx+1}"><div class="count">-</div>`;
+      const pName = (savedData && savedData.pNames[idx]) ? savedData.pNames[idx] : `プレイヤー${idx+1}`;
+      cell.innerHTML = `<input class="player-input" value="${pName}"><div class="count">-</div>`;
       ds.appendChild(cell);
     }
 
