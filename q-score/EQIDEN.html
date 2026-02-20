@@ -491,7 +491,7 @@
   globalSkipBtn.addEventListener('click', () => { globalHistory.push({ type: 'skip' }); recalcAndRender(); });
   globalUndoBtn.addEventListener('click', () => { globalHistory.pop(); recalcAndRender(); });
   applyBtn.addEventListener('click', initUI);
-  resetBtn.addEventListener('click', () => { if(confirm("リセットしますか？")){ globalHistory = []; initUI(); } });
+  resetBtn.addEventListener('click', () => { if(confirm("リセットしますか？")){ globalHistory = []; preview.innerHTML = ''; initUI(); } });
   addTeamBtn.addEventListener('click', () => { teamCountEl.value = Math.min(30, (+teamCountEl.value||0)+1); initUI(); });
 
   buildNeedsInputs();
