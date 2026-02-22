@@ -337,47 +337,69 @@ window.onload = () => {
 };
 
 function initFB() {
-  if(!db){ firebase.initializeApp(firebaseConfig); db = firebase.database(); }
+  if(!db){ 
+    try {
+      firebase.initializeApp(firebaseConfig); 
+      db = firebase.database(); 
+    } catch(e) {
+      console.error(e);
+      throw new Error("データベース接続に失敗しました。");
+    }
+  }
 }
+
 function getMyId() {
   let id = localStorage.getItem('qr_id');
   if(!id){ id = 'p_'+Date.now().toString(36); localStorage.setItem('qr_id',id); }
   return id;
 }
+
 function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
 function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
 
 async function handleCreate() {
-  initFB();
-  const n = document.getElementById('in-name').value.trim();
-  const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
-  if(!n) return err('名前を入力してください');
-  if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
-  const s = await db.ref('rooms/'+r).once('value');
-  if(s.exists()) return err('そのIDは使用中です');
-  
-  myId = getMyId(); rId = r;
-  await db.ref('rooms/'+r).set({
-    status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
-    players: { [myId]: newPlayer(n) }
-  });
-  enterRoom();
+  try {
+    initFB();
+    const n = document.getElementById('in-name').value.trim();
+    const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
+    if(!n) return err('名前を入力してください');
+    if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
+    
+    const s = await db.ref('rooms/'+r).once('value');
+    if(s.exists()) return err('そのIDは使用中です');
+    
+    myId = getMyId(); rId = r;
+    await db.ref('rooms/'+r).set({
+      status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
+      players: { [myId]: newPlayer(n) }
+    });
+    enterRoom();
+  } catch(e) {
+    console.error(e);
+    err('エラーが発生しました。通信状態を確認してください。');
+  }
 }
 
 async function handleJoin() {
-  initFB();
-  const n = document.getElementById('in-name').value.trim();
-  const r = document.getElementById('in-room').value.trim();
-  if(!n) return err('名前を入力してください');
-  if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
-  const s = await db.ref('rooms/'+r).once('value');
-  if(!s.exists()) return err('部屋が見つかりません');
-  
-  myId = getMyId(); rId = r;
-  const p = s.val().players || {};
-  if(!p[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
-  enterRoom();
+  try {
+    initFB();
+    const n = document.getElementById('in-name').value.trim();
+    const r = document.getElementById('in-room').value.trim();
+    if(!n) return err('名前を入力してください');
+    if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
+    
+    const s = await db.ref('rooms/'+r).once('value');
+    if(!s.exists()) return err('部屋が見つかりません');
+    
+    myId = getMyId(); rId = r;
+    const p = s.val().players || {};
+    if(!p[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
+    enterRoom();
+  } catch(e) {
+    console.error(e);
+    err('エラーが発生しました。通信状態を確認してください。');
+  }
 }
 
 function newPlayer(name) {
@@ -385,7 +407,14 @@ function newPlayer(name) {
 }
 
 function enterRoom() {
-  window.history.replaceState({},'',`/q-room/${rId}`);
+  try {
+    if (window.location.protocol !== 'file:') {
+      window.history.replaceState({},'',`/q-room/${rId}`);
+    }
+  } catch(e) {
+    console.warn("History API replaced failed, possibly running locally.");
+  }
+  
   document.getElementById('game-rid').innerText = rId;
   show('room');
   if(rRef) rRef.off('value', rCb);
@@ -416,9 +445,9 @@ function closeModal(){ document.getElementById('modal').classList.remove('active
 
 function changeRuleUI(skipRender=false) {
   const r = document.getElementById('sel-rule').value;
-  const c = (roomData && roomData.rule === r) ? roomData.conf : DEF_CONF[r];
+  const c = (roomData && roomData.rule === r && roomData.conf) ? roomData.conf : DEF_CONF[r];
   let h = '';
-  const mkn = (id,lbl,v) => `<div class="field"><label>${lbl}</label><input type="number" id="c_${id}" value="${v}"></div>`;
+  const mkn = (id,lbl,v) => `<div class="field"><label>${lbl}</label><input type="number" id="c_${id}" value="${v !== undefined ? v : ''}"></div>`;
   
   if(r==='survival'||r==='rentou'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
   else if(r==='by') h = `<div class="s-grid">${mkn('m','初期誤答pt/定数',c.m)}${mkn('n','失格回数',c.n)}</div>`;
@@ -470,7 +499,7 @@ function renderPlayers() {
     if(isMe && !cls) cls = 'me';
     let sv = p.sc||0;
     if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
-    else if(r==='by') sv = `${p.c} × ${roomData.conf.m - p.w}`;
+    else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
     
     let wtxt = p.w;
     if(r==='swedish'||r==='ren_wrong') wtxt = p.w + '×';
@@ -519,7 +548,8 @@ async function sendAction(type) {
   
   const mePrev = JSON.stringify({c:me.c, w:me.w, sc:me.sc, rst:me.rst, str:me.str, adv:me.adv, st:me.st});
   
-  const r = roomData.rule, c = roomData.conf;
+  const r = roomData.rule;
+  const c = roomData.conf || DEF_CONF[r];
   
   if(type === 'rest') {
     me.rst--;
@@ -619,8 +649,12 @@ async function toggleRole() {
 async function resetPoints() {
   if(!confirm('全員のスコアをリセットしますか？')) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
+  
+  const c = roomData.conf || {};
+  const sc = roomData.rule==='divide' ? (c.init || 10) : roomData.rule==='attack_surv' ? (c.life || 20) : 0;
+  
   Object.keys(pData).forEach(k => {
-    pData[k] = { ...pData[k], c:0, w:0, sc:roomData.rule==='divide'?roomData.conf.init:roomData.rule==='attack_surv'?roomData.conf.life:0, rst:0, str:0, adv:0, hist:[] };
+    pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[] };
     if(pData[k].st !== 'spec') pData[k].st = 'active';
   });
   await db.ref(`rooms/${rId}/players`).set(pData);
@@ -643,7 +677,7 @@ function renderResult() {
   sorted.forEach(([id, p], idx) => {
     let sv = p.sc||0;
     if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
-    else if(r==='by') sv = `${p.c} × ${roomData.conf.m - p.w}`;
+    else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
     let mst = p.st==='win'?'WINNER':p.st==='lose'?'ELIMINATED':'-';
     h += `
     <div class="pcard ${p.st==='win'?'win':p.st==='lose'?'lose':''}">
@@ -662,7 +696,11 @@ function renderResult() {
 }
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function copyUrl(){ navigator.clipboard.writeText(window.location.href); toast('URL copied'); }
+function copyUrl(){ 
+  const url = window.location.protocol === 'file:' ? 'https://astro-root.com/q-room/'+rId : window.location.href;
+  navigator.clipboard.writeText(url); 
+  toast('URL copied'); 
+}
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
 </script>
 </body>
