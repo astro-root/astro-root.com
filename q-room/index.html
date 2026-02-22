@@ -337,9 +337,11 @@ window.onload = () => {
 };
 
 function initFB() {
-  if(!db){ 
+  if (!db) { 
     try {
-      firebase.initializeApp(firebaseConfig); 
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig); 
+      }
       db = firebase.database(); 
     } catch(e) {
       console.error(e);
@@ -362,8 +364,15 @@ async function handleCreate() {
   try {
     initFB();
     const n = document.getElementById('in-name').value.trim();
-    const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
+    let r = document.getElementById('in-room').value.trim();
+    
     if(!n) return err('名前を入力してください');
+    
+    if(!r) {
+      r = String(Math.floor(10000+Math.random()*90000));
+      document.getElementById('in-room').value = r;
+    }
+    
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
     
     const s = await db.ref('rooms/'+r).once('value');
@@ -377,7 +386,7 @@ async function handleCreate() {
     enterRoom();
   } catch(e) {
     console.error(e);
-    err('エラーが発生しました。通信状態を確認してください。');
+    err('通信状態やデータベースの権限を確認してください。');
   }
 }
 
@@ -398,7 +407,7 @@ async function handleJoin() {
     enterRoom();
   } catch(e) {
     console.error(e);
-    err('エラーが発生しました。通信状態を確認してください。');
+    err('通信状態やデータベースの権限を確認してください。');
   }
 }
 
@@ -412,14 +421,16 @@ function enterRoom() {
       window.history.replaceState({},'',`/q-room/${rId}`);
     }
   } catch(e) {
-    console.warn("History API replaced failed, possibly running locally.");
+    console.warn("History API replaced failed");
   }
   
   document.getElementById('game-rid').innerText = rId;
   show('room');
-  if(rRef) rRef.off('value', rCb);
+  
+  if(rRef && rCb) rRef.off('value', rCb);
+  
   rRef = db.ref('rooms/'+rId);
-  rCb = rRef.on('value', snap => {
+  rCb = snap => {
     roomData = snap.val();
     if(!roomData) return leaveRoom();
     if(roomData.status === 'finished') return renderResult();
@@ -432,11 +443,12 @@ function enterRoom() {
     
     const me = roomData.players && roomData.players[myId];
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
-  });
+  };
+  rRef.on('value', rCb);
 }
 
 function leaveRoom() {
-  if(rRef) rRef.off('value', rCb);
+  if(rRef && rCb) rRef.off('value', rCb);
   window.location.href = 'https://astro-root.com/q-room/';
 }
 
