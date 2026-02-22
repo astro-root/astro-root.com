@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Q-ROOM</title>
+<title>Q-Room</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+JP:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -247,13 +247,13 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
 
 <div id="screen-top" class="screen active">
   <div class="hero">
-    <div class="logo">Q-ROOM</div>
+    <div class="logo">Q-Room</div>
     <div class="logo-sub">ADVANCED QUIZ SYSTEM</div>
   </div>
   <div class="form-wrap">
     <div class="field">
       <label>PLAYER NAME</label>
-      <input type="text" id="in-name" placeholder="名前を入力" maxlength="20" autocomplete="off">
+      <input type="text" id="in-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
     </div>
     <div class="field">
       <label>ROOM ID (BLANK FOR RANDOM)</label>
@@ -282,8 +282,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
     </div>
     <div class="sub-actions">
       <button class="sub-btn" id="btn-undo" onclick="reqUndo()" disabled>↩ UNDO</button>
-      <button class="sub-btn" onclick="toggleRole()" id="btn-role">👀 観戦</button>
-      <button class="sub-btn" onclick="leaveRoom()">🚪 退室</button>
+      <button class="sub-btn" onclick="toggleRole()" id="btn-role">👀 WATCH</button>
+      <button class="sub-btn" onclick="leaveRoom()">🚪 LEAVE</button>
     </div>
   </div>
 </div>
@@ -291,7 +291,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
 <div id="screen-result" class="screen">
   <div class="r-header">
     <div class="r-title">RESULT</div>
-    <button class="sub-btn" onclick="leaveRoom()" style="max-width: 200px; margin: 0 auto;">TOPへ戻る</button>
+    <button class="sub-btn" onclick="leaveRoom()" style="max-width: 200px; margin: 0 auto;">Back to TOP</button>
   </div>
   <div class="scroll-area"><div id="rlist" class="plist"></div></div>
 </div>
@@ -304,8 +304,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
     <div class="field">
       <label>RULE</label>
       <select id="sel-rule" onchange="changeRuleUI()">
-        <option value="survival">m◯n× (Survival)</option>
-        <option value="rentou">連答付き (m◯n×)</option>
+        <option value="survival">m◯n×</option>
+        <option value="rentou">連答付き</option>
         <option value="updown">up-down</option>
         <option value="by">by</option>
         <option value="freeze">Freeze</option>
@@ -324,8 +324,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
 
     <hr>
     <div class="s-grid">
-      <button class="sub-btn" onclick="copyUrl()">🔗 URLコピー</button>
-      <button class="sub-btn" onclick="copyId()">📋 IDコピー</button>
+      <button class="sub-btn" onclick="copyUrl()">🔗 Copy URL</button>
+      <button class="sub-btn" onclick="copyId()">📋 Copy ID</button>
     </div>
     <button class="btn btn-sec" onclick="resetPoints()" style="margin-bottom:12px;">🔄 RESET SCORES</button>
     <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
@@ -351,10 +351,10 @@ let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
 
 const DEF_CONF = {
-  survival: {m:3, n:2}, rentou: {m:10, n:3}, updown: {m:10, n:3},
-  by: {m:10, n:3}, freeze: {m:10, n:3}, m_n_rest: {m:10, n:2},
-  swedish: {m:10, n:10}, ren_wrong: {m:10, n:3},
-  divide: {init:10, add:10, win:100}, combo: {win:50},
+  survival: {m:5, n:2}, rentou: {m:5, n:2}, updown: {m:5, n:2},
+  by: {m:5, n:3}, freeze: {m:5, n:0}, m_n_rest: {m:5, n:3},
+  swedish: {m:10, n:10}, ren_wrong: {m:5, n:3},
+  divide: {init:10, add:10, win:100}, combo: {win:10},
   attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
   lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3}
 };
@@ -557,7 +557,7 @@ function renderPlayers() {
   
   const me = pl[myId];
   if(me) {
-    document.getElementById('btn-role').innerText = me.st==='spec'?'🎮 参加':'👀 観戦';
+    document.getElementById('btn-role').innerText = me.st==='spec'?'🎮 JOIN':'👀 WATCH';
     const ox = document.getElementById('ox-grid');
     if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
     else {
@@ -666,7 +666,7 @@ async function reqUndo() {
   prevState.hist = hist;
   
   await db.ref(`rooms/${rId}/players/${myId}`).update(prevState);
-  toast('↩ 自分の直前の状態に戻しました');
+  toast('↩ UNDO have done!');
 }
 
 async function toggleRole() {
