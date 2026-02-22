@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Q-Room - 多機能オンラインクイズシステム</title>
-<meta name="description" content="Q-Roomは、リアルタイムで進行する多機能なオンラインクイズシステムです。サバイバルやアップダウンなど様々なルールの部屋を作成し、オンラインでみんなとクイズ対戦を楽しめます。">
+<title>Q-Room | オンラインクイズルーム</title>
+<meta name="description" content="Q-Roomは、リアルタイムで進行する多機能なオンラインクイズシステムです。自身で部屋を作成し、フリバやアップダウンなど様々なルールをオンラインでみんなとクイズ対戦を楽しめます。">
 <link rel="canonical" href="https://astro-root.com/q-room/">
-<meta property="og:title" content="Q-Room | Advanced Quiz System">
+<meta property="og:title" content="Q-Room | Online Quiz Room">
 <meta property="og:description" content="リアルタイムで進行する多機能なオンラインクイズシステム。様々なルールのクイズ部屋を作成・参加できます。">
 <meta property="og:url" content="https://astro-root.com/q-room/">
 <meta property="og:type" content="website">
@@ -250,7 +250,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 <div id="screen-top" class="screen active">
   <div class="hero">
     <div class="logo">Q-Room</div>
-    <div class="logo-sub">ADVANCED QUIZ SYSTEM</div>
+    <div class="logo-sub">Online QUIZ Room</div>
   </div>
   <div class="form-wrap">
     <div class="field">
@@ -258,7 +258,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
       <input type="text" id="in-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
     </div>
     <div class="field">
-      <label>ROOM ID (BLANK FOR RANDOM)</label>
+      <label>ROOM ID</label>
       <div class="row">
         <input type="text" id="in-room" placeholder="5 digits" maxlength="5" pattern="[0-9]*" inputmode="numeric">
         <button class="btn-gen" onclick="document.getElementById('in-room').value = String(Math.floor(10000+Math.random()*90000))">🎲</button>
