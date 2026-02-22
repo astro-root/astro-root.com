@@ -110,7 +110,8 @@ h3 {
 }
 .top-nav {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
 }
 .btn-small {
@@ -188,7 +189,6 @@ input::placeholder { color: var(--muted); }
 }
 .btn:hover::after { opacity: 1; }
 .btn:active { transform: scale(0.98); }
-.btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 .btn-primary {
   background: linear-gradient(135deg, var(--cyan), #0088ff);
   color: #000;
@@ -225,8 +225,6 @@ input::placeholder { color: var(--muted); }
   padding: 16px;
   box-shadow: 0 4px 20px rgba(255,71,87,0.3);
 }
-.btn-row { display: flex; gap: 10px; }
-.btn-row .btn { margin-bottom: 0; }
 .error-msg {
   color: var(--red);
   font-size: 0.82rem;
@@ -236,26 +234,6 @@ input::placeholder { color: var(--muted); }
   background: rgba(255,71,87,0.1);
   border-radius: 8px;
   border: 1px solid rgba(255,71,87,0.2);
-}
-.room-code-block {
-  text-align: center;
-  padding: 24px;
-  background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(255,45,111,0.05));
-  border-radius: 14px;
-  border: 1px solid rgba(0,229,255,0.15);
-  margin-bottom: 20px;
-}
-.room-code-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-.room-code-num {
-  font-family: var(--font-display);
-  font-size: 3rem;
-  font-weight: 900;
-  letter-spacing: 0.3em;
-  background: linear-gradient(135deg, var(--cyan), var(--pink));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 12px rgba(0,229,255,0.5));
 }
 .share-row { display: flex; gap: 8px; margin-top: 14px; }
 .share-btn {
@@ -273,18 +251,6 @@ input::placeholder { color: var(--muted); }
   transition: all 0.2s;
 }
 .share-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.05); }
-.player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-.player-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  background: rgba(0,0,0,0.3);
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  transition: border-color 0.2s;
-}
-.player-item.me { border-color: rgba(0,229,255,0.3); }
 .player-avatar {
   width: 34px; height: 34px;
   border-radius: 50%;
@@ -293,18 +259,6 @@ input::placeholder { color: var(--muted); }
   font-weight: 700; font-size: 0.9rem; color: #000;
   flex-shrink: 0;
 }
-.player-item-name { flex: 1; font-weight: 600; font-size: 0.95rem; }
-.badge {
-  font-size: 0.65rem;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.badge-host { background: rgba(255,45,111,0.2); color: var(--pink); border: 1px solid rgba(255,45,111,0.3); }
-.badge-me   { background: rgba(0,229,255,0.15); color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
-.badge-spec { background: rgba(100,100,100,0.2); color: #ccc; border: 1px solid rgba(100,100,100,0.3); }
 .mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .mode-tab {
   flex: 1;
@@ -365,170 +319,94 @@ input::placeholder { color: var(--muted); }
   position: relative;
   overflow: hidden;
 }
-.pcard.pcard-me { border-color: rgba(0,229,255,0.25); }
-.pcard.pcard-winner {
-  border-color: var(--green);
-  background: rgba(0,224,150,0.06);
-}
+.pcard.pcard-me { border-color: rgba(0,229,255,0.4); box-shadow: 0 0 15px rgba(0,229,255,0.1); }
+.pcard.pcard-winner { border-color: var(--green); background: rgba(0,224,150,0.06); }
 .pcard.pcard-winner::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--green);
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--green);
 }
-.pcard.pcard-eliminated {
-  opacity: 0.45;
-  filter: grayscale(0.7);
-}
-.pcard.pcard-spectator {
-  opacity: 0.6;
-}
+.pcard.pcard-eliminated { opacity: 0.45; filter: grayscale(0.7); }
+.pcard.pcard-spectator { opacity: 0.6; }
 .pcard-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .pcard-name { flex: 1; font-weight: 700; font-size: 1rem; }
 .pcard-status {
-  font-size: 0.68rem;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.68rem; padding: 3px 9px; border-radius: 20px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.s-active     { background: rgba(90,90,122,0.3); color: var(--muted); }
-.s-winner     { background: rgba(0,224,150,0.2); color: var(--green); border: 1px solid rgba(0,224,150,0.3); }
+.s-active { background: rgba(90,90,122,0.3); color: var(--muted); }
+.s-winner { background: rgba(0,224,150,0.2); color: var(--green); border: 1px solid rgba(0,224,150,0.3); }
 .s-eliminated { background: rgba(255,71,87,0.15); color: var(--red); }
-.s-spectator  { background: rgba(100,100,100,0.2); color: #ccc; }
+.s-spectator { background: rgba(100,100,100,0.2); color: #ccc; }
 .pcard-stats { display: flex; gap: 16px; align-items: center; }
 .stat-box { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; }
 .stat-icon { font-size: 0.9rem; }
 .stat-val { font-weight: 700; font-size: 1rem; }
 .stat-val.correct { color: var(--green); }
-.stat-val.wrong   { color: var(--red); }
-.stat-val.score   { color: var(--cyan); }
+.stat-val.wrong { color: var(--red); }
 .score-large {
-  margin-left: auto;
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--cyan);
-  filter: drop-shadow(0 0 8px rgba(0,229,255,0.4));
+  margin-left: auto; font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: var(--cyan); filter: drop-shadow(0 0 8px rgba(0,229,255,0.4));
 }
 .my-action-panel {
-  background: rgba(0,229,255,0.04);
-  border: 1px solid rgba(0,229,255,0.15);
+  background: var(--card);
+  border: 1px solid rgba(0,229,255,0.3);
   border-radius: 14px;
   padding: 16px;
-  margin-top: 10px;
+  margin-top: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
-.my-action-title { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; text-align: center; }
-.action-row { display: flex; gap: 12px; }
+.action-row { display: flex; gap: 12px; margin-bottom: 12px; }
 .action-row .btn { flex: 1; margin-bottom: 0; }
 .podium-wrap { text-align: center; padding: 20px 0; }
 .podium-emoji { font-size: 4rem; line-height: 1; margin-bottom: 12px; }
 .podium-name {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 900;
+  font-family: var(--font-display); font-size: 1.6rem; font-weight: 900;
   background: linear-gradient(135deg, var(--yellow), var(--pink));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 4px;
 }
 .podium-sub { color: var(--muted); font-size: 0.82rem; letter-spacing: 0.1em; }
 .result-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
 .result-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
-  background: var(--card);
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);
 }
-.result-rank {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 900;
-  min-width: 28px;
-  color: var(--muted);
-}
+.result-rank { font-family: var(--font-display); font-size: 1.1rem; font-weight: 900; min-width: 28px; color: var(--muted); }
 .result-rank.r1 { color: var(--yellow); }
 .result-rank.r2 { color: #c0c0c0; }
 .result-rank.r3 { color: #cd7f32; }
 .result-name { flex: 1; font-weight: 600; }
 .result-stats { font-size: 0.8rem; color: var(--muted); }
-.result-score {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--cyan);
-}
+.result-score { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--cyan); }
 .toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: rgba(20,20,42,0.95);
-  backdrop-filter: blur(12px);
-  color: var(--text);
-  padding: 12px 22px;
-  border-radius: 30px;
-  font-size: 0.88rem;
-  border: 1px solid var(--border);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  pointer-events: none;
-  z-index: 1000;
-  max-width: 300px;
-  text-align: center;
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: rgba(20,20,42,0.95); backdrop-filter: blur(12px); color: var(--text); padding: 12px 22px; border-radius: 30px;
+  font-size: 0.88rem; border: 1px solid var(--border); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none; z-index: 1000; max-width: 300px; text-align: center;
 }
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 4px 0 16px;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-.spinner {
-  display: inline-block;
-  width: 18px; height: 18px;
-  border: 2px solid var(--border);
-  border-top-color: var(--cyan);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 20px; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.divider { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; color: var(--muted); font-size: 0.75rem; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .config-notice {
-  background: rgba(255,211,42,0.08);
-  border: 1px solid rgba(255,211,42,0.25);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  font-size: 0.78rem;
-  color: var(--yellow);
-  line-height: 1.6;
-  display: none;
+  background: rgba(255,211,42,0.08); border: 1px solid rgba(255,211,42,0.25); border-radius: 10px; padding: 12px 16px;
+  margin-bottom: 20px; font-size: 0.78rem; color: var(--yellow); line-height: 1.6; display: none;
 }
 .config-notice.visible { display: block; }
-.config-notice strong { display: block; margin-bottom: 4px; }
-@media (min-width: 521px) {
-  body { padding-top: 20px; }
+
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+  z-index: 100; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;
 }
+.modal-overlay.active { display: flex; opacity: 1; }
+.modal-content {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  width: 90%; max-width: 400px; padding: 24px; position: relative;
+  transform: translateY(20px); transition: transform 0.2s; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.modal-overlay.active .modal-content { transform: translateY(0); }
+.modal-close {
+  position: absolute; top: 16px; right: 16px; background: transparent; border: none;
+  color: var(--muted); font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
+}
+.modal-close:hover { color: var(--cyan); }
+
+@media (min-width: 521px) { body { padding-top: 20px; } }
 </style>
 </head>
 <body>
@@ -561,77 +439,12 @@ input::placeholder { color: var(--muted); }
   </div>
 </div>
 
-<div id="screen-waiting" class="screen">
-  <div class="top-nav">
-    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 退室してトップへ戻る</button>
-  </div>
-  <div class="room-code-block">
-    <div class="room-code-label">Room ID</div>
-    <div class="room-code-num" id="waiting-room-id">—</div>
-    <div class="share-row">
-      <button class="share-btn" onclick="copyLink()">🔗 リンクをコピー</button>
-      <button class="share-btn" onclick="shareNative()">📤 シェア</button>
-      <button class="share-btn" onclick="copyRoomId()">📋 ID コピー</button>
-    </div>
-  </div>
-
-  <div id="room-settings" style="display:block;">
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 style="margin-bottom:0;">ゲーム設定</h3>
-        <button class="btn-ghost btn-small" style="padding:4px 8px; font-size:0.7rem; border-radius:6px;" onclick="resetPoints()">🔄 ポイントリセット</button>
-      </div>
-      <div class="mode-tabs">
-        <button class="mode-tab active" id="tab-survival" onclick="updateMode('survival')">m◯n×</button>
-        <button class="mode-tab" id="tab-newyork" onclick="updateMode('newyork')">New York</button>
-      </div>
-
-      <div id="panel-survival" class="settings-panel active">
-        <div class="settings-desc">m問正解で勝ち抜け・n問誤答で失格。正解したプレイヤーは自分でボタンを押します。</div>
-        <div class="settings-grid">
-          <div class="field">
-            <label>m（勝ち抜け正解数）</label>
-            <input type="number" id="set-m" value="3" min="1" max="99" onchange="updateSettings()">
-          </div>
-          <div class="field">
-            <label>n（失格誤答数）</label>
-            <input type="number" id="set-n" value="2" min="1" max="99" onchange="updateSettings()">
-          </div>
-        </div>
-      </div>
-
-      <div id="panel-newyork" class="settings-panel">
-        <div class="settings-desc">1問正解で +x ポイント・1問誤答で −y ポイント。ホストが「ゲーム終了」を押した時点でランキングを表示します。</div>
-        <div class="settings-grid">
-          <div class="field">
-            <label>x（正解ポイント）</label>
-            <input type="number" id="set-x" value="10" min="1" max="999" onchange="updateSettings()">
-          </div>
-          <div class="field">
-            <label>y（誤答マイナス）</label>
-            <input type="number" id="set-y" value="5" min="0" max="999" onchange="updateSettings()">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>参加者 <span id="player-count" style="color:var(--cyan)">0</span> 人</h3>
-    <div id="waiting-player-list" class="player-list">
-      <div class="empty-state">参加者を待っています...</div>
-    </div>
-  </div>
-
-  <div id="start-area" style="display:block;">
-    <button class="btn btn-primary" onclick="startGame()">▶ ゲームスタート / 再開</button>
-  </div>
-</div>
-
-<div id="screen-game" class="screen">
+<div id="screen-room" class="screen">
   <div class="top-nav">
     <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 退室</button>
+    <button class="btn btn-ghost btn-small" onclick="openSettings()">⚙ 設定</button>
   </div>
+  
   <div class="game-topbar">
     <div class="game-room-id">ROOM <span id="game-room-id-display">—</span></div>
     <div id="mode-pill-display" class="mode-pill">—</div>
@@ -639,17 +452,14 @@ input::placeholder { color: var(--muted); }
 
   <div id="game-player-cards" class="player-cards"></div>
 
-  <div id="my-action-panel" class="my-action-panel" style="display:none;">
-    <div class="my-action-title">あなたの結果を記録</div>
-    <div class="action-row">
-      <button class="btn btn-green-solid" id="btn-correct" onclick="recordResult(true)">⭕ 正解</button>
-      <button class="btn btn-red-solid"   id="btn-wrong"   onclick="recordResult(false)">✖ 誤答</button>
+  <div id="my-action-panel" class="my-action-panel">
+    <div class="action-row" id="score-buttons" style="display:none;">
+      <button class="btn btn-green-solid" onclick="recordResult(true)">⭕ 正解</button>
+      <button class="btn btn-red-solid" onclick="recordResult(false)">✖ 誤答</button>
     </div>
-  </div>
-
-  <div id="game-controls" style="display:block; margin-top: 16px;">
-    <button class="btn btn-secondary" onclick="backToWaiting()">⚙ 設定画面(待機)に戻る</button>
-    <button class="btn btn-ghost" onclick="endGame()">⏹ ゲームを終了する</button>
+    <button class="btn btn-ghost" id="btn-toggle-role" onclick="toggleMyRole()" style="margin-bottom:0;">
+      🔄 観戦者（ホスト）になる
+    </button>
   </div>
 </div>
 
@@ -662,6 +472,56 @@ input::placeholder { color: var(--muted); }
   <div class="card">
     <h3>最終ランキング</h3>
     <div id="result-list" class="result-list"></div>
+  </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeSettings()">×</button>
+    <h2 style="margin-bottom: 20px;">ルーム設定</h2>
+    
+    <div class="share-row" style="margin-top:0; margin-bottom: 20px;">
+      <button class="share-btn" onclick="copyLink()">🔗 URLコピー</button>
+      <button class="share-btn" onclick="copyRoomId()">📋 IDコピー</button>
+    </div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-survival" onclick="updateMode('survival')">m◯n×</button>
+      <button class="mode-tab" id="tab-newyork" onclick="updateMode('newyork')">New York</button>
+    </div>
+
+    <div id="panel-survival" class="settings-panel active">
+      <div class="settings-desc">m問正解で勝ち抜け・n問誤答で失格。正解したプレイヤーは自分でボタンを押します。</div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>m（勝ち抜け）</label>
+          <input type="number" id="set-m" value="3" min="1" max="99" onchange="updateSettings()">
+        </div>
+        <div class="field">
+          <label>n（失格）</label>
+          <input type="number" id="set-n" value="2" min="1" max="99" onchange="updateSettings()">
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-newyork" class="settings-panel">
+      <div class="settings-desc">1問正解で +x ポイント・1問誤答で −y ポイント。ホストが「終了」を押した時点でランキングを表示します。</div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>x（正解pt）</label>
+          <input type="number" id="set-x" value="10" min="1" max="999" onchange="updateSettings()">
+        </div>
+        <div class="field">
+          <label>y（誤答マイナス）</label>
+          <input type="number" id="set-y" value="5" min="0" max="999" onchange="updateSettings()">
+        </div>
+      </div>
+    </div>
+
+    <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
+    
+    <button class="btn btn-ghost" onclick="resetPoints()" style="color:var(--yellow); border-color:rgba(255,211,42,0.3);">🔄 全員のポイントをリセット</button>
+    <button class="btn btn-secondary" onclick="endGame()" style="margin-bottom:0;">⏹ ゲームを終了して結果を見る</button>
   </div>
 </div>
 
@@ -697,6 +557,7 @@ let gameSettings  = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   await cleanupOldRooms();
+  checkUrlParams();
 });
 
 function getOrCreatePlayerId() {
@@ -740,13 +601,14 @@ function avatarLetter(name) {
   return (name || '?')[0].toUpperCase();
 }
 
-(function checkUrlParams() {
+function checkUrlParams() {
+  const pathRoom = window.location.pathname.replace(/\//g, '');
   const params = new URLSearchParams(window.location.search);
-  const rid = params.get('room');
-  if (rid) {
+  const rid = pathRoom || params.get('room');
+  if (rid && /^\d{5}$/.test(rid)) {
     document.getElementById('input-roomid').value = rid;
   }
-})();
+}
 
 function selectModeUI(mode) {
   currentMode = mode;
@@ -786,11 +648,16 @@ async function resetPoints() {
   }
   await db.ref(`rooms/${currentRoomId}/players`).update(updates);
   showToast('ポイントをリセットしました');
+  closeSettings();
 }
 
-async function toggleSpectator(pid, currentStatus) {
-  const newStatus = currentStatus === 'spectator' ? 'active' : 'spectator';
-  await db.ref(`rooms/${currentRoomId}/players/${pid}/status`).set(newStatus);
+async function toggleMyRole() {
+  if (!db || !currentRoomId || !myPlayerId) return;
+  const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}/status`);
+  const snap = await myRef.once('value');
+  const currentStatus = snap.val();
+  const nextStatus = currentStatus === 'spectator' ? 'active' : 'spectator';
+  await myRef.set(nextStatus);
 }
 
 function setupPresence() {
@@ -850,7 +717,7 @@ async function handleCreate() {
 
   const roomData = {
     hostId:    myPlayerId,
-    status:    'waiting',
+    status:    'playing',
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     settings:  { mode: 'survival', m: 3, n: 2, x: 10, y: 5 },
     players: {
@@ -869,7 +736,7 @@ async function handleCreate() {
   await db.ref('rooms/' + roomId).set(roomData);
   setupPresence();
   updateUrl(roomId);
-  enterWaitingRoom(roomId);
+  enterRoom(roomId);
 }
 
 async function handleJoin() {
@@ -915,22 +782,20 @@ async function handleJoin() {
   setupPresence();
   updateUrl(roomId);
 
-  if (room.status === 'playing') {
-    enterGameScreen(roomId);
-  } else if (room.status === 'finished') {
+  if (room.status === 'finished') {
     enterResultScreen(room);
   } else {
-    enterWaitingRoom(roomId);
+    enterRoom(roomId);
   }
 }
 
 function updateUrl(roomId) {
-  const url = window.location.origin + window.location.pathname + '?room=' + roomId;
+  const url = window.location.origin + '/' + roomId;
   window.history.replaceState({}, '', url);
 }
 
 function getRoomUrl() {
-  return window.location.origin + window.location.pathname + '?room=' + currentRoomId;
+  return window.location.origin + '/' + currentRoomId;
 }
 
 function copyLink() {
@@ -939,14 +804,6 @@ function copyLink() {
 
 function copyRoomId() {
   navigator.clipboard.writeText(currentRoomId).then(() => showToast('📋 Room ID をコピーしました'));
-}
-
-function shareNative() {
-  if (navigator.share) {
-    navigator.share({ title: 'Q-Room', text: 'クイズバトルに参加しよう！ Room: ' + currentRoomId, url: getRoomUrl() });
-  } else {
-    copyLink();
-  }
 }
 
 async function leaveRoom() {
@@ -958,17 +815,25 @@ async function leaveRoom() {
   }
 }
 
-function enterWaitingRoom(roomId) {
-  showScreen('waiting');
-  document.getElementById('waiting-room-id').textContent = roomId;
+function openSettings() {
+  document.getElementById('settings-modal').classList.add('active');
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('active');
+}
+
+function enterRoom(roomId) {
+  showScreen('room');
+  document.getElementById('game-room-id-display').textContent = roomId;
 
   if (roomListener) roomListener();
   roomListener = db.ref('rooms/' + roomId).on('value', snap => {
     const data = snap.val();
     if (!data) { showToast('ルームが削除されました'); backToTop(); return; }
-    if (data.status === 'playing') { enterGameScreen(roomId); return; }
     if (data.status === 'finished') { enterResultScreen(data); return; }
     
+    gameSettings = data.settings;
     if (data.settings) {
       if (document.activeElement !== document.getElementById('set-m')) document.getElementById('set-m').value = data.settings.m;
       if (document.activeElement !== document.getElementById('set-n')) document.getElementById('set-n').value = data.settings.n;
@@ -977,56 +842,6 @@ function enterWaitingRoom(roomId) {
       if (currentMode !== data.settings.mode) selectModeUI(data.settings.mode);
     }
     
-    renderWaitingPlayers(data);
-  });
-}
-
-function renderWaitingPlayers(data) {
-  const players = data.players || {};
-  const sorted  = Object.entries(players).sort((a, b) => a[1].joinedAt - b[1].joinedAt);
-  const listEl  = document.getElementById('waiting-player-list');
-  document.getElementById('player-count').textContent = sorted.length;
-
-  if (sorted.length === 0) {
-    listEl.innerHTML = '<div class="empty-state">参加者を待っています...</div>';
-    return;
-  }
-
-  listEl.innerHTML = sorted.map(([pid, p]) => {
-    const isMe   = pid === myPlayerId;
-    const isSpec = p.status === 'spectator';
-    const badges = [
-      isMe  ? '<span class="badge badge-me">You</span>' : '',
-      isSpec ? '<span class="badge badge-spec">観戦</span>' : ''
-    ].join(' ');
-    
-    const specBtn = `<button class="btn-ghost" style="padding:6px 10px; font-size:0.75rem; margin-bottom:0; border-radius:8px;" onclick="toggleSpectator('${pid}', '${p.status}')">${isSpec ? '👀 観戦中' : '🎮 参加中'}</button>`;
-
-    return `
-      <div class="player-item ${isMe ? 'me' : ''}">
-        <div class="player-avatar" style="${isSpec ? 'filter:grayscale(1); opacity:0.5;' : ''}">${avatarLetter(p.name)}</div>
-        <span class="player-item-name" style="${isSpec ? 'color:var(--muted);' : ''}">${escHtml(p.name)}</span>
-        ${badges}
-        ${specBtn}
-      </div>`;
-  }).join('');
-}
-
-async function startGame() {
-  await db.ref('rooms/' + currentRoomId + '/status').set('playing');
-}
-
-function enterGameScreen(roomId) {
-  showScreen('game');
-  document.getElementById('game-room-id-display').textContent = roomId;
-
-  if (roomListener) roomListener();
-  roomListener = db.ref('rooms/' + roomId).on('value', snap => {
-    const data = snap.val();
-    if (!data) { backToTop(); return; }
-    if (data.status === 'waiting') { enterWaitingRoom(roomId); return; }
-    if (data.status === 'finished') { enterResultScreen(data); return; }
-    gameSettings = data.settings;
     renderGameScreen(data);
   });
 }
@@ -1079,10 +894,12 @@ function renderGameScreen(data) {
       </div>`;
   }).join('');
 
-  const myPlayer   = players[myPlayerId];
-  const myActive   = myPlayer && myPlayer.status === 'active';
-  const actionEl   = document.getElementById('my-action-panel');
-  actionEl.style.display = myActive ? 'block' : 'none';
+  const myPlayer = players[myPlayerId];
+  if (myPlayer) {
+    const isSpec = myPlayer.status === 'spectator';
+    document.getElementById('score-buttons').style.display = isSpec ? 'none' : 'flex';
+    document.getElementById('btn-toggle-role').innerHTML = isSpec ? '🎮 プレイヤー（回答者）になる' : '👀 観戦者（ホスト）になる';
+  }
 }
 
 function sortPlayers(players, settings) {
@@ -1120,15 +937,10 @@ async function recordResult(isCorrect) {
   await playerRef.update({ correct: newCorrect, wrong: newWrong, status: newStatus });
 }
 
-async function backToWaiting() {
-  if(confirm("ゲームを中断して設定画面に戻りますか？")) {
-    await db.ref('rooms/' + currentRoomId + '/status').set('waiting');
-  }
-}
-
 async function endGame() {
   if(confirm("ゲームを終了して結果を表示しますか？")) {
     await db.ref('rooms/' + currentRoomId + '/status').set('finished');
+    closeSettings();
   }
 }
 
@@ -1197,7 +1009,7 @@ function backToTop() {
   }
   currentRoomId = null;
   gameSettings = null;
-  window.history.replaceState({}, '', window.location.pathname);
+  window.history.replaceState({}, '', '/');
   showScreen('top');
 }
 
