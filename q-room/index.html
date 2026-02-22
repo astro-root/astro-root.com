@@ -108,6 +108,17 @@ h3 {
   background: linear-gradient(90deg, transparent, var(--cyan), transparent);
   opacity: 0.5;
 }
+.top-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+.btn-small {
+  padding: 8px 12px !important;
+  font-size: 0.75rem !important;
+  width: auto !important;
+  margin-bottom: 0 !important;
+}
 .field { margin-bottom: 16px; }
 label {
   display: block;
@@ -191,7 +202,7 @@ input::placeholder { color: var(--muted); }
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--muted);
+  color: var(--text);
 }
 .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
 .btn-green-solid {
@@ -293,6 +304,7 @@ input::placeholder { color: var(--muted); }
 }
 .badge-host { background: rgba(255,45,111,0.2); color: var(--pink); border: 1px solid rgba(255,45,111,0.3); }
 .badge-me   { background: rgba(0,229,255,0.15); color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+.badge-spec { background: rgba(100,100,100,0.2); color: #ccc; border: 1px solid rgba(100,100,100,0.3); }
 .mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .mode-tab {
   flex: 1;
@@ -369,6 +381,9 @@ input::placeholder { color: var(--muted); }
   opacity: 0.45;
   filter: grayscale(0.7);
 }
+.pcard.pcard-spectator {
+  opacity: 0.6;
+}
 .pcard-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .pcard-name { flex: 1; font-weight: 700; font-size: 1rem; }
 .pcard-status {
@@ -382,6 +397,7 @@ input::placeholder { color: var(--muted); }
 .s-active     { background: rgba(90,90,122,0.3); color: var(--muted); }
 .s-winner     { background: rgba(0,224,150,0.2); color: var(--green); border: 1px solid rgba(0,224,150,0.3); }
 .s-eliminated { background: rgba(255,71,87,0.15); color: var(--red); }
+.s-spectator  { background: rgba(100,100,100,0.2); color: #ccc; }
 .pcard-stats { display: flex; gap: 16px; align-items: center; }
 .stat-box { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; }
 .stat-icon { font-size: 0.9rem; }
@@ -546,6 +562,9 @@ input::placeholder { color: var(--muted); }
 </div>
 
 <div id="screen-waiting" class="screen">
+  <div class="top-nav">
+    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 退室してトップへ戻る</button>
+  </div>
   <div class="room-code-block">
     <div class="room-code-label">Room ID</div>
     <div class="room-code-num" id="waiting-room-id">—</div>
@@ -556,12 +575,15 @@ input::placeholder { color: var(--muted); }
     </div>
   </div>
 
-  <div id="host-settings" style="display:none;">
+  <div id="room-settings" style="display:block;">
     <div class="card">
-      <h3>ゲームモード</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin-bottom:0;">ゲーム設定</h3>
+        <button class="btn-ghost btn-small" style="padding:4px 8px; font-size:0.7rem; border-radius:6px;" onclick="resetPoints()">🔄 ポイントリセット</button>
+      </div>
       <div class="mode-tabs">
-        <button class="mode-tab active" onclick="selectMode('survival', this)">m◯n×</button>
-        <button class="mode-tab" onclick="selectMode('newyork', this)">New York</button>
+        <button class="mode-tab active" id="tab-survival" onclick="updateMode('survival')">m◯n×</button>
+        <button class="mode-tab" id="tab-newyork" onclick="updateMode('newyork')">New York</button>
       </div>
 
       <div id="panel-survival" class="settings-panel active">
@@ -569,11 +591,11 @@ input::placeholder { color: var(--muted); }
         <div class="settings-grid">
           <div class="field">
             <label>m（勝ち抜け正解数）</label>
-            <input type="number" id="set-m" value="3" min="1" max="99">
+            <input type="number" id="set-m" value="3" min="1" max="99" onchange="updateSettings()">
           </div>
           <div class="field">
             <label>n（失格誤答数）</label>
-            <input type="number" id="set-n" value="2" min="1" max="99">
+            <input type="number" id="set-n" value="2" min="1" max="99" onchange="updateSettings()">
           </div>
         </div>
       </div>
@@ -583,11 +605,11 @@ input::placeholder { color: var(--muted); }
         <div class="settings-grid">
           <div class="field">
             <label>x（正解ポイント）</label>
-            <input type="number" id="set-x" value="10" min="1" max="999">
+            <input type="number" id="set-x" value="10" min="1" max="999" onchange="updateSettings()">
           </div>
           <div class="field">
             <label>y（誤答マイナス）</label>
-            <input type="number" id="set-y" value="5" min="0" max="999">
+            <input type="number" id="set-y" value="5" min="0" max="999" onchange="updateSettings()">
           </div>
         </div>
       </div>
@@ -601,15 +623,15 @@ input::placeholder { color: var(--muted); }
     </div>
   </div>
 
-  <div id="host-start-area" style="display:none;">
+  <div id="start-area" style="display:block;">
     <button class="btn btn-primary" onclick="startGame()">▶ ゲームスタート / 再開</button>
-  </div>
-  <div id="player-waiting-msg" class="empty-state" style="display:none;">
-    ホストがゲームを開始・再開するのを待っています...
   </div>
 </div>
 
 <div id="screen-game" class="screen">
+  <div class="top-nav">
+    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 退室</button>
+  </div>
   <div class="game-topbar">
     <div class="game-room-id">ROOM <span id="game-room-id-display">—</span></div>
     <div id="mode-pill-display" class="mode-pill">—</div>
@@ -625,20 +647,22 @@ input::placeholder { color: var(--muted); }
     </div>
   </div>
 
-  <div id="host-game-controls" style="display:none; margin-top: 16px;">
+  <div id="game-controls" style="display:block; margin-top: 16px;">
     <button class="btn btn-secondary" onclick="backToWaiting()">⚙ 設定画面(待機)に戻る</button>
     <button class="btn btn-ghost" onclick="endGame()">⏹ ゲームを終了する</button>
   </div>
 </div>
 
 <div id="screen-result" class="screen">
+  <div class="top-nav">
+    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 トップへ戻る</button>
+  </div>
   <div class="logo" style="font-size:2rem; margin-bottom: 20px;">RESULT</div>
   <div id="podium-area" class="podium-wrap card"></div>
   <div class="card">
     <h3>最終ランキング</h3>
     <div id="result-list" class="result-list"></div>
   </div>
-  <button class="btn btn-primary" onclick="backToTop()">🏠 トップへ戻る</button>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -668,9 +692,12 @@ try {
 let myPlayerId    = null;
 let currentRoomId = null;
 let roomListener  = null;
-let isHost        = false;
 let currentMode   = 'survival';
 let gameSettings  = null;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await cleanupOldRooms();
+});
 
 function getOrCreatePlayerId() {
   let id = localStorage.getItem('qroom_pid');
@@ -721,16 +748,87 @@ function avatarLetter(name) {
   }
 })();
 
-function selectMode(mode, btn) {
+function selectModeUI(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
+  document.getElementById('tab-' + mode).classList.add('active');
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + mode).classList.add('active');
 }
 
+async function updateMode(mode) {
+  selectModeUI(mode);
+  if (db && currentRoomId) {
+    await db.ref(`rooms/${currentRoomId}/settings/mode`).set(mode);
+  }
+}
+
+async function updateSettings() {
+  if (!db || !currentRoomId) return;
+  const m = parseInt(document.getElementById('set-m').value) || 3;
+  const n = parseInt(document.getElementById('set-n').value) || 2;
+  const x = parseInt(document.getElementById('set-x').value) || 10;
+  const y = parseInt(document.getElementById('set-y').value) || 5;
+  await db.ref(`rooms/${currentRoomId}/settings`).update({ m, n, x, y });
+}
+
+async function resetPoints() {
+  if (!confirm("全員のスコアを0にリセットしますか？")) return;
+  const playersSnap = await db.ref(`rooms/${currentRoomId}/players`).once('value');
+  const players = playersSnap.val() || {};
+  const updates = {};
+  for(const pid in players) {
+    updates[`${pid}/correct`] = 0;
+    updates[`${pid}/wrong`] = 0;
+    if(players[pid].status !== 'spectator') {
+      updates[`${pid}/status`] = 'active';
+    }
+  }
+  await db.ref(`rooms/${currentRoomId}/players`).update(updates);
+  showToast('ポイントをリセットしました');
+}
+
+async function toggleSpectator(pid, currentStatus) {
+  const newStatus = currentStatus === 'spectator' ? 'active' : 'spectator';
+  await db.ref(`rooms/${currentRoomId}/players/${pid}/status`).set(newStatus);
+}
+
+function setupPresence() {
+  if (!db || !currentRoomId || !myPlayerId) return;
+  const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
+  myRef.child('online').set(true);
+  myRef.child('lastActive').set(firebase.database.ServerValue.TIMESTAMP);
+  myRef.child('online').onDisconnect().set(false);
+  myRef.child('lastActive').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+}
+
+async function cleanupOldRooms() {
+  if(!db) return;
+  try {
+    const snap = await db.ref('rooms').once('value');
+    const rooms = snap.val() || {};
+    const now = Date.now();
+    for (const [rid, room] of Object.entries(rooms)) {
+      const players = room.players || {};
+      const hasOnline = Object.values(players).some(p => p.online);
+      if (!hasOnline) {
+        let lastActive = room.createdAt || 0;
+        for (const p of Object.values(players)) {
+          if (p.lastActive > lastActive) lastActive = p.lastActive;
+        }
+        if (now - lastActive > 5 * 60 * 1000) {
+          await db.ref('rooms/' + rid).remove();
+        }
+      }
+    }
+  } catch(e) {
+    console.warn("Cleanup error", e);
+  }
+}
+
 async function handleCreate() {
   if (!db) { showToast('Firebase 未設定です'); return; }
+  await cleanupOldRooms();
   const name = document.getElementById('input-name').value.trim();
   const ridInput = document.getElementById('input-roomid').value.trim();
 
@@ -748,13 +846,12 @@ async function handleCreate() {
   }
 
   myPlayerId = getOrCreatePlayerId();
-  isHost = true;
   currentRoomId = roomId;
 
   const roomData = {
     hostId:    myPlayerId,
     status:    'waiting',
-    createdAt: Date.now(),
+    createdAt: firebase.database.ServerValue.TIMESTAMP,
     settings:  { mode: 'survival', m: 3, n: 2, x: 10, y: 5 },
     players: {
       [myPlayerId]: {
@@ -762,19 +859,22 @@ async function handleCreate() {
         correct:   0,
         wrong:     0,
         status:    'active',
-        isHost:    true,
-        joinedAt:  Date.now()
+        joinedAt:  firebase.database.ServerValue.TIMESTAMP,
+        online:    true,
+        lastActive: firebase.database.ServerValue.TIMESTAMP
       }
     }
   };
 
   await db.ref('rooms/' + roomId).set(roomData);
+  setupPresence();
   updateUrl(roomId);
-  enterWaitingRoom(roomId, true);
+  enterWaitingRoom(roomId);
 }
 
 async function handleJoin() {
   if (!db) { showToast('Firebase 未設定です'); return; }
+  await cleanupOldRooms();
   const name   = document.getElementById('input-name').value.trim();
   const roomId = document.getElementById('input-roomid').value.trim();
 
@@ -791,11 +891,6 @@ async function handleJoin() {
   }
 
   const room = snap.val();
-  if (room.status === 'finished') {
-    showError('top-error', 'そのルームはすでに終了しています');
-    return;
-  }
-
   myPlayerId = getOrCreatePlayerId();
 
   const existingPlayer = room.players && room.players[myPlayerId];
@@ -805,13 +900,19 @@ async function handleJoin() {
       correct:  0,
       wrong:    0,
       status:   'active',
-      isHost:   false,
-      joinedAt: Date.now()
+      joinedAt: firebase.database.ServerValue.TIMESTAMP,
+      online:   true,
+      lastActive: firebase.database.ServerValue.TIMESTAMP
+    });
+  } else {
+    await db.ref(`rooms/${roomId}/players/${myPlayerId}`).update({
+      online: true,
+      lastActive: firebase.database.ServerValue.TIMESTAMP
     });
   }
 
-  isHost = false;
   currentRoomId = roomId;
+  setupPresence();
   updateUrl(roomId);
 
   if (room.status === 'playing') {
@@ -819,7 +920,7 @@ async function handleJoin() {
   } else if (room.status === 'finished') {
     enterResultScreen(room);
   } else {
-    enterWaitingRoom(roomId, false);
+    enterWaitingRoom(roomId);
   }
 }
 
@@ -848,12 +949,18 @@ function shareNative() {
   }
 }
 
-function enterWaitingRoom(roomId, asHost) {
+async function leaveRoom() {
+  if(confirm("ルームから退室してトップ画面に戻りますか？")) {
+    if (db && currentRoomId && myPlayerId) {
+      await db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`).remove();
+    }
+    backToTop();
+  }
+}
+
+function enterWaitingRoom(roomId) {
   showScreen('waiting');
   document.getElementById('waiting-room-id').textContent = roomId;
-  document.getElementById('host-settings').style.display    = asHost ? 'block' : 'none';
-  document.getElementById('host-start-area').style.display  = asHost ? 'block' : 'none';
-  document.getElementById('player-waiting-msg').style.display = asHost ? 'none' : 'block';
 
   if (roomListener) roomListener();
   roomListener = db.ref('rooms/' + roomId).on('value', snap => {
@@ -861,6 +968,15 @@ function enterWaitingRoom(roomId, asHost) {
     if (!data) { showToast('ルームが削除されました'); backToTop(); return; }
     if (data.status === 'playing') { enterGameScreen(roomId); return; }
     if (data.status === 'finished') { enterResultScreen(data); return; }
+    
+    if (data.settings) {
+      if (document.activeElement !== document.getElementById('set-m')) document.getElementById('set-m').value = data.settings.m;
+      if (document.activeElement !== document.getElementById('set-n')) document.getElementById('set-n').value = data.settings.n;
+      if (document.activeElement !== document.getElementById('set-x')) document.getElementById('set-x').value = data.settings.x;
+      if (document.activeElement !== document.getElementById('set-y')) document.getElementById('set-y').value = data.settings.y;
+      if (currentMode !== data.settings.mode) selectModeUI(data.settings.mode);
+    }
+    
     renderWaitingPlayers(data);
   });
 }
@@ -878,32 +994,25 @@ function renderWaitingPlayers(data) {
 
   listEl.innerHTML = sorted.map(([pid, p]) => {
     const isMe   = pid === myPlayerId;
-    const isHst  = p.isHost;
+    const isSpec = p.status === 'spectator';
     const badges = [
-      isHst ? '<span class="badge badge-host">Host</span>' : '',
-      isMe  ? '<span class="badge badge-me">You</span>'   : ''
+      isMe  ? '<span class="badge badge-me">You</span>' : '',
+      isSpec ? '<span class="badge badge-spec">観戦</span>' : ''
     ].join(' ');
+    
+    const specBtn = `<button class="btn-ghost" style="padding:6px 10px; font-size:0.75rem; margin-bottom:0; border-radius:8px;" onclick="toggleSpectator('${pid}', '${p.status}')">${isSpec ? '👀 観戦中' : '🎮 参加中'}</button>`;
+
     return `
       <div class="player-item ${isMe ? 'me' : ''}">
-        <div class="player-avatar">${avatarLetter(p.name)}</div>
-        <span class="player-item-name">${escHtml(p.name)}</span>
+        <div class="player-avatar" style="${isSpec ? 'filter:grayscale(1); opacity:0.5;' : ''}">${avatarLetter(p.name)}</div>
+        <span class="player-item-name" style="${isSpec ? 'color:var(--muted);' : ''}">${escHtml(p.name)}</span>
         ${badges}
+        ${specBtn}
       </div>`;
   }).join('');
 }
 
 async function startGame() {
-  if (!isHost) return;
-
-  const m = parseInt(document.getElementById('set-m').value) || 3;
-  const n = parseInt(document.getElementById('set-n').value) || 2;
-  const x = parseInt(document.getElementById('set-x').value) || 10;
-  const y = parseInt(document.getElementById('set-y').value) || 5;
-
-  const settings = { mode: currentMode, m, n, x, y };
-  gameSettings = settings;
-
-  await db.ref('rooms/' + currentRoomId + '/settings').set(settings);
   await db.ref('rooms/' + currentRoomId + '/status').set('playing');
 }
 
@@ -915,7 +1024,7 @@ function enterGameScreen(roomId) {
   roomListener = db.ref('rooms/' + roomId).on('value', snap => {
     const data = snap.val();
     if (!data) { backToTop(); return; }
-    if (data.status === 'waiting') { enterWaitingRoom(roomId, isHost); return; }
+    if (data.status === 'waiting') { enterWaitingRoom(roomId); return; }
     if (data.status === 'finished') { enterResultScreen(data); return; }
     gameSettings = data.settings;
     renderGameScreen(data);
@@ -935,32 +1044,35 @@ function renderGameScreen(data) {
   const cardsEl = document.getElementById('game-player-cards');
   cardsEl.innerHTML = sorted.map(([pid, p]) => {
     const isMe     = pid === myPlayerId;
-    const statusCls = p.status === 'winner' ? 'pcard-winner' : p.status === 'eliminated' ? 'pcard-eliminated' : '';
-    const statusLabel = p.status === 'winner' ? 'WINNER 🏆' : p.status === 'eliminated' ? 'ELIMINATED' : 'ACTIVE';
-    const statusPillCls = p.status === 'winner' ? 's-winner' : p.status === 'eliminated' ? 's-eliminated' : 's-active';
+    const isSpec   = p.status === 'spectator';
+    const statusCls = p.status === 'winner' ? 'pcard-winner' : p.status === 'eliminated' ? 'pcard-eliminated' : isSpec ? 'pcard-spectator' : '';
+    const statusLabel = p.status === 'winner' ? 'WINNER 🏆' : p.status === 'eliminated' ? 'ELIMINATED' : isSpec ? 'SPECTATOR' : 'ACTIVE';
+    const statusPillCls = p.status === 'winner' ? 's-winner' : p.status === 'eliminated' ? 's-eliminated' : isSpec ? 's-spectator' : 's-active';
 
     let scoreHtml = '';
-    if (settings.mode === 'survival') {
-      scoreHtml = `
-        <div class="pcard-stats">
-          <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
-          <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
-        </div>`;
-    } else {
-      const score = (p.correct * settings.x) - (p.wrong * settings.y);
-      scoreHtml = `
-        <div class="pcard-stats">
-          <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
-          <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
-          <div class="score-large">${score >= 0 ? '+' : ''}${score}</div>
-        </div>`;
+    if (!isSpec) {
+      if (settings.mode === 'survival') {
+        scoreHtml = `
+          <div class="pcard-stats">
+            <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
+            <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
+          </div>`;
+      } else {
+        const score = (p.correct * settings.x) - (p.wrong * settings.y);
+        scoreHtml = `
+          <div class="pcard-stats">
+            <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
+            <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
+            <div class="score-large">${score >= 0 ? '+' : ''}${score}</div>
+          </div>`;
+      }
     }
 
     return `
       <div class="pcard ${isMe ? 'pcard-me' : ''} ${statusCls}">
         <div class="pcard-top">
-          <div class="player-avatar" style="width:30px;height:30px;font-size:0.8rem;">${avatarLetter(p.name)}</div>
-          <span class="pcard-name">${escHtml(p.name)}${p.isHost ? ' 👑' : ''}</span>
+          <div class="player-avatar" style="width:30px;height:30px;font-size:0.8rem;${isSpec ? 'filter:grayscale(1); opacity:0.5;' : ''}">${avatarLetter(p.name)}</div>
+          <span class="pcard-name">${escHtml(p.name)}</span>
           <span class="pcard-status ${statusPillCls}">${statusLabel}</span>
         </div>
         ${scoreHtml}
@@ -971,15 +1083,12 @@ function renderGameScreen(data) {
   const myActive   = myPlayer && myPlayer.status === 'active';
   const actionEl   = document.getElementById('my-action-panel');
   actionEl.style.display = myActive ? 'block' : 'none';
-
-  const hostControlsEl = document.getElementById('host-game-controls');
-  hostControlsEl.style.display = isHost ? 'block' : 'none';
 }
 
 function sortPlayers(players, settings) {
   return Object.entries(players).sort((a, b) => {
     const [, pa] = a, [, pb] = b;
-    const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : 2;
+    const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : s === 'eliminated' ? 2 : 3;
     if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
     if (settings.mode === 'newyork') {
       const sa = (pa.correct * settings.x) - (pa.wrong * settings.y);
@@ -1009,23 +1118,18 @@ async function recordResult(isCorrect) {
   }
 
   await playerRef.update({ correct: newCorrect, wrong: newWrong, status: newStatus });
-
-  if (isHost && settings.mode === 'survival') {
-    const allSnap = await db.ref('rooms/' + currentRoomId + '/players').once('value');
-    const allPlayers = allSnap.val() || {};
-    const allDone = Object.values(allPlayers).every(pl => pl.status !== 'active');
-    if (allDone) { await db.ref('rooms/' + currentRoomId + '/status').set('finished'); }
-  }
 }
 
 async function backToWaiting() {
-  if (!isHost) return;
-  await db.ref('rooms/' + currentRoomId + '/status').set('waiting');
+  if(confirm("ゲームを中断して設定画面に戻りますか？")) {
+    await db.ref('rooms/' + currentRoomId + '/status').set('waiting');
+  }
 }
 
 async function endGame() {
-  if (!isHost) return;
-  await db.ref('rooms/' + currentRoomId + '/status').set('finished');
+  if(confirm("ゲームを終了して結果を表示しますか？")) {
+    await db.ref('rooms/' + currentRoomId + '/status').set('finished');
+  }
 }
 
 function enterResultScreen(data) {
@@ -1033,7 +1137,7 @@ function enterResultScreen(data) {
   showScreen('result');
   const settings = data.settings || {};
   const players  = data.players  || {};
-  const sorted   = buildResultRanking(players, settings);
+  const sorted   = buildResultRanking(players, settings).filter(([, p]) => p.status !== 'spectator');
 
   const winner = sorted[0];
   const podiumEl = document.getElementById('podium-area');
@@ -1042,6 +1146,8 @@ function enterResultScreen(data) {
       <div class="podium-emoji">🏆</div>
       <div class="podium-name">${escHtml(winner[1].name)}</div>
       <div class="podium-sub">${settings.mode === 'survival' ? '勝ち抜け達成！' : 'トップスコア！'}</div>`;
+  } else {
+    podiumEl.innerHTML = '';
   }
 
   const listEl = document.getElementById('result-list');
@@ -1058,7 +1164,7 @@ function enterResultScreen(data) {
     return `
       <div class="result-item">
         <div class="result-rank ${rankCls}">${rank}</div>
-        <div class="result-name">${escHtml(p.name)}${p.isHost ? ' 👑' : ''}${pid === myPlayerId ? ' <span style="color:var(--cyan);font-size:0.75rem;">(You)</span>' : ''}</div>
+        <div class="result-name">${escHtml(p.name)}${pid === myPlayerId ? ' <span style="color:var(--cyan);font-size:0.75rem;">(You)</span>' : ''}</div>
         <div class="result-stats">${p.correct}○ ${p.wrong}×</div>
         ${scoreStr}
       </div>`;
@@ -1073,7 +1179,7 @@ function buildResultRanking(players, settings) {
       const sb = (pb.correct * settings.x) - (pb.wrong * settings.y);
       return sb - sa;
     }
-    const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : 2;
+    const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : s === 'eliminated' ? 2 : 3;
     if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
     return pb.correct - pa.correct;
   });
@@ -1084,8 +1190,12 @@ function backToTop() {
     db.ref('rooms/' + currentRoomId).off('value', roomListener);
     roomListener = null;
   }
+  if (db && currentRoomId && myPlayerId) {
+    const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
+    myRef.child('online').onDisconnect().cancel();
+    myRef.child('lastActive').onDisconnect().cancel();
+  }
   currentRoomId = null;
-  isHost = false;
   gameSettings = null;
   window.history.replaceState({}, '', window.location.pathname);
   showScreen('top');
