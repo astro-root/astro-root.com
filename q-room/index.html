@@ -457,6 +457,9 @@ input::placeholder { color: var(--muted); }
       <button class="btn btn-green-solid" onclick="recordResult(true)">⭕ 正解</button>
       <button class="btn btn-red-solid" onclick="recordResult(false)">✖ 誤答</button>
     </div>
+    <div id="undo-row" style="display:none; margin-bottom: 12px;">
+      <button class="btn btn-ghost" id="btn-undo" onclick="undoResult()" style="color:var(--yellow); border-color:rgba(255,211,42,0.3); margin-bottom:0;">↩ 直前の入力を取り消す</button>
+    </div>
     <button class="btn btn-ghost" id="btn-toggle-role" onclick="toggleMyRole()" style="margin-bottom:0;">
       🔄 観戦者（ホスト）になる
     </button>
@@ -488,6 +491,7 @@ input::placeholder { color: var(--muted); }
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-survival" onclick="updateMode('survival')">m◯n×</button>
       <button class="mode-tab" id="tab-newyork" onclick="updateMode('newyork')">New York</button>
+      <button class="mode-tab" id="tab-freecount" onclick="updateMode('freecount')">フリバ</button>
     </div>
 
     <div id="panel-survival" class="settings-panel active">
@@ -516,6 +520,10 @@ input::placeholder { color: var(--muted); }
           <input type="number" id="set-y" value="5" min="0" max="999" onchange="updateSettings()">
         </div>
       </div>
+    </div>
+
+    <div id="panel-freecount" class="settings-panel">
+      <div class="settings-desc">勝ち抜け・失格なし。正解数と誤答数をカウントするだけ。フリー練習や振り返りに。ホストが「終了」を押したタイミングで正解数順にランキングを表示します。</div>
     </div>
 
     <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
@@ -554,6 +562,7 @@ let currentRoomId = null;
 let roomListener  = null;
 let currentMode   = 'survival';
 let gameSettings  = null;
+let lastAction    = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   await cleanupOldRooms();
@@ -613,9 +622,11 @@ function checkUrlParams() {
 function selectModeUI(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + mode).classList.add('active');
+  const tabEl = document.getElementById('tab-' + mode);
+  if (tabEl) tabEl.classList.add('active');
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + mode).classList.add('active');
+  const panelEl = document.getElementById('panel-' + mode);
+  if (panelEl) panelEl.classList.add('active');
 }
 
 async function updateMode(mode) {
@@ -853,8 +864,9 @@ function renderGameScreen(data) {
 
   const modeLabel = settings.mode === 'survival'
     ? `m◯n×  (${settings.m}○ / ${settings.n}×)`
-    : `NewYork  (+${settings.x} / -${settings.y})`;
-  document.getElementById('mode-pill-display').textContent = modeLabel;
+    : settings.mode === 'newyork'
+    ? `NewYork  (+${settings.x} / -${settings.y})`
+    : 'フリバ';  document.getElementById('mode-pill-display').textContent = modeLabel;
 
   const cardsEl = document.getElementById('game-player-cards');
   cardsEl.innerHTML = sorted.map(([pid, p]) => {
@@ -872,13 +884,19 @@ function renderGameScreen(data) {
             <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
             <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
           </div>`;
-      } else {
+      } else if (settings.mode === 'newyork') {
         const score = (p.correct * settings.x) - (p.wrong * settings.y);
         scoreHtml = `
           <div class="pcard-stats">
             <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
             <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
             <div class="score-large">${score >= 0 ? '+' : ''}${score}</div>
+          </div>`;
+      } else {
+        scoreHtml = `
+          <div class="pcard-stats">
+            <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
+            <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
           </div>`;
       }
     }
@@ -898,6 +916,7 @@ function renderGameScreen(data) {
   if (myPlayer) {
     const isSpec = myPlayer.status === 'spectator';
     document.getElementById('score-buttons').style.display = isSpec ? 'none' : 'flex';
+    document.getElementById('undo-row').style.display = (!isSpec && lastAction !== null) ? 'block' : 'none';
     document.getElementById('btn-toggle-role').innerHTML = isSpec ? '🎮 プレイヤー（回答者）になる' : '👀 観戦者（ホスト）になる';
   }
 }
@@ -906,6 +925,10 @@ function sortPlayers(players, settings) {
   return Object.entries(players).sort((a, b) => {
     const [, pa] = a, [, pb] = b;
     const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : s === 'eliminated' ? 2 : 3;
+    if (settings.mode === 'freecount') {
+      if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
+      return pb.correct - pa.correct;
+    }
     if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
     if (settings.mode === 'newyork') {
       const sa = (pa.correct * settings.x) - (pa.wrong * settings.y);
@@ -922,7 +945,7 @@ async function recordResult(isCorrect) {
   const playerRef = db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId);
   const snap = await playerRef.once('value');
   const p = snap.val();
-  if (!p || p.status !== 'active') return;
+  if (!p || p.status === 'spectator') return;
 
   const settings = gameSettings || {};
   const newCorrect = p.correct + (isCorrect ? 1 : 0);
@@ -935,9 +958,34 @@ async function recordResult(isCorrect) {
   }
 
   await playerRef.update({ correct: newCorrect, wrong: newWrong, status: newStatus });
+
+  lastAction = { wasCorrect: isCorrect, prevStatus: p.status };
+  document.getElementById('undo-row').style.display = 'block';
 }
 
-async function endGame() {
+async function undoResult() {
+  if (!db || !currentRoomId || !myPlayerId || lastAction === null) return;
+
+  const playerRef = db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId);
+  const snap = await playerRef.once('value');
+  const p = snap.val();
+  if (!p) return;
+
+  const newCorrect = Math.max(0, p.correct - (lastAction.wasCorrect ? 1 : 0));
+  const newWrong   = Math.max(0, p.wrong   - (lastAction.wasCorrect ? 0 : 1));
+
+  await playerRef.update({
+    correct: newCorrect,
+    wrong:   newWrong,
+    status:  lastAction.prevStatus
+  });
+
+  lastAction = null;
+  document.getElementById('undo-row').style.display = 'none';
+  showToast('↩ 直前の入力を取り消しました');
+}
+
+
   if(confirm("ゲームを終了して結果を表示しますか？")) {
     await db.ref('rooms/' + currentRoomId + '/status').set('finished');
     closeSettings();
@@ -957,7 +1005,7 @@ function enterResultScreen(data) {
     podiumEl.innerHTML = `
       <div class="podium-emoji">🏆</div>
       <div class="podium-name">${escHtml(winner[1].name)}</div>
-      <div class="podium-sub">${settings.mode === 'survival' ? '勝ち抜け達成！' : 'トップスコア！'}</div>`;
+      <div class="podium-sub">${settings.mode === 'survival' ? '勝ち抜け達成！' : settings.mode === 'newyork' ? 'トップスコア！' : '最多正解！'}</div>`;
   } else {
     podiumEl.innerHTML = '';
   }
@@ -970,6 +1018,8 @@ function enterResultScreen(data) {
     if (settings.mode === 'newyork') {
       const sc = (p.correct * settings.x) - (p.wrong * settings.y);
       scoreStr = `<span class="result-score">${sc >= 0 ? '+' : ''}${sc}pt</span>`;
+    } else if (settings.mode === 'freecount') {
+      scoreStr = `<span class="result-score">${p.correct}○</span>`;
     } else {
       scoreStr = `<span class="result-score">${p.status === 'winner' ? '✅ WIN' : p.status === 'eliminated' ? '❌ OUT' : '—'}</span>`;
     }
@@ -991,6 +1041,10 @@ function buildResultRanking(players, settings) {
       const sb = (pb.correct * settings.x) - (pb.wrong * settings.y);
       return sb - sa;
     }
+    if (settings.mode === 'freecount') {
+      if (pb.correct !== pa.correct) return pb.correct - pa.correct;
+      return pa.wrong - pb.wrong;
+    }
     const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : s === 'eliminated' ? 2 : 3;
     if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
     return pb.correct - pa.correct;
@@ -1009,6 +1063,7 @@ function backToTop() {
   }
   currentRoomId = null;
   gameSettings = null;
+  lastAction = null;
   window.history.replaceState({}, '', '/');
   showScreen('top');
 }
