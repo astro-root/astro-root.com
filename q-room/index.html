@@ -9,25 +9,20 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg:       #05050f;
-  --surface:  #0b0b1e;
-  --card:     #10102a;
-  --card2:    #13132f;
-  --border:   rgba(255,255,255,0.07);
-  --border2:  rgba(255,255,255,0.12);
+  --bg:       #070710;
+  --surface:  #0e0e1f;
+  --card:     #14142a;
+  --border:   rgba(255,255,255,0.08);
   --cyan:     #00e5ff;
-  --cyan2:    #0099cc;
   --pink:     #ff2d6f;
   --green:    #00e096;
   --red:      #ff4757;
   --yellow:   #ffd32a;
-  --text:     #e8e8f8;
-  --text2:    #a0a0c0;
-  --muted:    #4a4a6a;
+  --text:     #e0e0f0;
+  --muted:    #5a5a7a;
   --font-display: 'Orbitron', monospace;
   --font-body:    'Exo 2', sans-serif;
 }
-
 body {
   background: var(--bg);
   color: var(--text);
@@ -40,77 +35,85 @@ body {
   padding: 0;
   overflow-x: hidden;
 }
-
-/* Animated background grid */
 body::before {
   content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none; z-index: 0;
-}
-body::after {
-  content: '';
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(0,229,255,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 60% at 85% 100%, rgba(255,45,111,0.07) 0%, transparent 55%);
-  pointer-events: none; z-index: 0;
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(0,229,255,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 100%, rgba(255,45,111,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
 }
-
 .screen {
   display: none;
   width: 100%;
   max-width: 520px;
-  padding: 28px 18px 80px;
+  padding: 28px 20px 60px;
   position: relative;
   z-index: 1;
-  animation: fadeUp 0.3s ease;
 }
 .screen.active { display: block; }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ゲーム画面だけ全画面固定レイアウト */
+#screen-room {
+  position: fixed;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 520px;
+  width: 100%;
+  padding: 16px 18px 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1;
 }
-@keyframes pulse-border {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.15); }
-  50%       { box-shadow: 0 0 0 6px rgba(0,229,255,0); }
+#screen-room.active {
+  display: flex;
 }
-@keyframes winner-glow {
-  0%, 100% { box-shadow: 0 0 12px rgba(0,224,150,0.2); }
-  50%       { box-shadow: 0 0 24px rgba(0,224,150,0.5); }
+.room-fixed-top {
+  flex-shrink: 0;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes bar-fill { from { width: 0; } }
-
-/* ── LOGO ── */
+.room-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.room-fixed-bottom {
+  flex-shrink: 0;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-top: 8px;
+  background: linear-gradient(to top, var(--bg) 80%, transparent);
+}
 .logo {
   font-family: var(--font-display);
-  font-size: 3.2rem;
+  font-size: 3rem;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-align: center;
-  background: linear-gradient(135deg, var(--cyan) 0%, #7b61ff 50%, var(--pink) 100%);
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 6px;
-  filter: drop-shadow(0 0 24px rgba(0,229,255,0.35));
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 20px rgba(0,229,255,0.4));
 }
 .tagline {
   text-align: center;
   color: var(--muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.2em;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
 }
 h2 {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--cyan);
@@ -118,224 +121,193 @@ h2 {
 }
 h3 {
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: var(--muted);
-  text-transform: uppercase;
   margin-bottom: 12px;
 }
-
-/* ── CARD ── */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   position: relative;
   overflow: hidden;
 }
 .card::before {
   content: '';
   position: absolute;
-  top: 0; left: 20%; right: 20%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.5), transparent);
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.5;
 }
-
-/* ── TOP NAV ── */
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .btn-small {
-  padding: 8px 14px !important;
-  font-size: 0.72rem !important;
+  padding: 8px 12px !important;
+  font-size: 0.75rem !important;
   width: auto !important;
   margin-bottom: 0 !important;
-  border-radius: 8px !important;
 }
-
-/* ── FORM ── */
 .field { margin-bottom: 16px; }
 label {
   display: block;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
 input[type="text"], input[type="number"] {
   width: 100%;
-  padding: 13px 16px;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   color: var(--text);
   font-family: var(--font-body);
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 input[type="text"]:focus, input[type="number"]:focus {
   border-color: var(--cyan);
-  background: rgba(0,229,255,0.04);
-  box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.12);
 }
 input::placeholder { color: var(--muted); }
 .room-id-row { display: flex; gap: 10px; }
-.room-id-row input { flex: 1; font-family: var(--font-display); letter-spacing: 0.2em; font-size: 1.1rem; }
+.room-id-row input { flex: 1; }
 .room-id-row .gen-btn {
-  padding: 13px 14px;
-  background: rgba(0,229,255,0.08);
-  border: 1px solid rgba(0,229,255,0.25);
-  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(0,229,255,0.1);
+  border: 1px solid rgba(0,229,255,0.3);
+  border-radius: 10px;
   color: var(--cyan);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
   transition: all 0.2s;
   font-family: var(--font-body);
 }
-.room-id-row .gen-btn:hover { background: rgba(0,229,255,0.18); }
-
-/* ── BUTTONS ── */
+.room-id-row .gen-btn:hover { background: rgba(0,229,255,0.2); }
 .btn {
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   border: none;
-  border-radius: 13px;
+  border-radius: 12px;
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.18s;
+  transition: all 0.2s;
   margin-bottom: 10px;
   position: relative;
   overflow: hidden;
 }
 .btn::after {
   content: '';
-  position: absolute; inset: 0;
-  background: rgba(255,255,255,0.07);
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.08);
   opacity: 0;
   transition: opacity 0.15s;
 }
 .btn:hover::after { opacity: 1; }
-.btn:active { transform: scale(0.972); }
+.btn:active { transform: scale(0.98); }
 .btn-primary {
-  background: linear-gradient(135deg, var(--cyan) 0%, #007acc 100%);
+  background: linear-gradient(135deg, var(--cyan), #0088ff);
   color: #000;
-  font-weight: 800;
-  box-shadow: 0 4px 24px rgba(0,229,255,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 4px 20px rgba(0,229,255,0.3);
 }
-.btn-primary:hover { box-shadow: 0 6px 32px rgba(0,229,255,0.4); }
 .btn-secondary {
-  background: linear-gradient(135deg, var(--pink) 0%, #aa0033 100%);
+  background: linear-gradient(135deg, var(--pink), #cc0044);
   color: #fff;
-  font-weight: 800;
-  box-shadow: 0 4px 24px rgba(255,45,111,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow: 0 4px 20px rgba(255,45,111,0.3);
 }
 .btn-ghost {
   background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--text2);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
-.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.04); }
-
-/* ── ACTION BUTTONS (O/X) ── */
-.btn-correct {
-  background: linear-gradient(135deg, #00e096 0%, #007a50 100%);
+.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-green-solid {
+  background: linear-gradient(135deg, var(--green), #00b371);
   color: #000;
   font-family: var(--font-body);
-  font-size: 1.6rem;
-  font-weight: 900;
+  font-size: 1.2rem;
+  font-weight: 700;
   letter-spacing: 0;
-  padding: 22px 16px;
-  border-radius: 16px;
-  box-shadow: 0 6px 28px rgba(0,224,150,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
-  border: none;
-  cursor: pointer;
-  transition: all 0.18s;
-  width: 100%;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0,224,150,0.3);
 }
-.btn-correct:active { transform: scale(0.95); box-shadow: 0 2px 12px rgba(0,224,150,0.3); }
-.btn-wrong {
-  background: linear-gradient(135deg, #ff4757 0%, #8b0000 100%);
+.btn-red-solid {
+  background: linear-gradient(135deg, var(--red), #cc2233);
   color: #fff;
   font-family: var(--font-body);
-  font-size: 1.6rem;
-  font-weight: 900;
+  font-size: 1.2rem;
+  font-weight: 700;
   letter-spacing: 0;
-  padding: 22px 16px;
-  border-radius: 16px;
-  box-shadow: 0 6px 28px rgba(255,71,87,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
-  border: none;
-  cursor: pointer;
-  transition: all 0.18s;
-  width: 100%;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(255,71,87,0.3);
 }
-.btn-wrong:active { transform: scale(0.95); box-shadow: 0 2px 12px rgba(255,71,87,0.3); }
-
-/* ── ERROR ── */
 .error-msg {
   color: var(--red);
   font-size: 0.82rem;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: none;
-  padding: 10px 14px;
-  background: rgba(255,71,87,0.08);
-  border-radius: 10px;
+  padding: 8px 12px;
+  background: rgba(255,71,87,0.1);
+  border-radius: 8px;
   border: 1px solid rgba(255,71,87,0.2);
 }
-
-/* ── SHARE ── */
-.share-row { display: flex; gap: 8px; margin-top: 16px; }
+.share-row { display: flex; gap: 8px; margin-top: 14px; }
 .share-btn {
   flex: 1;
-  padding: 10px 6px;
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  background: rgba(255,255,255,0.02);
-  color: var(--text2);
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   font-family: var(--font-body);
   transition: all 0.2s;
 }
-.share-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.06); }
-
-/* ── PLAYER AVATAR ── */
+.share-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.05); }
 .player-avatar {
-  width: 36px; height: 36px;
+  width: 34px; height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--cyan), #7b61ff);
+  background: linear-gradient(135deg, var(--cyan), var(--pink));
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 0.9rem; color: #000;
+  font-weight: 700; font-size: 0.9rem; color: #000;
   flex-shrink: 0;
-  box-shadow: 0 0 0 2px rgba(0,229,255,0.2);
 }
-
-/* ── MODE TABS ── */
-.mode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .mode-tab {
   flex: 1;
-  padding: 10px 6px;
-  border: 1px solid var(--border2);
+  padding: 10px 8px;
+  border: 1px solid var(--border);
   border-radius: 10px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   font-weight: 700;
   font-family: var(--font-body);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   transition: all 0.2s;
 }
 .mode-tab.active {
@@ -345,253 +317,136 @@ input::placeholder { color: var(--muted); }
 }
 .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .settings-grid .field { margin-bottom: 0; }
-.settings-desc { font-size: 0.77rem; color: var(--text2); line-height: 1.7; margin-bottom: 14px; }
+.settings-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; margin-bottom: 14px; font-style: italic; }
 .settings-panel { display: none; }
 .settings-panel.active { display: block; }
-
-/* ── GAME TOPBAR ── */
 .game-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 10px 14px;
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
 }
 .game-room-id {
   font-family: var(--font-display);
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
   color: var(--muted);
 }
-.game-room-id span { color: var(--cyan); letter-spacing: 0.25em; }
+.game-room-id span { color: var(--cyan); }
 .mode-pill {
   padding: 5px 12px;
-  background: rgba(255,45,111,0.1);
-  border: 1px solid rgba(255,45,111,0.2);
+  background: rgba(255,45,111,0.12);
+  border: 1px solid rgba(255,45,111,0.25);
   border-radius: 20px;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--pink);
 }
-
-/* ── PLAYER CARDS ── */
-.player-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.player-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .pcard {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 13px 15px;
+  padding: 14px 16px;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
 }
-.pcard.pcard-me {
-  border-color: rgba(0,229,255,0.35);
-  background: rgba(0,229,255,0.03);
-  animation: pulse-border 3s ease-in-out infinite;
-}
-.pcard.pcard-winner {
-  border-color: var(--green);
-  background: rgba(0,224,150,0.05);
-  animation: winner-glow 2s ease-in-out infinite;
-}
+.pcard.pcard-me { border-color: rgba(0,229,255,0.4); box-shadow: 0 0 15px rgba(0,229,255,0.1); }
+.pcard.pcard-winner { border-color: var(--green); background: rgba(0,224,150,0.06); }
 .pcard.pcard-winner::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--green);
 }
-.pcard.pcard-eliminated { opacity: 0.35; filter: grayscale(0.8); }
-.pcard.pcard-spectator { opacity: 0.5; }
-
+.pcard.pcard-eliminated { opacity: 0.45; filter: grayscale(0.7); }
+.pcard.pcard-spectator { opacity: 0.6; }
 .pcard-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.pcard-name { flex: 1; font-weight: 700; font-size: 0.97rem; }
+.pcard-name { flex: 1; font-weight: 700; font-size: 1rem; }
 .pcard-status {
-  font-size: 0.65rem; padding: 3px 9px; border-radius: 20px;
-  font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  font-size: 0.68rem; padding: 3px 9px; border-radius: 20px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.s-active    { background: rgba(74,74,106,0.35); color: var(--text2); }
-.s-winner    { background: rgba(0,224,150,0.18); color: var(--green); border: 1px solid rgba(0,224,150,0.3); }
-.s-eliminated{ background: rgba(255,71,87,0.12); color: var(--red); }
-.s-spectator { background: rgba(100,100,100,0.15); color: var(--muted); }
-
-/* ── STAT DISPLAY ── */
-.pcard-stats { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
-.stat-box { display: flex; align-items: center; gap: 6px; }
-.stat-icon { font-size: 0.85rem; }
-.stat-val { font-weight: 800; font-size: 1.05rem; font-family: var(--font-display); }
+.s-active { background: rgba(90,90,122,0.3); color: var(--muted); }
+.s-winner { background: rgba(0,224,150,0.2); color: var(--green); border: 1px solid rgba(0,224,150,0.3); }
+.s-eliminated { background: rgba(255,71,87,0.15); color: var(--red); }
+.s-spectator { background: rgba(100,100,100,0.2); color: #ccc; }
+.pcard-stats { display: flex; gap: 16px; align-items: center; }
+.stat-box { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; }
+.stat-icon { font-size: 0.9rem; }
+.stat-val { font-weight: 700; font-size: 1rem; }
 .stat-val.correct { color: var(--green); }
-.stat-val.wrong   { color: var(--red); }
+.stat-val.wrong { color: var(--red); }
 .score-large {
-  margin-left: auto;
-  font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 900;
-  color: var(--cyan);
-  filter: drop-shadow(0 0 10px rgba(0,229,255,0.5));
-  letter-spacing: -0.02em;
+  margin-left: auto; font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: var(--cyan); filter: drop-shadow(0 0 8px rgba(0,229,255,0.4));
 }
-
-/* ── PROGRESS BAR ── */
-.pcard-progress { display: flex; flex-direction: column; gap: 5px; }
-.prog-row { display: flex; align-items: center; gap: 8px; }
-.prog-label { font-size: 0.65rem; color: var(--muted); width: 16px; text-align: right; flex-shrink: 0; }
-.prog-track {
-  flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden;
-}
-.prog-fill {
-  height: 100%; border-radius: 3px;
-  transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  animation: bar-fill 0.4s ease;
-}
-.prog-fill.correct { background: linear-gradient(90deg, var(--green), #00ffaa); }
-.prog-fill.wrong   { background: linear-gradient(90deg, var(--red), #ff8888); }
-.prog-count { font-size: 0.68rem; color: var(--text2); min-width: 28px; }
-
-/* ── ACTION PANEL (sticky) ── */
 .my-action-panel {
-  position: sticky;
-  bottom: 16px;
-  background: rgba(10,10,28,0.9);
+  background: rgba(10,10,28,0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(0,229,255,0.2);
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 14px;
-  margin-top: 12px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,229,255,0.05);
 }
 .action-row { display: flex; gap: 12px; margin-bottom: 10px; }
-.action-row button { flex: 1; margin-bottom: 0; }
-
-.undo-row { margin-bottom: 10px; }
-.btn-undo {
-  width: 100%;
-  padding: 11px;
-  background: rgba(255,211,42,0.07);
-  border: 1px solid rgba(255,211,42,0.25);
-  border-radius: 10px;
-  color: var(--yellow);
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 700;
-  font-family: var(--font-body);
-  transition: all 0.2s;
-}
-.btn-undo:hover { background: rgba(255,211,42,0.14); }
-.btn-undo:active { transform: scale(0.97); }
-
-/* ── RESULT SCREEN ── */
-.podium-wrap { text-align: center; padding: 24px 20px; }
-.podium-emoji { font-size: 4.5rem; line-height: 1; margin-bottom: 12px; }
+.action-row .btn { flex: 1; margin-bottom: 0; }
+.podium-wrap { text-align: center; padding: 20px 0; }
+.podium-emoji { font-size: 4rem; line-height: 1; margin-bottom: 12px; }
 .podium-name {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--yellow), #ff9500, var(--pink));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  margin-bottom: 6px;
-  filter: drop-shadow(0 0 16px rgba(255,211,42,0.3));
+  font-family: var(--font-display); font-size: 1.6rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--yellow), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 4px;
 }
-.podium-sub { color: var(--text2); font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; }
-
-.result-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.podium-sub { color: var(--muted); font-size: 0.82rem; letter-spacing: 0.1em; }
+.result-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
 .result-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px;
-  background: var(--card);
-  border-radius: 13px;
-  border: 1px solid var(--border);
-  transition: transform 0.2s;
+  display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);
 }
-.result-item:hover { transform: translateX(3px); }
-.result-item.ri-1 { border-color: rgba(255,211,42,0.3); background: rgba(255,211,42,0.04); }
-.result-item.ri-2 { border-color: rgba(192,192,192,0.2); }
-.result-item.ri-3 { border-color: rgba(205,127,50,0.2); }
-.result-rank { font-family: var(--font-display); font-size: 1rem; font-weight: 900; min-width: 26px; color: var(--muted); }
-.result-rank.r1 { color: var(--yellow); filter: drop-shadow(0 0 6px rgba(255,211,42,0.6)); }
+.result-rank { font-family: var(--font-display); font-size: 1.1rem; font-weight: 900; min-width: 28px; color: var(--muted); }
+.result-rank.r1 { color: var(--yellow); }
 .result-rank.r2 { color: #c0c0c0; }
 .result-rank.r3 { color: #cd7f32; }
-.result-name { flex: 1; font-weight: 700; font-size: 0.95rem; }
-.result-stats { font-size: 0.78rem; color: var(--muted); }
-.result-score { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: var(--cyan); }
-
-/* ── TOAST ── */
+.result-name { flex: 1; font-weight: 600; }
+.result-stats { font-size: 0.8rem; color: var(--muted); }
+.result-score { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--cyan); }
 .toast {
-  position: fixed; bottom: 30px; left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: rgba(15,15,35,0.96);
-  backdrop-filter: blur(14px);
-  color: var(--text); padding: 12px 24px; border-radius: 30px;
-  font-size: 0.88rem; border: 1px solid var(--border2);
-  opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  pointer-events: none; z-index: 1000; max-width: 320px; text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: rgba(20,20,42,0.95); backdrop-filter: blur(12px); color: var(--text); padding: 12px 22px; border-radius: 30px;
+  font-size: 0.88rem; border: 1px solid var(--border); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none; z-index: 1000; max-width: 300px; text-align: center;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── MISC ── */
-.divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 6px 0 16px; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em;
-}
+.divider { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; color: var(--muted); font-size: 0.75rem; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
 .config-notice {
-  background: rgba(255,211,42,0.06); border: 1px solid rgba(255,211,42,0.22);
-  border-radius: 12px; padding: 12px 16px; margin-bottom: 20px;
-  font-size: 0.78rem; color: var(--yellow); line-height: 1.7; display: none;
+  background: rgba(255,211,42,0.08); border: 1px solid rgba(255,211,42,0.25); border-radius: 10px; padding: 12px 16px;
+  margin-bottom: 20px; font-size: 0.78rem; color: var(--yellow); line-height: 1.6; display: none;
 }
 .config-notice.visible { display: block; }
-.config-notice strong { display: block; margin-bottom: 4px; font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.08em; }
 
-/* ── MODAL ── */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
-  z-index: 100; display: none; align-items: flex-end; justify-content: center;
-  opacity: 0; transition: opacity 0.25s;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+  z-index: 100; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;
 }
 .modal-overlay.active { display: flex; opacity: 1; }
 .modal-content {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 22px 22px 0 0;
-  width: 100%; max-width: 520px; padding: 28px 22px 40px;
-  position: relative;
-  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
-  box-shadow: 0 -10px 60px rgba(0,0,0,0.6);
-  max-height: 90vh; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  width: 90%; max-width: 400px; padding: 24px; position: relative;
+  transform: translateY(20px); transition: transform 0.2s; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 .modal-overlay.active .modal-content { transform: translateY(0); }
-.modal-handle {
-  width: 40px; height: 4px; border-radius: 2px;
-  background: var(--border2); margin: 0 auto 20px;
-}
 .modal-close {
-  position: absolute; top: 20px; right: 20px;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-  color: var(--muted); font-size: 1.1rem; cursor: pointer;
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
+  position: absolute; top: 16px; right: 16px; background: transparent; border: none;
+  color: var(--muted); font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
 }
-.modal-close:hover { color: var(--cyan); border-color: var(--cyan); }
+.modal-close:hover { color: var(--cyan); }
 
-@media (min-width: 521px) {
-  body { padding-top: 24px; }
-  .modal-overlay { align-items: center; }
-  .modal-content { border-radius: 22px; max-width: 420px; transform: translateY(20px) scale(0.96); }
-  .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
-  .modal-handle { display: none; }
-}
+@media (min-width: 521px) { body { padding-top: 20px; } }
 </style>
 </head>
 <body>
 
-<!-- TOP -->
 <div id="screen-top" class="screen active">
   <div class="logo">Q-ROOM</div>
   <div class="tagline">Real-time Quiz Battle</div>
@@ -609,8 +464,8 @@ input::placeholder { color: var(--muted); }
     <div class="field">
       <label>Room ID <span style="color:var(--muted);font-weight:400;">(空白でランダム生成)</span></label>
       <div class="room-id-row">
-        <input type="text" id="input-roomid" placeholder="4 8 2 9 1" maxlength="5" pattern="[0-9]*" inputmode="numeric" autocomplete="off">
-        <button class="gen-btn" onclick="fillRandomRoomId()">🎲</button>
+        <input type="text" id="input-roomid" placeholder="例: 48291" maxlength="5" pattern="[0-9]*" inputmode="numeric" autocomplete="off">
+        <button class="gen-btn" onclick="fillRandomRoomId()">🎲 生成</button>
       </div>
     </div>
     <div id="top-error" class="error-msg"></div>
@@ -620,39 +475,44 @@ input::placeholder { color: var(--muted); }
   </div>
 </div>
 
-<!-- ROOM (GAME) -->
 <div id="screen-room" class="screen">
-  <div class="top-nav">
-    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">← 退室</button>
-    <button class="btn btn-ghost btn-small" onclick="openSettings()">⚙ 設定</button>
+  <!-- 固定ヘッダー -->
+  <div class="room-fixed-top">
+    <div class="top-nav">
+      <button class="btn btn-ghost btn-small" onclick="leaveRoom()">← 退室</button>
+      <button class="btn btn-ghost btn-small" onclick="openSettings()">⚙ 設定</button>
+    </div>
+    <div class="game-topbar">
+      <div class="game-room-id">ROOM <span id="game-room-id-display">—</span></div>
+      <div id="mode-pill-display" class="mode-pill">—</div>
+    </div>
   </div>
 
-  <div class="game-topbar">
-    <div class="game-room-id">ROOM <span id="game-room-id-display">—</span></div>
-    <div id="mode-pill-display" class="mode-pill">—</div>
+  <!-- スクロールエリア -->
+  <div class="room-scroll-area">
+    <div id="game-player-cards" class="player-cards"></div>
   </div>
 
-  <div id="game-player-cards" class="player-cards"></div>
-
-  <div id="my-action-panel" class="my-action-panel">
-    <div class="action-row" id="score-buttons" style="display:none;">
-      <button class="btn-correct" onclick="recordResult(true)">⭕</button>
-      <button class="btn-wrong"   onclick="recordResult(false)">✖</button>
+  <!-- 固定フッター（ボタンゾーン） -->
+  <div class="room-fixed-bottom">
+    <div id="my-action-panel" class="my-action-panel">
+      <div class="action-row" id="score-buttons" style="display:none;">
+        <button class="btn btn-green-solid" onclick="recordResult(true)">⭕ 正解</button>
+        <button class="btn btn-red-solid" onclick="recordResult(false)">✖ 誤答</button>
+      </div>
+      <div id="undo-row" style="display:none; margin-bottom:10px;">
+        <button class="btn btn-ghost" onclick="undoResult()" style="color:var(--yellow);border-color:rgba(255,211,42,0.3);margin-bottom:0;">↩ 直前の入力を取り消す</button>
+      </div>
+      <button class="btn btn-ghost" id="btn-toggle-role" onclick="toggleMyRole()" style="margin-bottom:0;">
+        👀 観戦者（ホスト）になる
+      </button>
     </div>
-    <div class="undo-row" id="undo-row" style="display:none;">
-      <button class="btn-undo" onclick="undoResult()">↩ 直前の入力を取り消す</button>
-    </div>
-    <button class="btn btn-ghost" id="btn-toggle-role" onclick="toggleMyRole()" style="margin-bottom:0;">
-      👀 観戦者（ホスト）になる
-    </button>
   </div>
 </div>
 
-<!-- RESULT -->
 <div id="screen-result" class="screen">
   <div class="top-nav">
-    <button class="btn btn-ghost btn-small" onclick="returnToRoom()">← 部屋に戻る</button>
-    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🏠 トップへ</button>
+    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 トップへ戻る</button>
   </div>
   <div class="logo" style="font-size:2rem; margin-bottom: 20px;">RESULT</div>
   <div id="podium-area" class="podium-wrap card"></div>
@@ -662,27 +522,23 @@ input::placeholder { color: var(--muted); }
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div id="settings-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
+<div id="settings-modal" class="modal-overlay">
   <div class="modal-content">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeSettings()">✕</button>
-    <h2 style="margin-bottom: 18px;">ルーム設定</h2>
-
+    <button class="modal-close" onclick="closeSettings()">×</button>
+    <h2 style="margin-bottom: 20px;">ルーム設定</h2>
+    
     <div class="share-row" style="margin-top:0; margin-bottom: 20px;">
       <button class="share-btn" onclick="copyLink()">🔗 URLコピー</button>
       <button class="share-btn" onclick="copyRoomId()">📋 IDコピー</button>
-      <button class="share-btn" onclick="shareNative()">📤 シェア</button>
     </div>
 
     <div class="mode-tabs">
-      <button class="mode-tab active" id="tab-survival"  onclick="updateMode('survival')">m◯n×</button>
-      <button class="mode-tab"        id="tab-newyork"   onclick="updateMode('newyork')">New York</button>
-      <button class="mode-tab"        id="tab-freecount" onclick="updateMode('freecount')">フリバ</button>
+      <button class="mode-tab active" id="tab-survival" onclick="updateMode('survival')">m◯n×</button>
+      <button class="mode-tab" id="tab-newyork" onclick="updateMode('newyork')">New York</button>
     </div>
 
     <div id="panel-survival" class="settings-panel active">
-      <div class="settings-desc">m問正解で勝ち抜け・n問誤答で失格。</div>
+      <div class="settings-desc">m問正解で勝ち抜け・n問誤答で失格。正解したプレイヤーは自分でボタンを押します。</div>
       <div class="settings-grid">
         <div class="field">
           <label>m（勝ち抜け）</label>
@@ -709,11 +565,8 @@ input::placeholder { color: var(--muted); }
       </div>
     </div>
 
-    <div id="panel-freecount" class="settings-panel">
-      <div class="settings-desc">勝ち抜け・失格なし。正解数・誤答数をカウントするだけ。フリバや練習に。ホストが「終了」を押したタイミングで正解数順にランキングを表示します。</div>
-    </div>
-
     <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
+    
     <button class="btn btn-ghost" onclick="resetPoints()" style="color:var(--yellow); border-color:rgba(255,211,42,0.3);">🔄 全員のポイントをリセット</button>
     <button class="btn btn-secondary" onclick="endGame()" style="margin-bottom:0;">⏹ ゲームを終了して結果を見る</button>
   </div>
@@ -725,6 +578,9 @@ input::placeholder { color: var(--muted); }
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 
 <script>
+// ================================================================
+// Firebase設定
+// ================================================================
 const firebaseConfig = {
   apiKey:            "AIzaSyA3xtGLVJwij2BTiiOk7DsNeF9hIOuZCyI",
   authDomain:        "q-room-fe8a6.firebaseapp.com",
@@ -735,26 +591,41 @@ const firebaseConfig = {
   appId:             "1:151049149394:web:7a3ea6406454f6a87d460b"
 };
 
-let db;
-try {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-} catch(e) {
-  document.getElementById('config-notice').classList.add('visible');
+// ── Firebase は "遅延初期化" する ──────────────────────────────
+// initializeApp / database() 自体は接続しないが、
+// .once() / .on() を呼んだ瞬間にWebSocket接続が確立される。
+// トップページを開いただけでは一切接続しないよう、
+// db は最初の Create/Join 操作まで null のままにしておく。
+let db = null;
+
+function ensureFirebase() {
+  if (db) return true;
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    return true;
+  } catch(e) {
+    document.getElementById('config-notice').classList.add('visible');
+    return false;
+  }
 }
 
+// ── State ──────────────────────────────────────────────────────
 let myPlayerId    = null;
 let currentRoomId = null;
-let roomListener  = null;
+let roomRef       = null;   // 購読中の ref（off() 用）
+let roomCallback  = null;   // 購読中のコールバック（off() 用）
 let currentMode   = 'survival';
 let gameSettings  = null;
 let lastAction    = null;
 
-window.addEventListener('DOMContentLoaded', async () => {
-  await cleanupOldRooms();
+// ── DOMContentLoaded ───────────────────────────────────────────
+// Firebase には一切触れない。URLパラメータの読み込みだけ行う。
+window.addEventListener('DOMContentLoaded', () => {
   checkUrlParams();
 });
 
+// ── Utility ────────────────────────────────────────────────────
 function getOrCreatePlayerId() {
   let id = localStorage.getItem('qroom_pid');
   if (!id) {
@@ -777,28 +648,18 @@ function showError(id, msg) {
   el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
-
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
-
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('screen-' + id);
-  el.classList.add('active');
-  // re-trigger animation
-  el.style.animation = 'none';
-  el.offsetHeight;
-  el.style.animation = '';
+  document.getElementById('screen-' + id).classList.add('active');
   window.scrollTo(0, 0);
 }
-
-function avatarLetter(name) {
-  return (name || '?')[0].toUpperCase();
-}
+function avatarLetter(name) { return (name || '?')[0].toUpperCase(); }
 
 function checkUrlParams() {
   const pathRoom = window.location.pathname.replace(/\//g, '');
@@ -809,23 +670,20 @@ function checkUrlParams() {
   }
 }
 
+// ── Mode UI ────────────────────────────────────────────────────
 function selectModeUI(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-  const tabEl = document.getElementById('tab-' + mode);
-  if (tabEl) tabEl.classList.add('active');
+  const tab = document.getElementById('tab-' + mode);
+  if (tab) tab.classList.add('active');
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
-  const panelEl = document.getElementById('panel-' + mode);
-  if (panelEl) panelEl.classList.add('active');
+  const panel = document.getElementById('panel-' + mode);
+  if (panel) panel.classList.add('active');
 }
-
 async function updateMode(mode) {
   selectModeUI(mode);
-  if (db && currentRoomId) {
-    await db.ref(`rooms/${currentRoomId}/settings/mode`).set(mode);
-  }
+  if (db && currentRoomId) await db.ref(`rooms/${currentRoomId}/settings/mode`).set(mode);
 }
-
 async function updateSettings() {
   if (!db || !currentRoomId) return;
   const m = parseInt(document.getElementById('set-m').value) || 3;
@@ -835,30 +693,7 @@ async function updateSettings() {
   await db.ref(`rooms/${currentRoomId}/settings`).update({ m, n, x, y });
 }
 
-async function resetPoints() {
-  if (!confirm("全員のスコアを0にリセットしますか？")) return;
-  const playersSnap = await db.ref(`rooms/${currentRoomId}/players`).once('value');
-  const players = playersSnap.val() || {};
-  const updates = {};
-  for (const pid in players) {
-    updates[`${pid}/correct`] = 0;
-    updates[`${pid}/wrong`]   = 0;
-    if (players[pid].status !== 'spectator') updates[`${pid}/status`] = 'active';
-  }
-  await db.ref(`rooms/${currentRoomId}/players`).update(updates);
-  lastAction = null;
-  showToast('ポイントをリセットしました');
-  closeSettings();
-}
-
-async function toggleMyRole() {
-  if (!db || !currentRoomId || !myPlayerId) return;
-  const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}/status`);
-  const snap  = await myRef.once('value');
-  const next  = snap.val() === 'spectator' ? 'active' : 'spectator';
-  await myRef.set(next);
-}
-
+// ── Presence ───────────────────────────────────────────────────
 function setupPresence() {
   if (!db || !currentRoomId || !myPlayerId) return;
   const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
@@ -868,6 +703,9 @@ function setupPresence() {
   myRef.child('lastActive').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
 }
 
+// ── Cleanup（Create時のみ呼ぶ）────────────────────────────────
+// rooms全体を一度だけ舐めるが、これはCreate押下後なので
+// すでに接続済みの状態で実行される。
 async function cleanupOldRooms() {
   if (!db) return;
   try {
@@ -880,19 +718,29 @@ async function cleanupOldRooms() {
       if (!hasOnline) {
         let lastActive = room.createdAt || 0;
         for (const p of Object.values(players)) {
-          if (p.lastActive > lastActive) lastActive = p.lastActive;
+          if ((p.lastActive || 0) > lastActive) lastActive = p.lastActive;
         }
         if (now - lastActive > 5 * 60 * 1000) {
           await db.ref('rooms/' + rid).remove();
         }
       }
     }
-  } catch(e) { console.warn("Cleanup error", e); }
+  } catch(e) { console.warn('Cleanup error', e); }
 }
 
+// ── リスナー解除ヘルパー ───────────────────────────────────────
+function detachRoomListener() {
+  if (roomRef && roomCallback) {
+    roomRef.off('value', roomCallback);
+    roomRef      = null;
+    roomCallback = null;
+  }
+}
+
+// ── Create Room ────────────────────────────────────────────────
 async function handleCreate() {
-  if (!db) { showToast('Firebase 未設定です'); return; }
-  await cleanupOldRooms();
+  if (!ensureFirebase()) return;
+
   const name     = document.getElementById('input-name').value.trim();
   const ridInput = document.getElementById('input-roomid').value.trim();
   if (!name) { showError('top-error', '名前を入力してください'); return; }
@@ -901,6 +749,10 @@ async function handleCreate() {
   if (roomId.length !== 5 || !/^\d+$/.test(roomId)) {
     showError('top-error', 'Room IDは5桁の数字で入力してください'); return;
   }
+
+  // ここで初めて接続が確立される
+  await cleanupOldRooms();
+
   const snap = await db.ref('rooms/' + roomId).once('value');
   if (snap.exists()) {
     showError('top-error', 'そのRoom IDはすでに使用中です'); return;
@@ -910,8 +762,8 @@ async function handleCreate() {
   currentRoomId = roomId;
 
   await db.ref('rooms/' + roomId).set({
-    hostId:    myPlayerId,
-    status:    'playing',
+    hostId:   myPlayerId,
+    status:   'playing',
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     settings:  { mode: 'survival', m: 3, n: 2, x: 10, y: 5 },
     players: {
@@ -927,9 +779,10 @@ async function handleCreate() {
   enterRoom(roomId);
 }
 
+// ── Join Room ──────────────────────────────────────────────────
 async function handleJoin() {
-  if (!db) { showToast('Firebase 未設定です'); return; }
-  await cleanupOldRooms();
+  if (!ensureFirebase()) return;
+
   const name   = document.getElementById('input-name').value.trim();
   const roomId = document.getElementById('input-roomid').value.trim();
   if (!name)   { showError('top-error', '名前を入力してください'); return; }
@@ -937,10 +790,13 @@ async function handleJoin() {
   if (roomId.length !== 5 || !/^\d+$/.test(roomId)) {
     showError('top-error', 'Room IDは5桁の数字で入力してください'); return;
   }
+
+  // ここで初めて接続が確立される（joinではcleanup不要）
   const snap = await db.ref('rooms/' + roomId).once('value');
   if (!snap.exists()) {
     showError('top-error', 'Room ID ' + roomId + ' の部屋が見つかりません'); return;
   }
+
   const room = snap.val();
   myPlayerId  = getOrCreatePlayerId();
 
@@ -956,13 +812,16 @@ async function handleJoin() {
       online: true, lastActive: firebase.database.ServerValue.TIMESTAMP
     });
   }
+
   currentRoomId = roomId;
   setupPresence();
   updateUrl(roomId);
+
   if (room.status === 'finished') { enterResultScreen(room); }
   else { enterRoom(roomId); }
 }
 
+// ── URL ────────────────────────────────────────────────────────
 function updateUrl(roomId) {
   window.history.replaceState({}, '', window.location.origin + '/' + roomId);
 }
@@ -977,10 +836,11 @@ function copyRoomId() {
 }
 function shareNative() {
   if (navigator.share) {
-    navigator.share({ title: 'Q-Room', text: 'クイズバトルに参加しよう！ Room: ' + currentRoomId, url: getRoomUrl() });
+    navigator.share({ title: 'Q-Room', text: 'クイズに参加しよう！ Room: ' + currentRoomId, url: getRoomUrl() });
   } else { copyLink(); }
 }
 
+// ── Leave / Back ───────────────────────────────────────────────
 function leaveRoom() {
   if (db && currentRoomId && myPlayerId) {
     db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`).remove();
@@ -988,92 +848,99 @@ function leaveRoom() {
   backToTop();
 }
 
-function openSettings()  { document.getElementById('settings-modal').classList.add('active'); }
-function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
-function handleModalOutsideClick(e) {
-  if (e.target === document.getElementById('settings-modal')) closeSettings();
+function backToTop() {
+  detachRoomListener();
+  if (db && currentRoomId && myPlayerId) {
+    const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
+    myRef.child('online').onDisconnect().cancel();
+    myRef.child('lastActive').onDisconnect().cancel();
+  }
+  // WebSocket切断 — トップページでは接続不要
+  if (db) { db.goOffline(); db = null; }
+
+  currentRoomId = null;
+  gameSettings  = null;
+  lastAction    = null;
+  window.history.replaceState({}, '', '/');
+  showScreen('top');
 }
 
+// ── Settings modal ─────────────────────────────────────────────
+function openSettings()  { document.getElementById('settings-modal').classList.add('active'); }
+function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+
+// ── Enter Room ─────────────────────────────────────────────────
 function enterRoom(roomId) {
   showScreen('room');
   document.getElementById('game-room-id-display').textContent = roomId;
 
-  if (roomListener) roomListener();
-  roomListener = db.ref('rooms/' + roomId).on('value', snap => {
+  detachRoomListener();
+
+  // rooms/${roomId} だけを購読（rooms全体は取らない）
+  roomRef      = db.ref('rooms/' + roomId);
+  roomCallback = roomRef.on('value', snap => {
     const data = snap.val();
     if (!data) { showToast('ルームが削除されました'); backToTop(); return; }
     if (data.status === 'finished') { enterResultScreen(data); return; }
 
     gameSettings = data.settings;
     if (data.settings) {
-      if (document.activeElement !== document.getElementById('set-m')) document.getElementById('set-m').value = data.settings.m;
-      if (document.activeElement !== document.getElementById('set-n')) document.getElementById('set-n').value = data.settings.n;
-      if (document.activeElement !== document.getElementById('set-x')) document.getElementById('set-x').value = data.settings.x;
-      if (document.activeElement !== document.getElementById('set-y')) document.getElementById('set-y').value = data.settings.y;
-      if (currentMode !== data.settings.mode) selectModeUI(data.settings.mode);
+      const s = data.settings;
+      if (document.activeElement !== document.getElementById('set-m')) document.getElementById('set-m').value = s.m;
+      if (document.activeElement !== document.getElementById('set-n')) document.getElementById('set-n').value = s.n;
+      if (document.activeElement !== document.getElementById('set-x')) document.getElementById('set-x').value = s.x;
+      if (document.activeElement !== document.getElementById('set-y')) document.getElementById('set-y').value = s.y;
+      if (currentMode !== s.mode) selectModeUI(s.mode);
     }
     renderGameScreen(data);
   });
 }
 
+// ── Render Game Screen ─────────────────────────────────────────
 function renderGameScreen(data) {
   const settings = data.settings || {};
   const players  = data.players  || {};
   const sorted   = sortPlayers(players, settings);
 
   const modeLabel = settings.mode === 'survival'
-    ? `m◯n×  ${settings.m}○ ${settings.n}×`
+    ? `m◯n×  (${settings.m}○ / ${settings.n}×)`
     : settings.mode === 'newyork'
-    ? `NY  +${settings.x} / -${settings.y}`
+    ? `NewYork  (+${settings.x} / -${settings.y})`
     : 'フリバ';
   document.getElementById('mode-pill-display').textContent = modeLabel;
 
   const cardsEl = document.getElementById('game-player-cards');
   cardsEl.innerHTML = sorted.map(([pid, p]) => {
-    const isMe = pid === myPlayerId;
-    const isSpec = p.status === 'spectator';
+    const isMe      = pid === myPlayerId;
+    const isSpec    = p.status === 'spectator';
     const statusCls = p.status === 'winner' ? 'pcard-winner'
       : p.status === 'eliminated' ? 'pcard-eliminated'
       : isSpec ? 'pcard-spectator' : '';
-    const statusLabel = p.status === 'winner' ? 'WIN 🏆'
-      : p.status === 'eliminated' ? 'OUT' : isSpec ? 'WATCH' : 'ACTIVE';
-    const statusPillCls = p.status === 'winner' ? 's-winner'
+    const statusLabel    = p.status === 'winner' ? 'WIN 🏆'
+      : p.status === 'eliminated' ? 'OUT'
+      : isSpec ? 'WATCH' : 'ACTIVE';
+    const statusPillCls  = p.status === 'winner' ? 's-winner'
       : p.status === 'eliminated' ? 's-eliminated'
       : isSpec ? 's-spectator' : 's-active';
 
-    let bodyHtml = '';
+    let scoreHtml = '';
     if (!isSpec) {
       if (settings.mode === 'survival') {
-        const m = settings.m || 3, n = settings.n || 2;
-        const cpct = Math.min(100, (p.correct / m) * 100);
-        const wpct = Math.min(100, (p.wrong   / n) * 100);
-        bodyHtml = `
+        scoreHtml = `
           <div class="pcard-stats">
             <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
             <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
-          </div>
-          <div class="pcard-progress">
-            <div class="prog-row">
-              <span class="prog-label" style="color:var(--green)">○</span>
-              <div class="prog-track"><div class="prog-fill correct" style="width:${cpct}%"></div></div>
-              <span class="prog-count">${p.correct}/${m}</span>
-            </div>
-            <div class="prog-row">
-              <span class="prog-label" style="color:var(--red)">✖</span>
-              <div class="prog-track"><div class="prog-fill wrong" style="width:${wpct}%"></div></div>
-              <span class="prog-count">${p.wrong}/${n}</span>
-            </div>
           </div>`;
       } else if (settings.mode === 'newyork') {
         const score = (p.correct * settings.x) - (p.wrong * settings.y);
-        bodyHtml = `
+        scoreHtml = `
           <div class="pcard-stats">
             <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
             <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
             <div class="score-large">${score >= 0 ? '+' : ''}${score}</div>
           </div>`;
       } else {
-        bodyHtml = `
+        scoreHtml = `
           <div class="pcard-stats">
             <div class="stat-box"><span class="stat-icon">⭕</span><span class="stat-val correct">${p.correct}</span></div>
             <div class="stat-box"><span class="stat-icon">✖</span><span class="stat-val wrong">${p.wrong}</span></div>
@@ -1084,31 +951,28 @@ function renderGameScreen(data) {
     return `
       <div class="pcard ${isMe ? 'pcard-me' : ''} ${statusCls}">
         <div class="pcard-top">
-          <div class="player-avatar" style="width:30px;height:30px;font-size:0.8rem;${isSpec?'filter:grayscale(1);opacity:0.4;':''}">${avatarLetter(p.name)}</div>
-          <span class="pcard-name">${escHtml(p.name)}${isMe ? ' <span style="color:var(--cyan);font-size:0.7rem;font-weight:600;">(You)</span>' : ''}</span>
+          <div class="player-avatar" style="width:30px;height:30px;font-size:0.8rem;${isSpec ? 'filter:grayscale(1);opacity:0.5;' : ''}">${avatarLetter(p.name)}</div>
+          <span class="pcard-name">${escHtml(p.name)}</span>
           <span class="pcard-status ${statusPillCls}">${statusLabel}</span>
         </div>
-        ${bodyHtml}
+        ${scoreHtml}
       </div>`;
   }).join('');
 
   const myPlayer = players[myPlayerId];
   if (myPlayer) {
     const isSpec = myPlayer.status === 'spectator';
-    document.getElementById('score-buttons').style.display  = isSpec ? 'none' : 'flex';
-    document.getElementById('undo-row').style.display       = (!isSpec && lastAction !== null) ? 'block' : 'none';
-    document.getElementById('btn-toggle-role').innerHTML    = isSpec ? '🎮 プレイヤー（回答者）になる' : '👀 観戦者（ホスト）になる';
+    document.getElementById('score-buttons').style.display = isSpec ? 'none' : 'flex';
+    document.getElementById('undo-row').style.display      = (!isSpec && lastAction !== null) ? 'block' : 'none';
+    document.getElementById('btn-toggle-role').innerHTML   = isSpec ? '🎮 プレイヤー（回答者）になる' : '👀 観戦者（ホスト）になる';
   }
 }
 
+// ── Sort Players ───────────────────────────────────────────────
 function sortPlayers(players, settings) {
   return Object.entries(players).sort((a, b) => {
     const [, pa] = a, [, pb] = b;
     const rank = s => s === 'winner' ? 0 : s === 'active' ? 1 : s === 'eliminated' ? 2 : 3;
-    if (settings.mode === 'freecount') {
-      if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
-      return pb.correct - pa.correct;
-    }
     if (rank(pa.status) !== rank(pb.status)) return rank(pa.status) - rank(pb.status);
     if (settings.mode === 'newyork') {
       const sa = (pa.correct * settings.x) - (pa.wrong * settings.y);
@@ -1119,6 +983,7 @@ function sortPlayers(players, settings) {
   });
 }
 
+// ── Record Result ──────────────────────────────────────────────
 async function recordResult(isCorrect) {
   if (!db || !currentRoomId || !myPlayerId) return;
   const playerRef = db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId);
@@ -1132,19 +997,19 @@ async function recordResult(isCorrect) {
   let   newStatus  = p.status;
 
   if (settings.mode === 'survival' && p.status === 'active') {
-    if (newCorrect >= settings.m)      { newStatus = 'winner';    showToast('🏆 勝ち抜けおめでとう！'); }
-    else if (newWrong >= settings.n)   { newStatus = 'eliminated'; showToast('💀 失格...'); }
+    if (newCorrect >= settings.m)    { newStatus = 'winner';    showToast('🏆 勝ち抜けおめでとう！'); }
+    else if (newWrong >= settings.n) { newStatus = 'eliminated'; showToast('💀 失格...'); }
   }
 
-  lastAction = { wasCorrect: isCorrect, prevCorrect: p.correct, prevWrong: p.wrong, prevStatus: p.status };
+  lastAction = { prevCorrect: p.correct, prevWrong: p.wrong, prevStatus: p.status };
   document.getElementById('undo-row').style.display = 'block';
   await playerRef.update({ correct: newCorrect, wrong: newWrong, status: newStatus });
 }
 
+// ── Undo ───────────────────────────────────────────────────────
 async function undoResult() {
   if (!db || !currentRoomId || !myPlayerId || !lastAction) return;
-  const playerRef = db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId);
-  await playerRef.update({
+  await db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId).update({
     correct: lastAction.prevCorrect,
     wrong:   lastAction.prevWrong,
     status:  lastAction.prevStatus
@@ -1154,21 +1019,50 @@ async function undoResult() {
   showToast('↩ 取り消しました');
 }
 
+// ── Toggle Role ────────────────────────────────────────────────
+async function toggleMyRole() {
+  if (!db || !currentRoomId || !myPlayerId) return;
+  const ref  = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}/status`);
+  const snap = await ref.once('value');
+  await ref.set(snap.val() === 'spectator' ? 'active' : 'spectator');
+}
+
+// ── Reset Points ───────────────────────────────────────────────
+async function resetPoints() {
+  if (!confirm('全員のスコアを0にリセットしますか？')) return;
+  const snap    = await db.ref(`rooms/${currentRoomId}/players`).once('value');
+  const players = snap.val() || {};
+  const updates = {};
+  for (const pid in players) {
+    updates[`${pid}/correct`] = 0;
+    updates[`${pid}/wrong`]   = 0;
+    if (players[pid].status !== 'spectator') updates[`${pid}/status`] = 'active';
+  }
+  await db.ref(`rooms/${currentRoomId}/players`).update(updates);
+  lastAction = null;
+  document.getElementById('undo-row').style.display = 'none';
+  showToast('ポイントをリセットしました');
+  closeSettings();
+}
+
+// ── End Game ───────────────────────────────────────────────────
 async function endGame() {
-  if (confirm("ゲームを終了して結果を表示しますか？")) {
+  if (confirm('ゲームを終了して結果を表示しますか？')) {
     await db.ref('rooms/' + currentRoomId + '/status').set('finished');
     closeSettings();
   }
 }
 
+// ── Return to Room ─────────────────────────────────────────────
 function returnToRoom() {
   if (!currentRoomId) { backToTop(); return; }
   db.ref('rooms/' + currentRoomId + '/status').set('playing');
-  showScreen('room');
+  enterRoom(currentRoomId);
 }
 
+// ── Result Screen ──────────────────────────────────────────────
 function enterResultScreen(data) {
-  if (roomListener) { db.ref('rooms/' + currentRoomId).off('value', roomListener); roomListener = null; }
+  detachRoomListener();
   showScreen('result');
   const settings = data.settings || {};
   const players  = data.players  || {};
@@ -1180,13 +1074,10 @@ function enterResultScreen(data) {
     <div class="podium-name">${escHtml(winner[1].name)}</div>
     <div class="podium-sub">${settings.mode === 'survival' ? '勝ち抜け達成！' : settings.mode === 'freecount' ? '最多正解！' : 'トップスコア！'}</div>` : '';
 
-  const medals = ['🥇','🥈','🥉'];
   document.getElementById('result-list').innerHTML = sorted.map(([pid, p], i) => {
-    const rank = i + 1;
+    const rank    = i + 1;
     const rankCls = rank <= 3 ? 'r' + rank : '';
-    const riCls   = rank <= 3 ? 'ri-' + rank : '';
-    const rankDisplay = rank <= 3 ? medals[rank-1] : rank;
-    let scoreStr = '';
+    let scoreStr  = '';
     if (settings.mode === 'newyork') {
       const sc = (p.correct * settings.x) - (p.wrong * settings.y);
       scoreStr = `<span class="result-score">${sc >= 0 ? '+' : ''}${sc}pt</span>`;
@@ -1196,9 +1087,9 @@ function enterResultScreen(data) {
       scoreStr = `<span class="result-score">${p.status === 'winner' ? '✅ WIN' : p.status === 'eliminated' ? '❌ OUT' : '—'}</span>`;
     }
     return `
-      <div class="result-item ${riCls}">
-        <div class="result-rank ${rankCls}">${rankDisplay}</div>
-        <div class="result-name">${escHtml(p.name)}${pid === myPlayerId ? ' <span style="color:var(--cyan);font-size:0.72rem;">(You)</span>' : ''}</div>
+      <div class="result-item">
+        <div class="result-rank ${rankCls}">${rank}</div>
+        <div class="result-name">${escHtml(p.name)}${pid === myPlayerId ? ' <span style="color:var(--cyan);font-size:0.75rem;">(You)</span>' : ''}</div>
         <div class="result-stats">${p.correct}○ ${p.wrong}×</div>
         ${scoreStr}
       </div>`;
@@ -1223,29 +1114,12 @@ function buildResultRanking(players, settings) {
   });
 }
 
-function backToTop() {
-  if (roomListener && currentRoomId) {
-    db.ref('rooms/' + currentRoomId).off('value', roomListener);
-    roomListener = null;
-  }
-  if (db && currentRoomId && myPlayerId) {
-    const myRef = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
-    myRef.child('online').onDisconnect().cancel();
-    myRef.child('lastActive').onDisconnect().cancel();
-  }
-  currentRoomId = null;
-  gameSettings  = null;
-  lastAction    = null;
-  window.history.replaceState({}, '', '/');
-  showScreen('top');
-}
-
+// ── XSS ────────────────────────────────────────────────────────
 function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── Key shortcuts ──────────────────────────────────────────────
 document.getElementById('input-roomid').addEventListener('keydown', e => { if (e.key === 'Enter') handleJoin(); });
 document.getElementById('input-name').addEventListener('keydown',   e => { if (e.key === 'Enter') document.getElementById('input-roomid').focus(); });
 </script>
