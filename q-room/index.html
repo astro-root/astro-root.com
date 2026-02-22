@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Q-Room</title>
+<title>Q-Room - 多機能オンラインクイズシステム</title>
+<meta name="description" content="Q-Roomは、リアルタイムで進行する多機能なオンラインクイズシステムです。サバイバルやアップダウンなど様々なルールの部屋を作成し、オンラインでみんなとクイズ対戦を楽しめます。">
+<link rel="canonical" href="https://astro-root.com/q-room/">
+<meta property="og:title" content="Q-Room | Advanced Quiz System">
+<meta property="og:description" content="リアルタイムで進行する多機能なオンラインクイズシステム。様々なルールのクイズ部屋を作成・参加できます。">
+<meta property="og:url" content="https://astro-root.com/q-room/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Q-Room">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -25,12 +33,13 @@
   --font-mono: 'JetBrains Mono', monospace;
   --glass-blur: blur(24px);
 }
-html, body { height: 100%; }
+html, body { min-height: 100vh; }
 body {
   background-color: var(--bg-color);
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 90% 90%, rgba(225, 29, 72, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-ja);
   display: flex;
@@ -46,7 +55,7 @@ body {
   min-height: 100vh;
   position: relative; 
   z-index: 1; 
-  background: rgba(9, 9, 11, 0.6);
+  background: var(--bg-color);
   box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 2px rgba(255,255,255,0.05);
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -55,7 +64,7 @@ body {
 #screen-top, #screen-result { padding: 0 0 80px; }
 #screen-room { height: 100vh; padding: 0; overflow: hidden; }
 @media (max-width: 540px) {
-  .screen { box-shadow: none; background: transparent; }
+  .screen { box-shadow: none; }
 }
 .scroll-area {
   flex: 1; overflow-y: auto; overflow-x: hidden;
@@ -92,7 +101,7 @@ input:focus, select:focus, textarea:focus {
   transform: translateY(-2px);
 }
 select { cursor: pointer; }
-select option { background-color: #18181b; color: #f4f4f5; }
+select option { background-color: var(--bg-color); color: var(--text-main); }
 .row { display: flex; gap: 16px; }
 .btn-gen {
   padding: 0 24px; background: var(--surface-color); border: 1px solid var(--border-color);
@@ -176,9 +185,10 @@ select option { background-color: #18181b; color: #f4f4f5; }
 .st-win { color: var(--green); font-size: 0.9rem; letter-spacing: 0.15em; text-shadow: 0 0 12px rgba(16,185,129,0.5); }
 .st-lose { color: var(--red); font-size: 0.9rem; letter-spacing: 0.15em; }
 .action-panel {
-  background: rgba(9, 9, 11, 0.9); border-top: 1px solid var(--border-color); padding: 28px;
-  flex-shrink: 0; padding-bottom: max(28px, env(safe-area-inset-bottom)); backdrop-filter: blur(30px); z-index: 10;
+  background: var(--bg-color); border-top: 1px solid var(--border-color); padding: 28px;
+  flex-shrink: 0; padding-bottom: max(28px, env(safe-area-inset-bottom)); z-index: 10;
   box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+  position: relative;
 }
 .ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
 .ox-btn {
