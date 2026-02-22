@@ -5,562 +5,274 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Q-ROOM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+JP:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --bg:    #05050a;
-  --s1:    #0d0d18;
-  --s2:    #13131f;
-  --s3:    #1a1a2a;
-  --lime:  #d4ff00;
-  --go:    #00ff88;
-  --stop:  #ff3030;
-  --amber: #ffaa00;
-  --text:  #eeeeee;
-  --t2:    #888899;
-  --muted: #333348;
-  --rule:  rgba(212,255,0,0.15);
-  --fd:    'Bebas Neue', sans-serif;
-  --fm:    'JetBrains Mono', monospace;
-  --fb:    'Sora', sans-serif;
+  --bg: #09090e;
+  --surface: #14141e;
+  --surface2: #1f1f2e;
+  --border: rgba(255, 255, 255, 0.08);
+  --cyan: #00e5ff;
+  --magenta: #ff007f;
+  --green: #00ff88;
+  --red: #ff3366;
+  --yellow: #ffcc00;
+  --text: #f0f0f5;
+  --muted: #888899;
+  --font-en: 'Orbitron', sans-serif;
+  --font-ja: 'Noto Sans JP', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
-
 html, body { height: 100%; }
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at 15% 50%, rgba(0, 229, 255, 0.04), transparent 25%),
+                    radial-gradient(circle at 85% 30%, rgba(255, 0, 127, 0.04), transparent 25%);
   color: var(--text);
-  font-family: var(--fb);
-  min-height: 100%;
+  font-family: var(--font-ja);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow-x: hidden;
 }
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at -10% -10%, rgba(212,255,0,0.04) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 110% 110%, rgba(0,255,136,0.03) 0%, transparent 50%);
-  pointer-events: none; z-index: 0;
-}
-
-/* ── Screens ── */
 .screen {
-  display: none; width: 100%; max-width: 480px;
-  padding: 0 0 80px; position: relative; z-index: 1;
+  display: none; width: 100%; max-width: 500px;
+  position: relative; z-index: 1; padding: 0 0 80px;
 }
 .screen.active { display: block; }
-
 #screen-room {
   position: fixed; inset: 0; left: 50%; transform: translateX(-50%);
-  max-width: 480px; width: 100%; padding: 0;
+  max-width: 500px; width: 100%; padding: 0;
   display: none; flex-direction: column; overflow: hidden; z-index: 1;
 }
 #screen-room.active { display: flex; }
-.room-fixed-top  { flex-shrink: 0; }
-.room-scroll-area {
+.scroll-area {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin; scrollbar-color: var(--muted) transparent;
 }
-.room-fixed-bottom {
-  flex-shrink: 0;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-}
-
-/* ── TOP PAGE ── */
-.top-hero {
-  padding: 44px 22px 28px;
-  border-bottom: 2px solid var(--rule);
-  position: relative; overflow: hidden;
-}
-.top-hero::after {
-  content: 'Q';
-  position: absolute; right: -4vw; top: -6vw;
-  font-family: var(--fd); font-size: min(55vw, 280px);
-  color: rgba(212,255,0,0.03); line-height: 1;
-  pointer-events: none; user-select: none;
+.hero {
+  padding: 50px 20px 30px; text-align: center;
 }
 .logo {
-  font-family: var(--fd);
-  font-size: clamp(4rem, 19vw, 7rem);
-  color: var(--lime); letter-spacing: 0.06em; line-height: 0.9;
+  font-family: var(--font-en); font-size: 3.5rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--cyan), var(--magenta));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 0.05em; margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(0,229,255,0.3));
 }
 .logo-sub {
-  font-family: var(--fd);
-  font-size: clamp(0.95rem, 3.5vw, 1.5rem);
-  color: var(--t2); letter-spacing: 0.3em; margin-top: 6px;
+  font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); letter-spacing: 0.2em;
 }
-
-.top-form { padding: 24px 20px 0; }
-.field { margin-bottom: 18px; }
+.form-wrap { padding: 0 24px; }
+.field { margin-bottom: 20px; }
 label {
-  display: block;
-  font-family: var(--fm); font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--lime); margin-bottom: 8px;
+  display: block; font-family: var(--font-mono); font-size: 0.7rem; color: var(--cyan);
+  margin-bottom: 8px; letter-spacing: 0.1em;
 }
-input[type="text"], input[type="number"] {
-  width: 100%; padding: 13px 14px;
-  background: var(--s2); border: 2px solid var(--muted); border-radius: 0;
-  color: var(--text); font-family: var(--fb); font-size: 1rem; font-weight: 600;
-  outline: none; transition: border-color 0.15s; -webkit-appearance: none;
+input[type="text"], input[type="number"], select {
+  width: 100%; padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: var(--font-mono); font-size: 1rem;
+  outline: none; transition: all 0.2s; appearance: none;
 }
-input[type="text"]:focus, input[type="number"]:focus { border-color: var(--lime); }
-input::placeholder { color: var(--muted); font-weight: 300; }
-
-.room-id-row { display: flex; }
-.room-id-row input {
-  flex: 1; border-right: none;
-  font-family: var(--fm); font-size: 1.4rem; font-weight: 700;
-  letter-spacing: 0.32em;
+input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,229,255,0.2); }
+.row { display: flex; gap: 10px; }
+.btn-gen {
+  padding: 0 20px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; color: var(--text); font-size: 1.2rem; transition: 0.2s;
 }
-.gen-btn {
-  padding: 0 18px; background: var(--s3);
-  border: 2px solid var(--muted); border-left: none;
-  color: var(--t2); cursor: pointer; font-size: 1.2rem; flex-shrink: 0;
-  transition: all 0.15s;
-}
-.gen-btn:hover { background: var(--lime); color: #000; border-color: var(--lime); }
-
-.error-msg {
-  font-family: var(--fm); font-size: 0.7rem; color: var(--stop);
-  margin-bottom: 12px; display: none; padding: 8px 12px;
-  background: rgba(255,48,48,0.07); border-left: 3px solid var(--stop);
-}
-
+.btn-gen:hover { border-color: var(--cyan); color: var(--cyan); }
 .btn {
-  display: block; width: 100%; padding: 15px;
-  border: none; border-radius: 0; cursor: pointer;
-  font-family: var(--fd); font-size: 1.05rem; letter-spacing: 0.14em;
-  transition: all 0.12s; margin-bottom: 0;
+  width: 100%; padding: 16px; border: none; border-radius: 8px; cursor: pointer;
+  font-family: var(--font-en); font-weight: 700; font-size: 1rem; letter-spacing: 0.1em;
+  transition: all 0.2s; position: relative; overflow: hidden;
 }
-.btn:active { opacity: 0.85; }
-.btn-primary { background: var(--lime); color: #000; }
-.btn-primary:hover { background: #e8ff22; }
-.btn-secondary { background: transparent; border: 2px solid var(--muted); color: var(--t2); }
-.btn-secondary:hover { border-color: var(--t2); color: var(--text); }
-
-.divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 14px 0;
-  color: var(--muted); font-family: var(--fm); font-size: 0.62rem; letter-spacing: 0.15em;
+.btn:active { transform: scale(0.98); }
+.btn-pri { background: linear-gradient(90deg, var(--cyan), #0077ff); color: #000; box-shadow: 0 4px 15px rgba(0,229,255,0.3); }
+.btn-sec { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-sec:hover { border-color: var(--magenta); color: var(--magenta); }
+.btn-warn { background: rgba(255,51,102,0.1); border: 1px solid var(--red); color: var(--red); }
+.err {
+  color: var(--red); font-size: 0.8rem; padding: 10px; background: rgba(255,51,102,0.1);
+  border-radius: 6px; margin-bottom: 15px; display: none; text-align: center;
 }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--muted); }
-
-.config-notice {
-  margin: 20px 20px 0; padding: 12px 14px;
-  border-left: 3px solid var(--amber);
-  background: rgba(255,170,0,0.05);
-  font-family: var(--fm); font-size: 0.7rem; color: var(--amber);
-  line-height: 1.6; display: none;
+.header {
+  background: rgba(20,20,30,0.9); backdrop-filter: blur(10px);
+  padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
-.config-notice.visible { display: block; }
-.config-notice strong { display: block; margin-bottom: 3px; }
-
-/* ── GAME HEADER ── */
-.game-header {
-  background: var(--s1); border-bottom: 2px solid var(--rule);
-  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+.room-info { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.room-info span { color: var(--cyan); font-size: 1rem; font-weight: 700; margin-left: 5px; }
+.rule-badge {
+  font-size: 0.7rem; padding: 4px 8px; background: rgba(255,0,127,0.1);
+  border: 1px solid var(--magenta); border-radius: 4px; color: var(--magenta);
 }
-.room-badge {
-  font-family: var(--fm); font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.14em; color: var(--t2);
+.h-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+  padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
 }
-.room-badge span { color: var(--lime); font-size: 0.82rem; }
-.mode-tag {
-  font-family: var(--fm); font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.07em; padding: 4px 10px;
-  background: rgba(212,255,0,0.07); border: 1px solid rgba(212,255,0,0.2);
-  color: var(--lime); text-transform: uppercase;
-}
-.header-actions { margin-left: auto; display: flex; gap: 6px; }
-.hbtn {
-  padding: 7px 12px; background: transparent;
-  border: 1px solid var(--muted); color: var(--t2);
-  font-family: var(--fm); font-size: 0.65rem; letter-spacing: 0.06em;
-  cursor: pointer; transition: all 0.15s;
-}
-.hbtn:hover { border-color: var(--lime); color: var(--lime); }
-
-/* ── PLAYER CARDS ── */
-.player-list { padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
+.plist { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .pcard {
-  display: flex; align-items: center; gap: 11px;
-  padding: 11px 12px;
-  background: var(--s2); border: 1px solid var(--muted);
-  border-left: 4px solid var(--muted);
-  transition: all 0.2s;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; display: flex; align-items: center; gap: 16px; transition: 0.3s;
+  position: relative; overflow: hidden;
 }
-.pcard-me     { border-left-color: var(--lime); background: rgba(212,255,0,0.025); }
-.pcard-winner { border-left-color: var(--go);   background: rgba(0,255,136,0.03); }
-.pcard-elim   { opacity: 0.38; filter: grayscale(0.7); }
-.pcard-watch  { opacity: 0.5; }
-
-.av {
-  width: 30px; height: 30px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--s3); border: 1px solid var(--muted);
-  font-family: var(--fd); font-size: 0.95rem; color: var(--t2);
+.pcard.me { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,229,255,0.1); }
+.pcard.win { border-color: var(--green); background: rgba(0,255,136,0.05); }
+.pcard.lose { opacity: 0.4; filter: grayscale(1); }
+.pcard.spec { opacity: 0.5; }
+.rank-num {
+  font-family: var(--font-en); font-size: 1.5rem; font-weight: 900; color: var(--surface2);
+  width: 30px; text-align: center;
 }
-.pcard-me .av     { border-color: var(--lime); color: var(--lime); background: rgba(212,255,0,0.06); }
-.pcard-winner .av { border-color: var(--go);   color: var(--go);   background: rgba(0,255,136,0.06); }
-
-.pcard-body { flex: 1; min-width: 0; }
-.pcard-name {
-  font-size: 0.88rem; font-weight: 700; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-  display: flex; align-items: center; gap: 6px;
+.pcard.win .rank-num { color: var(--green); }
+.p-main { flex: 1; min-width: 0; }
+.p-name { font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; }
+.badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-family: var(--font-en); font-weight: 700; }
+.b-you { background: var(--cyan); color: #000; }
+.p-stats { display: flex; gap: 12px; margin-top: 6px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.p-stats span.c { color: var(--green); font-weight: 700; }
+.p-stats span.w { color: var(--red); font-weight: 700; }
+.score-box {
+  text-align: right; display: flex; flex-direction: column; justify-content: center; align-items: flex-end;
 }
-.you-chip {
-  font-family: var(--fm); font-size: 0.52rem; font-weight: 700;
-  letter-spacing: 0.1em; color: var(--lime);
-  background: rgba(212,255,0,0.1); padding: 2px 5px; flex-shrink: 0;
-}
-.pcard-stats {
-  display: flex; gap: 10px; align-items: baseline; margin-top: 3px;
-}
-.pstat { display: flex; align-items: baseline; gap: 3px; }
-.pstat-l { font-family: var(--fm); font-size: 0.58rem; color: var(--t2); font-weight: 700; }
-.pstat-n { font-family: var(--fm); font-size: 0.95rem; font-weight: 700; line-height: 1; }
-.pstat-n.c { color: var(--go); }
-.pstat-n.w { color: var(--stop); }
-
-.score-lg {
-  font-family: var(--fd); font-size: 1.9rem; line-height: 1;
-  letter-spacing: 0.02em; margin-left: auto; flex-shrink: 0; padding-left: 8px;
-}
-.score-lg.pos { color: var(--lime); }
-.score-lg.neg { color: var(--stop); }
-.score-lg.zer { color: var(--t2); }
-
-.sbadge {
-  font-family: var(--fm); font-size: 0.52rem; font-weight: 700;
-  letter-spacing: 0.1em; padding: 3px 7px; text-transform: uppercase; flex-shrink: 0;
-}
-.sb-a { color: var(--muted); }
-.sb-w { color: var(--go);   background: rgba(0,255,136,0.08); }
-.sb-e { color: var(--stop); background: rgba(255,48,48,0.08); }
-.sb-s { color: var(--muted); }
-
-/* ── ACTION PANEL ── */
+.score-val { font-family: var(--font-en); font-size: 1.8rem; font-weight: 700; line-height: 1; }
+.score-sub { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+.st-win { color: var(--green); font-size: 0.8rem; font-weight: 700; }
+.st-lose { color: var(--red); font-size: 0.8rem; font-weight: 700; }
 .action-panel {
-  padding: 8px 12px 4px;
-  background: var(--bg); border-top: 2px solid var(--rule);
+  background: var(--surface); border-top: 1px solid var(--border); padding: 16px 20px;
+  flex-shrink: 0; padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
-.ox-row {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 7px;
-}
+.ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .ox-btn {
-  padding: 20px 0; border: none; border-radius: 0; cursor: pointer;
-  font-family: var(--fd); font-size: 2.4rem; line-height: 1;
-  transition: all 0.1s; position: relative; overflow: hidden;
+  padding: 24px 0; border: none; border-radius: 12px; font-family: var(--font-en);
+  font-size: 2.5rem; font-weight: 900; cursor: pointer; transition: 0.1s;
 }
-.ox-btn:active { transform: scale(0.96); filter: brightness(0.9); }
-.ox-correct { background: var(--go); color: #000; box-shadow: 0 4px 0 #007744; }
-.ox-correct:active { box-shadow: none; transform: translateY(4px); }
-.ox-wrong   { background: var(--stop); color: #fff; box-shadow: 0 4px 0 #881111; }
-.ox-wrong:active   { box-shadow: none; transform: translateY(4px); }
-
-.sub-row { display: flex; gap: 5px; }
+.ox-btn:active { transform: scale(0.95); }
+.btn-o { background: rgba(0,255,136,0.1); border: 2px solid var(--green); color: var(--green); }
+.btn-x { background: rgba(255,51,102,0.1); border: 2px solid var(--red); color: var(--red); }
+.btn-rest { grid-column: 1 / -1; background: var(--surface2); color: var(--yellow); border: 2px solid var(--yellow); }
+.sub-actions { display: flex; gap: 10px; }
 .sub-btn {
-  padding: 9px 12px; background: transparent;
-  border: 1px solid var(--muted); color: var(--t2);
-  font-family: var(--fm); font-size: 0.68rem; letter-spacing: 0.06em;
-  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  flex: 1; padding: 12px; background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--muted); font-size: 0.8rem; cursor: pointer; text-align: center;
 }
-.sub-btn:hover:not(:disabled) { border-color: var(--lime); color: var(--lime); }
-.sub-btn:disabled { opacity: 0.3; cursor: default; }
-.sub-btn.undo:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
-.sub-btn.leave:hover { border-color: var(--stop); color: var(--stop); }
-.sub-btn.role { flex: 1; text-align: center; }
-
-/* ── MODAL ── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.87);
-  backdrop-filter: blur(4px); z-index: 200;
-  display: none; align-items: flex-end; justify-content: center;
-  opacity: 0; transition: opacity 0.2s;
+.sub-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.sub-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+  z-index: 100; display: none; align-items: center; justify-content: center;
 }
-.modal-overlay.active { display: flex; opacity: 1; }
-.modal-sheet {
-  background: var(--s1); border-top: 3px solid var(--lime);
-  width: 100%; max-width: 480px;
-  padding: 0 0 max(24px, env(safe-area-inset-bottom));
-  max-height: 92vh; overflow-y: auto;
-  transform: translateY(100%);
-  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+.modal.active { display: flex; }
+.m-content {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative;
 }
-.modal-overlay.active .modal-sheet { transform: translateY(0); }
-.modal-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px 14px; border-bottom: 1px solid var(--muted);
+.m-close {
+  position: absolute; top: 16px; right: 16px; background: transparent; border: none;
+  color: var(--muted); font-size: 1.5rem; cursor: pointer;
 }
-.modal-title {
-  font-family: var(--fd); font-size: 1.5rem;
-  letter-spacing: 0.12em; color: var(--lime);
-}
-.modal-x {
-  width: 28px; height: 28px; background: transparent;
-  border: 1px solid var(--muted); color: var(--t2);
-  font-size: 0.85rem; cursor: pointer; display: flex;
-  align-items: center; justify-content: center; transition: all 0.15s;
-}
-.modal-x:hover { border-color: var(--stop); color: var(--stop); }
-.modal-body { padding: 18px 20px; }
-
-.share-row { display: flex; gap: 5px; margin-bottom: 18px; }
-.share-btn {
-  flex: 1; padding: 9px 4px; background: var(--s2);
-  border: 1px solid var(--muted);
-  color: var(--t2); cursor: pointer;
-  font-family: var(--fm); font-size: 0.62rem; letter-spacing: 0.07em;
-  text-transform: uppercase; transition: all 0.15s; text-align: center;
-}
-.share-btn:hover { border-color: var(--lime); color: var(--lime); }
-
-.mode-tabs { display: flex; margin-bottom: 14px; }
-.mode-tab {
-  flex: 1; padding: 9px 4px; background: var(--s2);
-  border: 1px solid var(--muted); border-right: none;
-  color: var(--t2); cursor: pointer;
-  font-family: var(--fm); font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.07em; transition: all 0.15s; text-align: center;
-}
-.mode-tab:last-child { border-right: 1px solid var(--muted); }
-.mode-tab.active { background: var(--lime); color: #000; border-color: var(--lime); }
-
-.settings-panel { display: none; }
-.settings-panel.active { display: block; }
-.settings-desc {
-  font-size: 0.73rem; color: var(--t2); line-height: 1.7;
-  margin-bottom: 12px; padding-left: 8px; border-left: 2px solid var(--muted);
-}
-.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.settings-grid .field { margin-bottom: 0; }
-.settings-grid input[type="number"] {
-  font-family: var(--fm); font-size: 1.1rem; font-weight: 700;
-}
-.modal-hr { border: none; border-top: 1px solid var(--muted); margin: 18px 0; }
-.btn-reset {
-  display: block; width: 100%; padding: 11px; margin-bottom: 7px;
-  background: transparent; border: 1px solid var(--muted);
-  color: var(--amber); font-family: var(--fm); font-size: 0.72rem;
-  letter-spacing: 0.08em; cursor: pointer; text-align: center; transition: all 0.15s;
-}
-.btn-reset:hover { border-color: var(--amber); background: rgba(255,170,0,0.05); }
-.btn-end {
-  display: block; width: 100%; padding: 13px;
-  background: var(--stop); border: none; color: #fff;
-  font-family: var(--fd); font-size: 1.1rem; letter-spacing: 0.12em;
-  cursor: pointer; text-align: center; transition: background 0.15s;
-}
-.btn-end:hover { background: #ff5555; }
-
-/* ── RESULT ── */
-.result-header {
-  padding: 30px 20px 22px; border-bottom: 2px solid var(--rule);
-}
-.result-toprow {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-}
-.result-logo {
-  font-family: var(--fd); font-size: clamp(3rem, 14vw, 5.5rem);
-  color: var(--lime); letter-spacing: 0.1em; line-height: 1;
-}
-.result-nav { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; margin-top: 6px; }
-.rnav-btn {
-  padding: 8px 12px; background: transparent;
-  border: 1px solid var(--muted); color: var(--t2);
-  font-family: var(--fm); font-size: 0.65rem; letter-spacing: 0.07em;
-  cursor: pointer; white-space: nowrap; transition: all 0.15s;
-}
-.rnav-btn:hover { border-color: var(--lime); color: var(--lime); }
-
-.winner-block {
-  margin-top: 18px; padding: 14px 16px;
-  background: rgba(0,255,136,0.03); border: 1px solid rgba(0,255,136,0.15);
-  border-left: 4px solid var(--go);
-}
-.winner-label {
-  font-family: var(--fm); font-size: 0.58rem; letter-spacing: 0.22em;
-  color: var(--go); margin-bottom: 4px; text-transform: uppercase;
-}
-.winner-name {
-  font-family: var(--fd); font-size: clamp(2rem, 9vw, 3.5rem);
-  color: var(--text); letter-spacing: 0.06em; line-height: 1;
-}
-
-.result-list-wrap { padding: 0 12px 20px; }
-.ri {
-  display: flex; align-items: center; gap: 11px;
-  padding: 11px 12px; border-bottom: 1px solid var(--muted);
-  transition: background 0.15s;
-}
-.ri:first-child { border-top: 1px solid var(--muted); margin-top: 12px; }
-.ri:hover { background: var(--s2); }
-.ri.ri-1 { background: rgba(0,255,136,0.03); }
-.ri-rank {
-  font-family: var(--fm); font-size: 0.78rem; font-weight: 700;
-  min-width: 22px; color: var(--t2);
-}
-.ri-rank.r1 { color: var(--lime); font-size: 1rem; }
-.ri-rank.r2 { color: #b0b0b0; }
-.ri-rank.r3 { color: #b07040; }
-.ri-name { flex: 1; font-weight: 700; font-size: 0.88rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ri-stats { font-family: var(--fm); font-size: 0.68rem; color: var(--t2); flex-shrink: 0; }
-.ri-score { font-family: var(--fm); font-size: 0.88rem; font-weight: 700; color: var(--lime); min-width: 52px; text-align: right; flex-shrink: 0; }
-
-/* ── TOAST ── */
+.s-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.m-title { font-family: var(--font-en); font-size: 1.2rem; color: var(--cyan); margin-bottom: 20px; }
+hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 .toast {
-  position: fixed; bottom: 28px; left: 50%;
-  transform: translateX(-50%) translateY(60px);
-  background: var(--s3); border: 1px solid var(--lime);
-  border-left: 3px solid var(--lime);
-  color: var(--text); padding: 9px 20px;
-  font-family: var(--fm); font-size: 0.75rem; letter-spacing: 0.05em;
-  opacity: 0; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  pointer-events: none; z-index: 9999; white-space: nowrap;
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+  background: var(--surface2); border: 1px solid var(--cyan); color: var(--text);
+  padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; pointer-events: none;
+  opacity: 0; transition: 0.3s; z-index: 999;
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-@media (min-width: 481px) {
-  body { padding-top: 20px; }
-  .modal-overlay { align-items: center; }
-  .modal-sheet {
-    border: 2px solid var(--lime); border-top: 3px solid var(--lime);
-    max-width: 420px;
-    transform: scale(0.95) translateY(16px);
-    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-  }
-  .modal-overlay.active .modal-sheet { transform: scale(1) translateY(0); }
-}
+.toast.show { opacity: 1; bottom: 120px; }
+.r-header { padding: 40px 20px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+.r-title { font-family: var(--font-en); font-size: 2.5rem; color: var(--yellow); font-weight: 900; }
 </style>
 </head>
 <body>
 
-<!-- TOP -->
 <div id="screen-top" class="screen active">
-  <div class="top-hero">
+  <div class="hero">
     <div class="logo">Q-ROOM</div>
-    <div class="logo-sub">REAL-TIME QUIZ BATTLE</div>
+    <div class="logo-sub">ADVANCED QUIZ SYSTEM</div>
   </div>
-
-  <div id="config-notice" class="config-notice">
-    <strong>⚠ FIREBASE 未設定</strong>
-    ファイル下部の firebaseConfig を書き換えてください。
-  </div>
-
-  <div class="top-form">
+  <div class="form-wrap">
     <div class="field">
-      <label>Your Name</label>
-      <input type="text" id="input-name" placeholder="名前を入力" maxlength="20" autocomplete="off">
+      <label>PLAYER NAME</label>
+      <input type="text" id="in-name" placeholder="名前を入力" maxlength="20" autocomplete="off">
     </div>
     <div class="field">
-      <label>Room ID &nbsp;<span style="color:var(--muted);font-weight:300;font-family:var(--fb);text-transform:none;letter-spacing:0">(空白でランダム生成)</span></label>
-      <div class="room-id-row">
-        <input type="text" id="input-roomid" placeholder="_ _ _ _ _" maxlength="5" pattern="[0-9]*" inputmode="numeric" autocomplete="off">
-        <button class="gen-btn" onclick="fillRandomRoomId()">🎲</button>
+      <label>ROOM ID (BLANK FOR RANDOM)</label>
+      <div class="row">
+        <input type="text" id="in-room" placeholder="5 digits" maxlength="5" pattern="[0-9]*" inputmode="numeric">
+        <button class="btn-gen" onclick="document.getElementById('in-room').value = String(Math.floor(10000+Math.random()*90000))">🎲</button>
       </div>
     </div>
-    <div id="top-error" class="error-msg"></div>
-    <button class="btn btn-primary" onclick="handleCreate()">CREATE ROOM</button>
-    <div class="divider">OR</div>
-    <button class="btn btn-secondary" onclick="handleJoin()">JOIN ROOM</button>
+    <div id="top-err" class="err"></div>
+    <button class="btn btn-pri" onclick="handleCreate()" style="margin-bottom:12px;">CREATE ROOM</button>
+    <button class="btn btn-sec" onclick="handleJoin()">JOIN ROOM</button>
   </div>
 </div>
 
-<!-- ROOM -->
 <div id="screen-room" class="screen">
-  <div class="room-fixed-top">
-    <div class="game-header">
-      <div class="room-badge">ROOM <span id="game-room-id-display">—</span></div>
-      <div id="mode-tag-display" class="mode-tag">—</div>
-      <div class="header-actions">
-        <button class="hbtn" onclick="openSettings()">⚙ 設定</button>
-      </div>
+  <div class="header">
+    <div class="room-info">ROOM<span id="game-rid">—</span></div>
+    <div class="rule-badge" id="game-rule">—</div>
+    <button class="h-btn" onclick="openModal()">SETTINGS</button>
+  </div>
+  <div class="scroll-area"><div id="plist" class="plist"></div></div>
+  <div class="action-panel" id="mypanel">
+    <div class="ox-grid" id="ox-grid">
+      <button class="ox-btn btn-o" onclick="sendAction('correct')">◯</button>
+      <button class="ox-btn btn-x" onclick="sendAction('wrong')">✕</button>
     </div>
-  </div>
-
-  <div class="room-scroll-area">
-    <div id="game-player-list" class="player-list"></div>
-  </div>
-
-  <div class="room-fixed-bottom">
-    <div class="action-panel">
-      <div class="ox-row" id="ox-row" style="display:none;">
-        <button class="ox-btn ox-correct" onclick="recordResult(true)">○</button>
-        <button class="ox-btn ox-wrong"   onclick="recordResult(false)">✕</button>
-      </div>
-      <div class="sub-row">
-        <button class="sub-btn undo" id="btn-undo" onclick="undoResult()" disabled>↩ UNDO</button>
-        <button class="sub-btn role" id="btn-role" onclick="toggleMyRole()">👀 観戦</button>
-        <button class="sub-btn leave" onclick="leaveRoom()">← 退室</button>
-      </div>
+    <div class="sub-actions">
+      <button class="sub-btn" id="btn-undo" onclick="reqUndo()" disabled>↩ UNDO</button>
+      <button class="sub-btn" onclick="toggleRole()" id="btn-role">👀 観戦</button>
+      <button class="sub-btn" onclick="leaveRoom()">🚪 退室</button>
     </div>
   </div>
 </div>
 
-<!-- RESULT -->
 <div id="screen-result" class="screen">
-  <div class="result-header">
-    <div class="result-toprow">
-      <div class="result-logo">RESULT</div>
-      <div class="result-nav">
-        <button class="rnav-btn" onclick="returnToRoom()">← 部屋に戻る</button>
-        <button class="rnav-btn" onclick="leaveRoom()">🏠 TOP</button>
-      </div>
-    </div>
-    <div id="winner-block"></div>
+  <div class="r-header">
+    <div class="r-title">RESULT</div>
+    <button class="sub-btn" onclick="leaveRoom()" style="margin-top:20px;">TOPへ戻る</button>
   </div>
-  <div id="result-list-wrap" class="result-list-wrap"></div>
+  <div class="scroll-area"><div id="rlist" class="plist"></div></div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div id="settings-modal" class="modal-overlay" onclick="handleModalBg(event)">
-  <div class="modal-sheet">
-    <div class="modal-head">
-      <div class="modal-title">SETTINGS</div>
-      <button class="modal-x" onclick="closeSettings()">✕</button>
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+  <div class="m-content">
+    <button class="m-close" onclick="closeModal()">✕</button>
+    <div class="m-title">ROOM SETTINGS</div>
+    
+    <div class="field">
+      <label>RULE</label>
+      <select id="sel-rule" onchange="changeRuleUI()">
+        <option value="survival">m◯n× (Survival)</option>
+        <option value="rentou">連答付き (m◯n×)</option>
+        <option value="updown">up-down</option>
+        <option value="by">by</option>
+        <option value="freeze">Freeze</option>
+        <option value="m_n_rest">m◯n休</option>
+        <option value="swedish">Swedish</option>
+        <option value="ren_wrong">連誤答付き</option>
+        <option value="divide">divide</option>
+        <option value="combo">m hits Combo</option>
+        <option value="attack_surv">アタック風サバイバル</option>
+        <option value="lucky">LuckyShot</option>
+        <option value="spiral">螺旋階段</option>
+      </select>
     </div>
-    <div class="modal-body">
-      <div class="share-row">
-        <button class="share-btn" onclick="copyLink()">🔗 URL</button>
-        <button class="share-btn" onclick="copyRoomId()">📋 ID</button>
-        <button class="share-btn" onclick="shareNative()">📤 シェア</button>
-      </div>
 
-      <div class="mode-tabs">
-        <button class="mode-tab active" id="tab-survival"  onclick="updateMode('survival')">m◯n×</button>
-        <button class="mode-tab"        id="tab-newyork"   onclick="updateMode('newyork')">NY</button>
-        <button class="mode-tab"        id="tab-freecount" onclick="updateMode('freecount')">FREE</button>
-      </div>
+    <div id="config-area"></div>
 
-      <div id="panel-survival" class="settings-panel active">
-        <div class="settings-desc">m問正解で勝ち抜け・n問誤答で失格。</div>
-        <div class="settings-grid">
-          <div class="field"><label>m (勝ち抜け)</label><input type="number" id="set-m" value="3" min="1" max="99" onchange="updateSettings()"></div>
-          <div class="field"><label>n (失格)</label><input type="number" id="set-n" value="2" min="1" max="99" onchange="updateSettings()"></div>
-        </div>
-      </div>
-      <div id="panel-newyork" class="settings-panel">
-        <div class="settings-desc">正解+x pt / 誤答−y pt。ホストが終了するまで継続。</div>
-        <div class="settings-grid">
-          <div class="field"><label>x (正解pt)</label><input type="number" id="set-x" value="10" min="1" max="999" onchange="updateSettings()"></div>
-          <div class="field"><label>y (誤答−)</label><input type="number" id="set-y" value="5" min="0" max="999" onchange="updateSettings()"></div>
-        </div>
-      </div>
-      <div id="panel-freecount" class="settings-panel">
-        <div class="settings-desc">勝ち抜け・失格なし。正解数と誤答数をカウントするだけ。フリバ・練習用。終了時に正解数順でランキング表示。</div>
-      </div>
-
-      <div class="modal-hr"></div>
-      <button class="btn-reset" onclick="resetPoints()">🔄 全員のポイントをリセット</button>
-      <button class="btn-end"   onclick="endGame()">FINISH GAME</button>
+    <hr>
+    <div class="s-grid">
+      <button class="sub-btn" onclick="copyUrl()">🔗 URLコピー</button>
+      <button class="sub-btn" onclick="copyId()">📋 IDコピー</button>
     </div>
+    <button class="btn btn-sec" onclick="resetPoints()" style="margin-bottom:10px;">🔄 RESET SCORES</button>
+    <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
   </div>
 </div>
 
@@ -570,365 +282,353 @@ input::placeholder { color: var(--muted); font-weight: 300; }
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <script>
 const firebaseConfig = {
-  apiKey:            "AIzaSyA3xtGLVJwij2BTiiOk7DsNeF9hIOuZCyI",
-  authDomain:        "q-room-fe8a6.firebaseapp.com",
-  databaseURL:       "https://q-room-fe8a6-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:         "q-room-fe8a6",
-  storageBucket:     "q-room-fe8a6.firebasestorage.app",
+  apiKey: "AIzaSyA3xtGLVJwij2BTiiOk7DsNeF9hIOuZCyI",
+  authDomain: "q-room-fe8a6.firebaseapp.com",
+  databaseURL: "https://q-room-fe8a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "q-room-fe8a6",
+  storageBucket: "q-room-fe8a6.firebasestorage.app",
   messagingSenderId: "151049149394",
-  appId:             "1:151049149394:web:7a3ea6406454f6a87d460b"
+  appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
 };
 
-// Firebase は Create/Join ボタンを押すまで初期化しない
-// .once()/.on() 初回呼出でWebSocket接続が確立されるため
-// トップページを開いただけでは一切接続しない
-let db = null;
-function ensureFirebase() {
-  if (db) return true;
-  try {
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    return true;
-  } catch(e) {
-    document.getElementById('config-notice').classList.add('visible');
-    return false;
-  }
+let db = null, myId = null, rId = null, rRef = null, rCb = null;
+let roomData = null;
+
+const DEF_CONF = {
+  survival: {m:3, n:2}, rentou: {m:10, n:3}, updown: {m:10, n:3},
+  by: {m:10, n:3}, freeze: {m:10, n:3}, m_n_rest: {m:10, n:2},
+  swedish: {m:10, n:10}, ren_wrong: {m:10, n:3},
+  divide: {init:10, add:10, win:100}, combo: {win:50},
+  attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
+  lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3}
+};
+
+window.onload = () => {
+  const m = window.location.pathname.match(/\/q-room\/(\d{5})/);
+  if(m) document.getElementById('in-room').value = m[1];
+};
+
+function initFB() {
+  if(!db){ firebase.initializeApp(firebaseConfig); db = firebase.database(); }
 }
-
-let myPlayerId = null, currentRoomId = null;
-let roomRef = null, roomCallback = null;
-let currentMode = 'survival', gameSettings = null, lastAction = null;
-
-window.addEventListener('DOMContentLoaded', () => checkUrlParams());
-
-function getOrCreatePlayerId() {
-  let id = localStorage.getItem('qroom_pid');
-  if (!id) { id = 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); localStorage.setItem('qroom_pid', id); }
+function getMyId() {
+  let id = localStorage.getItem('qr_id');
+  if(!id){ id = 'p_'+Date.now().toString(36); localStorage.setItem('qr_id',id); }
   return id;
 }
-function randomRoomId() { return String(Math.floor(10000 + Math.random() * 90000)); }
-function fillRandomRoomId() { document.getElementById('input-roomid').value = randomRoomId(); }
-
-function showError(id, msg) {
-  const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 4000);
-}
-function showToast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-  window.scrollTo(0, 0);
-}
-function avatarLetter(n) { return (n || '?')[0].toUpperCase(); }
-
-function checkUrlParams() {
-  const pr = window.location.pathname.replace(/\//g, '');
-  const rid = pr || new URLSearchParams(window.location.search).get('room');
-  if (rid && /^\d{5}$/.test(rid)) document.getElementById('input-roomid').value = rid;
-}
-
-function selectModeUI(mode) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-  const tab = document.getElementById('tab-' + mode); if (tab) tab.classList.add('active');
-  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
-  const panel = document.getElementById('panel-' + mode); if (panel) panel.classList.add('active');
-}
-async function updateMode(mode) {
-  selectModeUI(mode);
-  if (db && currentRoomId) await db.ref(`rooms/${currentRoomId}/settings/mode`).set(mode);
-}
-async function updateSettings() {
-  if (!db || !currentRoomId) return;
-  await db.ref(`rooms/${currentRoomId}/settings`).update({
-    m: parseInt(document.getElementById('set-m').value) || 3,
-    n: parseInt(document.getElementById('set-n').value) || 2,
-    x: parseInt(document.getElementById('set-x').value) || 10,
-    y: parseInt(document.getElementById('set-y').value) || 5,
-  });
-}
-
-function setupPresence() {
-  if (!db || !currentRoomId || !myPlayerId) return;
-  const ref = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
-  ref.child('online').set(true);
-  ref.child('lastActive').set(firebase.database.ServerValue.TIMESTAMP);
-  ref.child('online').onDisconnect().set(false);
-  ref.child('lastActive').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-}
-
-async function cleanupOldRooms() {
-  if (!db) return;
-  try {
-    const snap = await db.ref('rooms').once('value');
-    const rooms = snap.val() || {}, now = Date.now();
-    for (const [rid, room] of Object.entries(rooms)) {
-      const pl = room.players || {};
-      if (Object.values(pl).some(p => p.online)) continue;
-      let last = room.createdAt || 0;
-      for (const p of Object.values(pl)) if ((p.lastActive || 0) > last) last = p.lastActive;
-      if (now - last > 5 * 60 * 1000) await db.ref('rooms/' + rid).remove();
-    }
-  } catch(e) { console.warn('cleanup', e); }
-}
-
-function detachListener() {
-  if (roomRef && roomCallback) { roomRef.off('value', roomCallback); roomRef = null; roomCallback = null; }
-}
+function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
+function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
 
 async function handleCreate() {
-  if (!ensureFirebase()) return;
-  const name = document.getElementById('input-name').value.trim();
-  const rid  = document.getElementById('input-roomid').value.trim();
-  if (!name) { showError('top-error', '名前を入力してください'); return; }
-  let roomId = rid || randomRoomId();
-  if (roomId.length !== 5 || !/^\d+$/.test(roomId)) { showError('top-error', 'Room IDは5桁の数字で入力してください'); return; }
-  await cleanupOldRooms();
-  if ((await db.ref('rooms/' + roomId).once('value')).exists()) { showError('top-error', 'そのRoom IDはすでに使用中です'); return; }
-  myPlayerId = getOrCreatePlayerId(); currentRoomId = roomId;
-  await db.ref('rooms/' + roomId).set({
-    hostId: myPlayerId, status: 'playing',
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
-    settings: { mode: 'survival', m: 3, n: 2, x: 10, y: 5 },
-    players: { [myPlayerId]: { name, correct: 0, wrong: 0, status: 'active',
-      joinedAt: firebase.database.ServerValue.TIMESTAMP, online: true,
-      lastActive: firebase.database.ServerValue.TIMESTAMP } }
+  initFB();
+  const n = document.getElementById('in-name').value.trim();
+  const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
+  if(!n) return err('名前を入力してください');
+  if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
+  const s = await db.ref('rooms/'+r).once('value');
+  if(s.exists()) return err('そのIDは使用中です');
+  
+  myId = getMyId(); rId = r;
+  await db.ref('rooms/'+r).set({
+    status: 'playing', rule: 'survival', conf: DEF_CONF.survival, hist: [],
+    players: { [myId]: newPlayer(n) }
   });
-  setupPresence(); updateUrl(roomId); enterRoom(roomId);
+  enterRoom();
 }
 
 async function handleJoin() {
-  if (!ensureFirebase()) return;
-  const name   = document.getElementById('input-name').value.trim();
-  const roomId = document.getElementById('input-roomid').value.trim();
-  if (!name)   { showError('top-error', '名前を入力してください'); return; }
-  if (!roomId) { showError('top-error', 'Room IDを入力してください'); return; }
-  if (roomId.length !== 5 || !/^\d+$/.test(roomId)) { showError('top-error', 'Room IDは5桁の数字で入力してください'); return; }
-  const snap = await db.ref('rooms/' + roomId).once('value');
-  if (!snap.exists()) { showError('top-error', 'Room ' + roomId + ' が見つかりません'); return; }
-  const room = snap.val();
-  myPlayerId = getOrCreatePlayerId();
-  if (!(room.players && room.players[myPlayerId])) {
-    await db.ref('rooms/' + roomId + '/players/' + myPlayerId).set({ name, correct: 0, wrong: 0, status: 'active',
-      joinedAt: firebase.database.ServerValue.TIMESTAMP, online: true, lastActive: firebase.database.ServerValue.TIMESTAMP });
-  } else {
-    await db.ref(`rooms/${roomId}/players/${myPlayerId}`).update({ online: true, lastActive: firebase.database.ServerValue.TIMESTAMP });
-  }
-  currentRoomId = roomId; setupPresence(); updateUrl(roomId);
-  if (room.status === 'finished') enterResultScreen(room); else enterRoom(roomId);
+  initFB();
+  const n = document.getElementById('in-name').value.trim();
+  const r = document.getElementById('in-room').value.trim();
+  if(!n) return err('名前を入力してください');
+  if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
+  const s = await db.ref('rooms/'+r).once('value');
+  if(!s.exists()) return err('部屋が見つかりません');
+  
+  myId = getMyId(); rId = r;
+  const p = s.val().players || {};
+  if(!p[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
+  enterRoom();
 }
 
-function updateUrl(r) { window.history.replaceState({}, '', window.location.origin + '/' + r); }
-function getRoomUrl() { return window.location.origin + '/' + currentRoomId; }
-function copyLink()   { navigator.clipboard.writeText(getRoomUrl()).then(() => showToast('🔗 URLをコピーしました')); }
-function copyRoomId() { navigator.clipboard.writeText(currentRoomId).then(() => showToast('📋 Room IDをコピーしました')); }
-function shareNative() {
-  if (navigator.share) navigator.share({ title: 'Q-Room', text: 'Room: ' + currentRoomId, url: getRoomUrl() });
-  else copyLink();
+function newPlayer(name) {
+  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now() };
+}
+
+function enterRoom() {
+  window.history.replaceState({},'','/q-room/'+rId);
+  document.getElementById('game-rid').innerText = rId;
+  show('room');
+  if(rRef) rRef.off('value', rCb);
+  rRef = db.ref('rooms/'+rId);
+  rCb = rRef.on('value', snap => {
+    roomData = snap.val();
+    if(!roomData) return leaveRoom();
+    if(roomData.status === 'finished') return renderResult();
+    
+    const r = roomData.rule;
+    document.getElementById('sel-rule').value = r;
+    document.getElementById('game-rule').innerText = document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text;
+    changeRuleUI(true);
+    renderPlayers();
+    
+    document.getElementById('btn-undo').disabled = !(roomData.hist && roomData.hist.length > 0);
+  });
 }
 
 function leaveRoom() {
-  if (db && currentRoomId && myPlayerId) db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`).remove();
-  backToTop();
+  if(rRef) rRef.off('value', rCb);
+  window.history.replaceState({},'','/q-room/');
+  window.location.href = 'https://astro-root.com/q-room/';
 }
-function backToTop() {
-  detachListener();
-  if (db && currentRoomId && myPlayerId) {
-    const r = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}`);
-    r.child('online').onDisconnect().cancel(); r.child('lastActive').onDisconnect().cancel();
+
+function openModal(){ document.getElementById('modal').classList.add('active'); }
+function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
+
+function changeRuleUI(skipRender=false) {
+  const r = document.getElementById('sel-rule').value;
+  const c = (roomData && roomData.rule === r) ? roomData.conf : DEF_CONF[r];
+  let h = '';
+  const mkn = (id,lbl,v) => `<div class="field"><label>${lbl}</label><input type="number" id="c_${id}" value="${v}"></div>`;
+  
+  if(r==='survival'||r==='rentou'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
+  else if(r==='by') h = `<div class="s-grid">${mkn('m','初期誤答pt/定数',c.m)}${mkn('n','失格回数',c.n)}</div>`;
+  else if(r==='freeze'||r==='m_n_rest') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n',r==='freeze'?'失格':'休み数',c.n)}</div>`;
+  else if(r==='swedish') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格×数',c.n)}</div>`;
+  else if(r==='divide') h = `<div class="s-grid">${mkn('init','初期値',c.init)}${mkn('add','正解加点',c.add)}</div><div class="field">${mkn('win','勝ち抜け',c.win)}</div>`;
+  else if(r==='combo') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}</div>`;
+  else if(r==='attack_surv') h = `<div class="s-grid">${mkn('life','初期ライフ',c.life)}${mkn('dmg_to_oth','自正解時他減',c.dmg_to_oth)}${mkn('heal','自正解時自加',c.heal)}${mkn('dmg_to_me','自誤時自減',c.dmg_to_me)}</div><div class="field">${mkn('surv','終了人数',c.surv)}</div>`;
+  else if(r==='lucky') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div><div class="field">${mkn('max','乱数最大',c.max)}</div>`;
+  else if(r==='spiral') h = `<div class="s-grid">${mkn('up','正解上昇',c.up)}${mkn('down','誤答下降',c.down)}${mkn('top_req','最上位要正解',c.top_req)}${mkn('btm_req','最下位要誤答',c.btm_req)}</div>`;
+  
+  document.getElementById('config-area').innerHTML = h;
+  if(!skipRender && roomData && r !== roomData.rule) {
+    db.ref('rooms/'+rId).update({rule: r, conf: DEF_CONF[r]});
   }
-  if (db) { db.goOffline(); db = null; }
-  currentRoomId = null; gameSettings = null; lastAction = null;
-  window.history.replaceState({}, '', '/');
-  showScreen('top');
 }
 
-function openSettings()  { document.getElementById('settings-modal').classList.add('active'); }
-function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
-function handleModalBg(e) { if (e.target === document.getElementById('settings-modal')) closeSettings(); }
+function updateConf() {
+  if(!roomData) return;
+  const r = document.getElementById('sel-rule').value;
+  let nc = {};
+  document.querySelectorAll('#config-area input').forEach(el => nc[el.id.replace('c_','')] = parseInt(el.value)||0);
+  if(Object.keys(nc).length > 0) db.ref(`rooms/${rId}/conf`).update(nc);
+}
 
-function enterRoom(roomId) {
-  showScreen('room');
-  document.getElementById('game-room-id-display').textContent = roomId;
-  detachListener();
-  roomRef = db.ref('rooms/' + roomId);
-  roomCallback = roomRef.on('value', snap => {
-    const data = snap.val();
-    if (!data) { showToast('ルームが削除されました'); backToTop(); return; }
-    if (data.status === 'finished') { enterResultScreen(data); return; }
-    gameSettings = data.settings;
-    if (data.settings) {
-      const s = data.settings;
-      if (document.activeElement !== document.getElementById('set-m')) document.getElementById('set-m').value = s.m;
-      if (document.activeElement !== document.getElementById('set-n')) document.getElementById('set-n').value = s.n;
-      if (document.activeElement !== document.getElementById('set-x')) document.getElementById('set-x').value = s.x;
-      if (document.activeElement !== document.getElementById('set-y')) document.getElementById('set-y').value = s.y;
-      if (currentMode !== s.mode) selectModeUI(s.mode);
-    }
-    renderGameScreen(data);
+function sortPlayers(pl, rule) {
+  return Object.entries(pl).sort((a,b) => {
+    const p1=a[1], p2=b[1];
+    const rs = v=>v==='win'?0:v==='active'?1:v==='lose'?2:3;
+    if(rs(p1.st) !== rs(p2.st)) return rs(p1.st) - rs(p2.st);
+    let m1=p1.sc, m2=p2.sc;
+    if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(rule)){ m1=p1.c; m2=p2.c; }
+    else if(rule==='by') { m1=p1.sc; m2=p2.sc; }
+    if(m1 !== m2) return m2 - m1;
+    if(p1.w !== p2.w) return p1.w - p2.w;
+    return p2.joined - p1.joined;
   });
 }
 
-function renderGameScreen(data) {
-  const s  = data.settings || {}, pl = data.players || {};
-  const sorted = sortPlayers(pl, s);
-  document.getElementById('mode-tag-display').textContent =
-    s.mode === 'survival' ? `m◯n×  ${s.m}○ ${s.n}×`
-    : s.mode === 'newyork' ? `NY +${s.x}/-${s.y}` : 'FREE';
-
-  document.getElementById('game-player-list').innerHTML = sorted.map(([pid, p]) => {
-    const isMe = pid === myPlayerId, isSp = p.status === 'spectator';
-    const cls  = p.status === 'winner' ? 'pcard-winner' : p.status === 'eliminated' ? 'pcard-elim'
-      : isSp ? 'pcard-watch' : isMe ? 'pcard-me' : '';
-    const sbc  = p.status === 'winner' ? 'sb-w' : p.status === 'eliminated' ? 'sb-e' : isSp ? 'sb-s' : 'sb-a';
-    const sbl  = p.status === 'winner' ? 'WIN' : p.status === 'eliminated' ? 'OUT' : isSp ? 'WATCH' : 'ACTIVE';
-
-    let body = '';
-    if (!isSp) {
-      if (s.mode === 'newyork') {
-        const sc = (p.correct * s.x) - (p.wrong * s.y);
-        body = `<div class="pcard-stats">
-          <div class="pstat"><span class="pstat-l">○</span><span class="pstat-n c">${p.correct}</span></div>
-          <div class="pstat"><span class="pstat-l">✕</span><span class="pstat-n w">${p.wrong}</span></div>
-        </div><div class="score-lg ${sc>0?'pos':sc<0?'neg':'zer'}">${sc>0?'+':''}${sc}</div>`;
-      } else {
-        body = `<div class="pcard-stats">
-          <div class="pstat"><span class="pstat-l">○</span><span class="pstat-n c">${p.correct}</span></div>
-          <div class="pstat"><span class="pstat-l">✕</span><span class="pstat-n w">${p.wrong}</span></div>
-        </div>`;
-      }
-    }
-
-    return `<div class="pcard ${cls}">
-      <div class="av"${isSp?' style="opacity:0.35"':''}>${avatarLetter(p.name)}</div>
-      <div class="pcard-body">
-        <div class="pcard-name">${escHtml(p.name)}${isMe?'<span class="you-chip">YOU</span>':''}</div>
-        ${body}
+function renderPlayers() {
+  const pl = roomData.players || {};
+  const r = roomData.rule;
+  const sorted = sortPlayers(pl, r);
+  let h = '';
+  
+  sorted.forEach(([id, p], idx) => {
+    const isMe = id===myId;
+    let cls = p.st==='win'?'win':p.st==='lose'?'lose':p.st==='spec'?'spec':'';
+    if(isMe && !cls) cls = 'me';
+    let sv = p.sc;
+    if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
+    else if(r==='by') sv = `${p.c} × ${roomData.conf.m - p.w}`;
+    
+    let wtxt = p.w;
+    if(r==='swedish'||r==='ren_wrong') wtxt = p.w + '×';
+    
+    let sub = '';
+    if(p.rst > 0) sub += `<span style="color:var(--yellow)">休:${p.rst}</span> `;
+    if(p.str > 0) sub += `<span style="color:var(--cyan)">連:${p.str}</span> `;
+    if(p.adv > 0) sub += `<span style="color:var(--red)">DAdv!</span> `;
+    
+    h += `
+    <div class="pcard ${cls}">
+      <div class="rank-num">${idx+1}</div>
+      <div class="p-main">
+        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}</div>
+        <div class="p-stats">
+          <span class="c">◯ ${p.c}</span>
+          <span class="w">✕ ${wtxt}</span>
+        </div>
       </div>
-      <span class="sbadge ${sbc}">${sbl}</span>
+      <div class="score-box">
+        <div class="score-val">${sv}</div>
+        <div class="score-sub">${p.st==='win'?'<span class="st-win">WINNER</span>':p.st==='lose'?'<span class="st-lose">ELIMINATED</span>':sub}</div>
+      </div>
     </div>`;
-  }).join('');
-
-  const me = pl[myPlayerId];
-  if (me) {
-    const isSp = me.status === 'spectator';
-    document.getElementById('ox-row').style.display   = isSp ? 'none' : 'grid';
-    document.getElementById('btn-undo').disabled       = (lastAction === null);
-    document.getElementById('btn-role').textContent    = isSp ? '🎮 参加' : '👀 観戦';
+  });
+  document.getElementById('plist').innerHTML = h;
+  
+  const me = pl[myId];
+  if(me) {
+    document.getElementById('btn-role').innerText = me.st==='spec'?'🎮 参加':'👀 観戦';
+    const ox = document.getElementById('ox-grid');
+    if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
+    else {
+      ox.style.display = 'grid';
+      if(me.rst > 0) ox.innerHTML = `<button class="ox-btn btn-rest" onclick="sendAction('rest')">休み消化 (${me.rst})</button>`;
+      else ox.innerHTML = `<button class="ox-btn btn-o" onclick="sendAction('correct')">◯</button><button class="ox-btn btn-x" onclick="sendAction('wrong')">✕</button>`;
+    }
   }
 }
 
-function sortPlayers(pl, s) {
-  return Object.entries(pl).sort((a, b) => {
-    const [, pa] = a, [, pb] = b;
-    const r = v => v==='winner'?0:v==='active'?1:v==='eliminated'?2:3;
-    if (r(pa.status) !== r(pb.status)) return r(pa.status) - r(pb.status);
-    if (s.mode === 'newyork') return ((pb.correct*s.x)-(pb.wrong*s.y)) - ((pa.correct*s.x)-(pa.wrong*s.y));
-    return pb.correct - pa.correct;
-  });
-}
-
-async function recordResult(isCorrect) {
-  if (!db || !currentRoomId || !myPlayerId) return;
-  const ref = db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId);
-  const p   = (await ref.once('value')).val();
-  if (!p || p.status === 'spectator') return;
-  const s = gameSettings || {}, nc = p.correct+(isCorrect?1:0), nw = p.wrong+(isCorrect?0:1);
-  let ns = p.status;
-  if (s.mode === 'survival' && p.status === 'active') {
-    if (nc >= s.m)      { ns = 'winner';     showToast('🏆 勝ち抜けおめでとう！'); }
-    else if (nw >= s.n) { ns = 'eliminated'; showToast('💀 失格...'); }
+async function sendAction(type) {
+  if(!roomData || !roomData.players || !roomData.players[myId]) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const me = pData[myId];
+  if(me.st !== 'active') return;
+  
+  let hist = roomData.hist || [];
+  hist.unshift(JSON.stringify(roomData.players));
+  if(hist.length > 5) hist = hist.slice(0, 5);
+  
+  const r = roomData.rule, c = roomData.conf;
+  
+  if(type === 'rest') {
+    me.rst--;
+  } else if(type === 'correct') {
+    me.c++;
+    if(r==='survival') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='rentou') { me.sc += (me.str>0?2:1); me.str++; if(me.sc>=c.m) me.st='win'; }
+    else if(r==='updown') { me.sc++; if(me.sc>=c.m) me.st='win'; }
+    else if(r==='by') { me.sc = me.c * (c.m - me.w); if(me.sc >= c.m*c.m) me.st='win'; }
+    else if(r==='freeze') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='m_n_rest') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='swedish') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='ren_wrong') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='divide') { me.sc = (me.sc||c.init)+c.add; if(me.sc>=c.win) me.st='win'; }
+    else if(r==='combo') { me.str++; me.sc+=me.str; if(me.sc>=c.win) me.st='win'; }
+    else if(r==='attack_surv') {
+      me.sc = (me.sc||c.life)+c.heal;
+      Object.keys(pData).forEach(id => {
+        if(id!==myId && pData[id].st==='active') {
+          pData[id].sc = (pData[id].sc||c.life)-c.dmg_to_oth;
+          if(pData[id].sc<=0) pData[id].st='lose';
+        }
+      });
+    }
+    else if(r==='lucky') { me.sc += Math.floor(Math.random()*c.max)+1; if(me.sc>=c.win) me.st='win'; }
+    else if(r==='spiral') {
+      let maxStep = Math.max(...Object.values(pData).filter(p=>p.st==='active').map(p=>p.sc||0));
+      if((me.sc||0) >= maxStep) me.str++; else me.str=0;
+      me.sc = (me.sc||0)+c.up;
+      if(me.str >= c.top_req) me.st='win';
+    }
+  } else if(type === 'wrong') {
+    me.w++;
+    if(r==='survival') { if(me.w >= c.n) me.st='lose'; }
+    else if(r==='rentou') { me.str=0; if(me.w >= c.n) me.st='lose'; }
+    else if(r==='updown') { me.sc=0; if(me.w >= c.n) me.st='lose'; }
+    else if(r==='by') { me.sc = me.c * (c.m - me.w); if(me.w >= c.n) me.st='lose'; }
+    else if(r==='freeze') { me.rst += me.w; if(me.w >= c.n) me.st='lose'; }
+    else if(r==='m_n_rest') { me.rst += c.n; }
+    else if(r==='swedish') {
+      const batsu = Math.floor((Math.sqrt(8*me.c+1)-1)/2)+1;
+      me.w = (me.w-1)+batsu; 
+      if(me.w >= c.n) me.st='lose';
+    }
+    else if(r==='ren_wrong') {
+      me.w = (me.w-1) + (me.adv>0?2:1); me.adv=1;
+      if(me.w >= c.n) me.st='lose';
+    }
+    else if(r==='divide') {
+      me.sc = Math.floor((me.sc||c.init)/me.w);
+      if(me.sc < 1) me.st='lose';
+    }
+    else if(r==='combo') { me.str=0; }
+    else if(r==='attack_surv') {
+      me.sc = (me.sc||c.life)-c.dmg_to_me;
+      if(me.sc<=0) me.st='lose';
+    }
+    else if(r==='lucky') { me.sc -= Math.floor(Math.random()*c.max)+1; if(me.sc<=c.lose) me.st='lose'; }
+    else if(r==='spiral') {
+      let minStep = Math.min(...Object.values(pData).filter(p=>p.st==='active').map(p=>p.sc||0));
+      if((me.sc||0) <= minStep) me.adv++; else me.adv=0;
+      me.sc = (me.sc||0)-c.down;
+      if(me.adv >= c.btm_req) me.st='lose';
+    }
   }
-  lastAction = { prevCorrect: p.correct, prevWrong: p.wrong, prevStatus: p.status };
-  document.getElementById('btn-undo').disabled = false;
-  await ref.update({ correct: nc, wrong: nw, status: ns });
+
+  await db.ref(`rooms/${rId}`).update({ players: pData, hist: hist });
+  
+  if(r==='attack_surv') {
+    const act = Object.values(pData).filter(p=>p.st==='active').length;
+    if(act <= c.surv) await db.ref(`rooms/${rId}/status`).set('finished');
+  }
 }
 
-async function undoResult() {
-  if (!db || !currentRoomId || !myPlayerId || !lastAction) return;
-  await db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId).update({
-    correct: lastAction.prevCorrect, wrong: lastAction.prevWrong, status: lastAction.prevStatus
-  });
-  lastAction = null; document.getElementById('btn-undo').disabled = true;
-  showToast('↩ 取り消しました');
+async function reqUndo() {
+  if(!roomData || !roomData.hist || roomData.hist.length === 0) return;
+  const hist = [...roomData.hist];
+  const prevPl = JSON.parse(hist.shift());
+  await db.ref(`rooms/${rId}`).update({ players: prevPl, hist: hist });
+  toast('↩ 直前の状態に戻しました');
 }
 
-async function toggleMyRole() {
-  if (!db || !currentRoomId || !myPlayerId) return;
-  const ref = db.ref(`rooms/${currentRoomId}/players/${myPlayerId}/status`);
-  await ref.set((await ref.once('value')).val() === 'spectator' ? 'active' : 'spectator');
+async function toggleRole() {
+  const me = roomData.players[myId];
+  await db.ref(`rooms/${rId}/players/${myId}/st`).set(me.st==='spec'?'active':'spec');
 }
 
 async function resetPoints() {
-  if (!confirm('全員のスコアを0にリセットしますか？')) return;
-  const pl = (await db.ref(`rooms/${currentRoomId}/players`).once('value')).val() || {};
-  const upd = {};
-  for (const pid in pl) {
-    upd[`${pid}/correct`] = 0; upd[`${pid}/wrong`] = 0;
-    if (pl[pid].status !== 'spectator') upd[`${pid}/status`] = 'active';
-  }
-  await db.ref(`rooms/${currentRoomId}/players`).update(upd);
-  lastAction = null; document.getElementById('btn-undo').disabled = true;
-  showToast('リセットしました'); closeSettings();
+  if(!confirm('全員のスコアをリセットしますか？')) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  Object.keys(pData).forEach(k => {
+    pData[k] = { ...pData[k], c:0, w:0, sc:roomData.rule==='divide'?roomData.conf.init:roomData.rule==='attack_surv'?roomData.conf.life:0, rst:0, str:0, adv:0 };
+    if(pData[k].st !== 'spec') pData[k].st = 'active';
+  });
+  await db.ref(`rooms/${rId}`).update({ players: pData, hist: [] });
+  closeModal(); toast('リセットしました');
 }
 
 async function endGame() {
-  if (confirm('ゲームを終了して結果を表示しますか？')) {
-    await db.ref('rooms/' + currentRoomId + '/status').set('finished'); closeSettings();
+  if(confirm('ゲームを終了しますか？')) {
+    await db.ref(`rooms/${rId}/status`).set('finished');
+    closeModal();
   }
 }
 
-function returnToRoom() {
-  if (!currentRoomId) { backToTop(); return; }
-  db.ref('rooms/' + currentRoomId + '/status').set('playing');
-  enterRoom(currentRoomId);
-}
-
-function enterResultScreen(data) {
-  detachListener(); showScreen('result');
-  const s = data.settings || {}, pl = data.players || {};
-  const sorted = buildResultRanking(pl, s).filter(([, p]) => p.status !== 'spectator');
-  const win = sorted[0];
-  document.getElementById('winner-block').innerHTML = win ? `
-    <div class="winner-block">
-      <div class="winner-label">▸ WINNER</div>
-      <div class="winner-name">${escHtml(win[1].name)}</div>
-    </div>` : '';
-
-  const medals = ['🥇','🥈','🥉'];
-  document.getElementById('result-list-wrap').innerHTML = sorted.map(([pid, p], i) => {
-    const rk = i+1, rkc = rk<=3?'r'+rk:'', ric = rk===1?'ri-1':'';
-    let sc = s.mode === 'newyork' ? `${((p.correct*s.x)-(p.wrong*s.y))>=0?'+':''}${(p.correct*s.x)-(p.wrong*s.y)}pt`
-      : s.mode === 'freecount' ? `${p.correct}○`
-      : p.status === 'winner' ? 'WIN' : p.status === 'eliminated' ? 'OUT' : '—';
-    return `<div class="ri ${ric}">
-      <div class="ri-rank ${rkc}">${rk<=3?medals[rk-1]:rk}</div>
-      <div class="ri-name">${escHtml(p.name)}${pid===myPlayerId?' <span style="font-size:0.65rem;color:var(--lime)">(You)</span>':''}</div>
-      <div class="ri-stats">${p.correct}○ ${p.wrong}✕</div>
-      <div class="ri-score">${sc}</div>
+function renderResult() {
+  show('result');
+  const pl = roomData.players || {};
+  const r = roomData.rule;
+  const sorted = sortPlayers(pl, r).filter(x => x[1].st !== 'spec');
+  let h = '';
+  sorted.forEach(([id, p], idx) => {
+    let sv = p.sc;
+    if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
+    else if(r==='by') sv = `${p.c} × ${roomData.conf.m - p.w}`;
+    let mst = p.st==='win'?'WINNER':p.st==='lose'?'ELIMINATED':'-';
+    h += `
+    <div class="pcard ${p.st==='win'?'win':p.st==='lose'?'lose':''}">
+      <div class="rank-num">${idx+1}</div>
+      <div class="p-main">
+        <div class="p-name">${esc(p.name)}</div>
+        <div class="p-stats"><span class="c">◯ ${p.c}</span><span class="w">✕ ${p.w}</span></div>
+      </div>
+      <div class="score-box">
+        <div class="score-val">${sv}</div>
+        <div class="score-sub" style="color:${p.st==='win'?'var(--green)':p.st==='lose'?'var(--red)':''}">${mst}</div>
+      </div>
     </div>`;
-  }).join('');
-}
-
-function buildResultRanking(pl, s) {
-  return Object.entries(pl).sort((a, b) => {
-    const [, pa] = a, [, pb] = b;
-    if (s.mode === 'newyork') return ((pb.correct*s.x)-(pb.wrong*s.y)) - ((pa.correct*s.x)-(pa.wrong*s.y));
-    if (s.mode === 'freecount') return pb.correct !== pa.correct ? pb.correct - pa.correct : pa.wrong - pb.wrong;
-    const r = v => v==='winner'?0:v==='active'?1:v==='eliminated'?2:3;
-    return r(pa.status) !== r(pb.status) ? r(pa.status)-r(pb.status) : pb.correct - pa.correct;
   });
+  document.getElementById('rlist').innerHTML = h;
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-document.getElementById('input-roomid').addEventListener('keydown', e => { if(e.key==='Enter') handleJoin(); });
-document.getElementById('input-name').addEventListener('keydown',   e => { if(e.key==='Enter') document.getElementById('input-roomid').focus(); });
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function copyUrl(){ navigator.clipboard.writeText(window.location.href); toast('URL copied'); }
+function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
 </script>
 </body>
 </html>
