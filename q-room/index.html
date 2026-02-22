@@ -458,7 +458,7 @@ input::placeholder { color: var(--muted); }
       <button class="btn btn-red-solid" onclick="recordResult(false)">✖ 誤答</button>
     </div>
     <div id="undo-row" style="display:none; margin-bottom: 12px;">
-      <button class="btn btn-ghost" id="btn-undo" onclick="undoResult()" style="color:var(--yellow); border-color:rgba(255,211,42,0.3); margin-bottom:0;">↩ 直前の入力を取り消す</button>
+      <button class="btn btn-ghost" onclick="undoResult()" style="color:var(--yellow); border-color:rgba(255,211,42,0.3); margin-bottom:0;">↩ 直前の入力を取り消す</button>
     </div>
     <button class="btn btn-ghost" id="btn-toggle-role" onclick="toggleMyRole()" style="margin-bottom:0;">
       🔄 観戦者（ホスト）になる
@@ -468,7 +468,7 @@ input::placeholder { color: var(--muted); }
 
 <div id="screen-result" class="screen">
   <div class="top-nav">
-    <button class="btn btn-ghost btn-small" onclick="leaveRoom()">🔙 トップへ戻る</button>
+    <button class="btn btn-ghost btn-small" onclick="returnToRoom()">🔙 部屋に戻る</button>
   </div>
   <div class="logo" style="font-size:2rem; margin-bottom: 20px;">RESULT</div>
   <div id="podium-area" class="podium-wrap card"></div>
@@ -523,7 +523,7 @@ input::placeholder { color: var(--muted); }
     </div>
 
     <div id="panel-freecount" class="settings-panel">
-      <div class="settings-desc">勝ち抜け・失格なし。正解数と誤答数をカウントするだけ。フリー練習や振り返りに。ホストが「終了」を押したタイミングで正解数順にランキングを表示します。</div>
+      <div class="settings-desc">勝ち抜け・失格なし。正解数と誤答数をカウントするだけ。フリー練習や振り返りに。ホストが「終了」を押したタイミングで正解数の多い順にランキングを表示します。</div>
     </div>
 
     <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
@@ -866,7 +866,8 @@ function renderGameScreen(data) {
     ? `m◯n×  (${settings.m}○ / ${settings.n}×)`
     : settings.mode === 'newyork'
     ? `NewYork  (+${settings.x} / -${settings.y})`
-    : 'フリバ';  document.getElementById('mode-pill-display').textContent = modeLabel;
+    : 'フリバ';
+  document.getElementById('mode-pill-display').textContent = modeLabel;
 
   const cardsEl = document.getElementById('game-player-cards');
   cardsEl.innerHTML = sorted.map(([pid, p]) => {
@@ -950,42 +951,41 @@ async function recordResult(isCorrect) {
   const settings = gameSettings || {};
   const newCorrect = p.correct + (isCorrect ? 1 : 0);
   const newWrong   = p.wrong   + (isCorrect ? 0 : 1);
-  let   newStatus  = 'active';
+  let   newStatus  = p.status;
 
   if (settings.mode === 'survival') {
-    if (newCorrect >= settings.m) { newStatus = 'winner'; showToast('🏆 勝ち抜けおめでとう！'); }
-    else if (newWrong >= settings.n) { newStatus = 'eliminated'; showToast('💀 失格...'); }
+    if (p.status === 'active') {
+      if (newCorrect >= settings.m) { newStatus = 'winner'; showToast('🏆 勝ち抜けおめでとう！'); }
+      else if (newWrong >= settings.n) { newStatus = 'eliminated'; showToast('💀 失格...'); }
+    }
   }
 
-  await playerRef.update({ correct: newCorrect, wrong: newWrong, status: newStatus });
-
-  lastAction = { wasCorrect: isCorrect, prevStatus: p.status };
+  lastAction = { wasCorrect: isCorrect, prevCorrect: p.correct, prevWrong: p.wrong, prevStatus: p.status };
   document.getElementById('undo-row').style.display = 'block';
+
+  await playerRef.update({ correct: newCorrect, wrong: newWrong, status: newStatus });
 }
 
 async function undoResult() {
   if (!db || !currentRoomId || !myPlayerId || lastAction === null) return;
-
   const playerRef = db.ref('rooms/' + currentRoomId + '/players/' + myPlayerId);
-  const snap = await playerRef.once('value');
-  const p = snap.val();
-  if (!p) return;
-
-  const newCorrect = Math.max(0, p.correct - (lastAction.wasCorrect ? 1 : 0));
-  const newWrong   = Math.max(0, p.wrong   - (lastAction.wasCorrect ? 0 : 1));
-
   await playerRef.update({
-    correct: newCorrect,
-    wrong:   newWrong,
+    correct: lastAction.prevCorrect,
+    wrong:   lastAction.prevWrong,
     status:  lastAction.prevStatus
   });
-
   lastAction = null;
   document.getElementById('undo-row').style.display = 'none';
   showToast('↩ 直前の入力を取り消しました');
 }
 
+function returnToRoom() {
+  if (!currentRoomId) { backToTop(); return; }
+  db.ref('rooms/' + currentRoomId + '/status').set('playing');
+  showScreen('room');
+}
 
+async function endGame() {
   if(confirm("ゲームを終了して結果を表示しますか？")) {
     await db.ref('rooms/' + currentRoomId + '/status').set('finished');
     closeSettings();
