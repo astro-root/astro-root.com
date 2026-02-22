@@ -34,23 +34,44 @@ body {
   color: var(--text-main);
   font-family: var(--font-ja);
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center; /* 画面中央に配置 */
+  align-items: flex-start;
   overflow-x: hidden;
 }
+
+/* アプリケーションのコンテナとなるベーススタイル */
 .screen {
-  display: none; width: 100%; max-width: 500px;
-  position: relative; z-index: 1; padding: 0 0 80px;
+  display: none; 
+  flex-direction: column;
+  width: 100%; 
+  max-width: 540px; /* PC用に見栄えよく少し広め */
+  min-height: 100vh;
+  position: relative; 
+  z-index: 1; 
+  background: rgba(10, 10, 15, 0.4); /* PC環境で浮き出るようなコンテナ感 */
+  box-shadow: 0 0 50px rgba(0,0,0,0.5), 0 0 10px rgba(0,240,255,0.05);
   animation: fadeIn 0.4s ease forwards;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.screen.active { display: block; }
-#screen-room {
-  position: fixed; inset: 0; left: 50%; transform: translateX(-50%);
-  max-width: 500px; width: 100%; padding: 0;
-  display: none; flex-direction: column; overflow: hidden; z-index: 1;
+.screen.active { display: flex; } /* blockからflexへ変更 */
+
+#screen-top, #screen-result {
+  padding: 0 0 80px;
 }
-#screen-room.active { display: flex; }
+#screen-room {
+  height: 100vh; /* 中身だけをスクロールさせるため高さを固定 */
+  padding: 0;
+  overflow: hidden;
+}
+
+/* スマホ等で幅が狭い場合は影や背景を消して全画面化 */
+@media (max-width: 540px) {
+  .screen {
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
 .scroll-area {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -83,6 +104,13 @@ input:focus, select:focus {
   background: rgba(0, 240, 255, 0.03);
   box-shadow: 0 0 0 4px rgba(0,240,255,0.1);
 }
+/* PCのプルダウン選択時の白飛び問題解消 */
+select { cursor: pointer; }
+select option {
+  background-color: #14141e;
+  color: #f8f8f8;
+}
+
 .row { display: flex; gap: 12px; }
 .btn-gen {
   padding: 0 20px; background: var(--surface-color); border: 1px solid var(--border-color);
@@ -337,11 +365,9 @@ window.onload = () => {
 };
 
 function initFB() {
-  if (!db) { 
+  if(!db){ 
     try {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig); 
-      }
+      firebase.initializeApp(firebaseConfig); 
       db = firebase.database(); 
     } catch(e) {
       console.error(e);
@@ -364,15 +390,8 @@ async function handleCreate() {
   try {
     initFB();
     const n = document.getElementById('in-name').value.trim();
-    let r = document.getElementById('in-room').value.trim();
-    
+    const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
     if(!n) return err('名前を入力してください');
-    
-    if(!r) {
-      r = String(Math.floor(10000+Math.random()*90000));
-      document.getElementById('in-room').value = r;
-    }
-    
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
     
     const s = await db.ref('rooms/'+r).once('value');
@@ -386,7 +405,7 @@ async function handleCreate() {
     enterRoom();
   } catch(e) {
     console.error(e);
-    err('通信状態やデータベースの権限を確認してください。');
+    err('エラーが発生しました。通信状態を確認してください。');
   }
 }
 
@@ -407,7 +426,7 @@ async function handleJoin() {
     enterRoom();
   } catch(e) {
     console.error(e);
-    err('通信状態やデータベースの権限を確認してください。');
+    err('エラーが発生しました。通信状態を確認してください。');
   }
 }
 
@@ -421,16 +440,14 @@ function enterRoom() {
       window.history.replaceState({},'',`/q-room/${rId}`);
     }
   } catch(e) {
-    console.warn("History API replaced failed");
+    console.warn("History API replaced failed, possibly running locally.");
   }
   
   document.getElementById('game-rid').innerText = rId;
   show('room');
-  
-  if(rRef && rCb) rRef.off('value', rCb);
-  
+  if(rRef) rRef.off('value', rCb);
   rRef = db.ref('rooms/'+rId);
-  rCb = snap => {
+  rCb = rRef.on('value', snap => {
     roomData = snap.val();
     if(!roomData) return leaveRoom();
     if(roomData.status === 'finished') return renderResult();
@@ -443,12 +460,11 @@ function enterRoom() {
     
     const me = roomData.players && roomData.players[myId];
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
-  };
-  rRef.on('value', rCb);
+  });
 }
 
 function leaveRoom() {
-  if(rRef && rCb) rRef.off('value', rCb);
+  if(rRef) rRef.off('value', rCb);
   window.location.href = 'https://astro-root.com/q-room/';
 }
 
