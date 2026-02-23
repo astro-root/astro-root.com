@@ -115,6 +115,7 @@
       position: relative;
       transition: all 0.3s ease;
       box-shadow: var(--shadow-soft);
+      overflow: hidden;
     }
     
     .name-input {
@@ -125,15 +126,33 @@
       color: var(--text-muted);
       font-weight: 700;
       font-size: 24px;
-      height: 240px;
+      height: 100%;
       width: 40px;
       text-align: center;
       letter-spacing: 2px;
-      margin-bottom: 5px;
       transition: color 0.2s;
+      z-index: 2;
     }
     .name-input:focus { outline: none; color: var(--text-main); }
 
+
+    .tower-bar {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+      background: linear-gradient(to top, rgba(168,85,247,0.2), rgba(168,85,247,0.5));
+      z-index: 0; transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    .name-group {
+      display: flex; flex-direction: row; align-items: center;
+      height: 200px; z-index: 2; position: relative;
+    }
+    .subname-input {
+      writing-mode: vertical-rl; text-orientation: upright;
+      background: transparent; border: none; color: var(--color-purple);
+      font-weight: 700; font-size: 13px; height: 100%; width: 24px;
+      text-align: center; letter-spacing: 1px; z-index: 2;
+    }
+    .subname-input:focus { outline: none; }
     .score-area {
       flex: 1;
       display: flex;
@@ -143,6 +162,7 @@
       margin-bottom: 10px;
       width: 100%;
       position: relative;
+      z-index: 2;
     }
 
     .points {
@@ -166,7 +186,7 @@
       letter-spacing: 2px;
     }
 
-    .buttons { display: flex; gap: 8px; width: 100%; }
+    .buttons { display: flex; gap: 8px; width: 100%; z-index: 2; position: relative; }
     .btn-op {
       flex: 1; border: none; padding: 12px 0; border-radius: 8px;
       cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
@@ -190,6 +210,8 @@
       box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
       background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
     }
+    .column.winner .tower-bar { background: linear-gradient(to top, rgba(245,158,11,0.3), rgba(245,158,11,0.6)); height: 100% !important; }
+    .column.disqualified .tower-bar { display: none; }
     .column.winner .points {
       color: var(--color-gold);
       text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
@@ -203,7 +225,9 @@
       body { padding: 10px; }
       header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
       .controls { justify-content: space-between; }
-      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .name-group { height: 120px; }
+      .name-input { font-size: 14px; width: 30px; letter-spacing: 0; }
+      .subname-input { font-size: 11px; width: 20px; }
       .points { font-size: 36px; }
       .x-marks { font-size: 18px; }
       .btn-op { padding: 8px 0; font-size: 14px; }
@@ -303,7 +327,11 @@
       const col = document.createElement('div');
       col.className = 'column';
       col.innerHTML = `
-        <input class="name-input" value="プレイヤー${i+1}" />
+        <div class="tower-bar"></div>
+        <div class="name-group">
+          <input class="name-input" value="プレイヤー${i+1}" />
+          <input class="subname-input" placeholder="　" />
+        </div>
         <div class="score-area">
           <div class="points"><span class="points-num">${m}</span></div>
           <div class="x-marks"></div>
@@ -316,6 +344,8 @@
       grid.appendChild(col);
 
       const nameEl = col.querySelector('.name-input');
+      const subnameEl = col.querySelector('.subname-input');
+      const towerBar = col.querySelector('.tower-bar');
       const pointsNumEl = col.querySelector('.points-num');
       const pointsWrapper = col.querySelector('.points');
       const xMarksEl = col.querySelector('.x-marks');
@@ -325,7 +355,7 @@
       const p = { 
         idx:i, 
         el:col, 
-        nameEl, 
+        nameEl, subnameEl, towerBar,
         pointsNumEl, 
         pointsWrapper, 
         xMarksEl,
@@ -383,8 +413,11 @@
   }
 
   function renderAll(animate=true, activeIdx = -1){
+    const nVal = Math.max(1, parseInt(nInput.value || 100));
     players.forEach(p=>{
       p.el.classList.remove('disqualified', 'winner');
+      const towerPct = Math.max(0, Math.min(100, (p.points / nVal) * 100));
+      if(!p.disqualified && p.rank === 0) p.towerBar.style.height = towerPct + '%';
       
       if(p.disqualified){
         p.el.classList.add('disqualified');
@@ -449,22 +482,8 @@
   }
 
   function resetAll(){
-    const m = Math.max(1, parseInt(mInput.value || 10));
-    players.forEach((p,i)=>{
-      p.points = m;
-      p.wrongCount = 0;
-      p.disqualified = false;
-      p.rank = 0;
-      p.nameEl.value = `プレイヤー${i+1}`;
-      p.nameEl.disabled = false;
-      p.btnC.disabled = false;
-      p.btnW.disabled = false;
-      p.el.classList.remove('disqualified', 'winner');
-    });
-    historyStack = [];
-    winners = [];
-    renderAll(false);
-    updateUndoState();
+    if(!confirm('リセットしますか？')) return;
+    createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
   }
 
   function addPlayer(){
@@ -476,7 +495,11 @@
     const col = document.createElement('div');
     col.className = 'column';
     col.innerHTML = `
-      <input class="name-input" value="プレイヤー${i+1}" />
+      <div class="tower-bar"></div>
+      <div class="name-group">
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <input class="subname-input" placeholder="　" />
+      </div>
       <div class="score-area">
         <div class="points"><span class="points-num">${m}</span></div>
         <div class="x-marks"></div>
@@ -489,6 +512,8 @@
     grid.appendChild(col);
 
     const nameEl = col.querySelector('.name-input');
+    const subnameEl = col.querySelector('.subname-input');
+    const towerBar = col.querySelector('.tower-bar');
     const pointsNumEl = col.querySelector('.points-num');
     const pointsWrapper = col.querySelector('.points');
     const xMarksEl = col.querySelector('.x-marks');
@@ -498,7 +523,7 @@
     const p = { 
       idx:i, 
       el:col, 
-      nameEl, 
+      nameEl, subnameEl, towerBar,
       pointsNumEl, 
       pointsWrapper, 
       xMarksEl,
@@ -540,8 +565,14 @@
   }
 
   setupBtn.addEventListener('click', ()=>{
-    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
-    createGrid(cnt);
+    if(players.length > 0){
+      const m = Math.max(1, parseInt(mInput.value || 10));
+      players.forEach(p=>{ p.points=m; p.wrongCount=0; p.disqualified=false; p.rank=0; });
+      historyStack=[]; winners=[];
+      renderAll(false); updateUndoState();
+    } else {
+      createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+    }
   });
 
   addPlayerBtn.addEventListener('click', ()=>{
