@@ -483,6 +483,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
       <select id="sel-rule" onchange="changeRuleUI()">
         <option value="survival">m◯n×</option>
         <option value="free">フリバ</option>
+        <option value="newyork">NewYork</option>
         <option value="rentou">連答付き</option>
         <option value="updown">up-down</option>
         <option value="by">by</option>
@@ -608,7 +609,7 @@ let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsg
 const STAMPS = ['👍','🎉','😂','🔥','😮','💪','🤔','👏','❤️','😭','✨','🙏'];
 
 const DEF_CONF = {
-  survival: {m:5, n:2}, free: {}, rentou: {m:5, n:2, mode:'fast'}, updown: {m:5, n:2},
+  survival: {m:5, n:2}, free: {}, newyork: {m:1, n:1, win:10, lose:-10}, rentou: {m:5, n:2, mode:'fast'}, updown: {m:5, n:2},
   by: {m:5, n:3}, freeze: {m:5, n:0}, m_n_rest: {m:5, n:3},
   swedish: {m:10, n:10}, ren_wrong: {m:5, n:3},
   divide: {init:10, add:10, win:100}, combo: {win:10, lose:3},
@@ -828,6 +829,7 @@ function changeRuleUI(skipRender=false) {
   if(r==='survival'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
   else if(r==='rentou') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>${mks('mode','連答モード',c.mode||'fast',[{v:'fast',l:'加速'},{v:'const',l:'等速'}])}`;
   else if(r==='free') h = '';
+  else if(r==='newyork') h = `<div class="s-grid">${mkn('m','正解加点',c.m)}${mkn('n','誤答減点',c.n)}</div><div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div>`;
   else if(r==='by') h = `<div class="s-grid">${mkn('m','初期誤答pt/定数',c.m)}${mkn('n','失格回数',c.n)}</div>`;
   else if(r==='freeze'||r==='m_n_rest') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n',r==='freeze'?'失格':'休み数',c.n)}</div>`;
   else if(r==='swedish') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格×数',c.n)}</div>`;
@@ -934,6 +936,7 @@ async function sendAction(type) {
   } else if(type === 'correct') {
     me.c++;
     if(r==='survival') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='newyork') { me.sc = (me.sc||0) + c.m; if(me.sc >= c.win) me.st='win'; }
     else if(r==='rentou') {
       if (c.mode === 'const') {
         me.sc = (me.sc||0) + (me.str>0?2:1);
@@ -975,6 +978,7 @@ async function sendAction(type) {
   } else if(type === 'wrong') {
     me.w++;
     if(r==='survival') { if(c.n > 0 && me.w >= c.n) me.st='lose'; }
+    else if(r==='newyork') { me.sc = (me.sc||0) - c.n; if(me.sc <= c.lose) me.st='lose'; }
     else if(r==='rentou') { me.str=0; if(c.n > 0 && me.w >= c.n) me.st='lose'; }
     else if(r==='updown') { me.sc=0; if(c.n > 0 && me.w >= c.n) me.st='lose'; }
     else if(r==='by') { me.sc = me.c * (c.m - me.w); if(c.n > 0 && me.w >= c.n) me.st='lose'; }
@@ -1069,7 +1073,7 @@ function renderResult() {
     let sv = p.sc||0;
     if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
     else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
-    let mst = p.st==='win'?'WINNER':p.st==='lose'?'ELIMINATED':'-';
+    let mst = p.st==='win'?'WIN':p.st==='lose'?'LOSE':'-';
     h += `
     <div class="pcard ${p.st==='win'?'win':p.st==='lose'?'lose':''}">
       <div class="rank-num">${idx+1}</div>
