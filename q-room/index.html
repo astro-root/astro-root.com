@@ -477,8 +477,11 @@ const DEF_CONF = {
 };
 
 window.onload = () => {
-  const m = window.location.pathname.match(/\/q-room\/(\d{5})/);
-  if(m) document.getElementById('in-room').value = m[1];
+  const params = new URLSearchParams(window.location.search);
+  const qRoom = params.get('r');
+  const pathRoom = window.location.pathname.match(/\/q-room\/(\d{5})/);
+  const roomId = qRoom || (pathRoom && pathRoom[1]);
+  if(roomId) document.getElementById('in-room').value = roomId;
   const savedName = localStorage.getItem('qr_name');
   if(savedName) document.getElementById('in-name').value = savedName;
 };
@@ -575,7 +578,8 @@ function newPlayer(name) {
 function enterRoom(isCreate=false) {
   try {
     if (window.location.protocol !== 'file:') {
-      window.history.replaceState({},'',`/q-room/${rId}`);
+      const base = window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
+      window.history.replaceState({}, '', `${base}?r=${rId}`);
     }
   } catch(e) {
     console.warn("History API replaced failed.");
@@ -635,9 +639,9 @@ function openFeedback(){ document.getElementById('modal-feedback').classList.add
 function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
 
 function getRoomUrl() {
-  return window.location.protocol === 'file:'
-    ? `https://astro-root.com/q-room/${rId}`
-    : `${window.location.origin}/q-room/${rId}`;
+  if(window.location.protocol === 'file:') return `https://astro-root.com/q-room/?r=${rId}`;
+  const base = window.location.origin + window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
+  return `${base}?r=${rId}`;
 }
 
 function showRoomInfo(isCreate) {
@@ -669,7 +673,7 @@ function nativeShare() {
   if(!navigator.share) return;
   navigator.share({
     title: 'Q-Room クイズ対戦しよう！',
-    text: `💡 Q-Roomでクイズ対戦しよう！\nルームID: ${rId}\n合言葉を入力して参加してね👇`,
+    text: `🎮 Q-Roomでクイズ対戦しよう！\nルームID: ${rId}\n合言葉を入力して参加してね👇`,
     url: getRoomUrl()
   }).catch(() => {});
 }
