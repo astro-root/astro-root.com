@@ -742,6 +742,8 @@ function enterRoom(isCreate=false, playerName='') {
     if(!roomData) return leaveRoom();
     if(roomData.status === 'finished') return renderResult();
     
+    show('room');
+    
     const r = roomData.rule;
     document.getElementById('sel-rule').value = r;
     document.getElementById('game-rule').innerText = document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text;
@@ -811,7 +813,7 @@ function nativeShare() {
   if(!navigator.share) return;
   navigator.share({
     title: 'Q-Room クイズ対戦しよう！',
-    text: `🎮 Q-Roomでクイズ対戦しよう！\nルームID: ${rId}\n合言葉を入力して参加してね👇`,
+    text: `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n名前を入力して参加してね👇`,
     url: getRoomUrl()
   }).catch(() => {});
 }
@@ -951,7 +953,7 @@ async function sendAction(type) {
     else if(r==='freeze') { if(me.c >= c.m) me.st='win'; }
     else if(r==='m_n_rest') { if(me.c >= c.m) me.st='win'; }
     else if(r==='swedish') { if(me.c >= c.m) me.st='win'; }
-    else if(r==='ren_wrong') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='ren_wrong') { me.adv = 0; if(me.c >= c.m) me.st='win'; }
     else if(r==='divide') { me.sc = (me.sc||c.init)+c.add; if(me.sc>=c.win) me.st='win'; }
     else if(r==='combo') { me.str++; me.sc = (me.sc||0) + me.str; if(me.sc>=c.win) me.st='win'; }
     else if(r==='attack_surv') {
