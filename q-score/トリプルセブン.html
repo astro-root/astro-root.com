@@ -82,13 +82,19 @@
       background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px; 
       display:flex; flex-direction:column; align-items:center; position:relative; 
       transition: background 0.3s, border-color 0.3s, transform 0.2s;
+      overflow: hidden;
     }
     
     .stars { font-size:30px; height:43px; margin-bottom:6px; color: var(--color-gold); letter-spacing: 2px; }
-    .name-input { background:transparent; border:none; color:var(--text-muted); font-weight:800; font-size:24px; height:240px; width:42px; writing-mode:vertical-rl; text-orientation:upright; letter-spacing:2px; text-align:center; transition: color 0.2s; }
+    .name-input { background:transparent; border:none; color:var(--text-muted); font-weight:800; font-size:24px; height:100%; width:42px; writing-mode:vertical-rl; text-orientation:upright; letter-spacing:2px; text-align:center; transition: color 0.2s; z-index:2; }
     .name-input:focus { color: var(--text-main); outline: none; }
 
-    .score-area { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; margin-bottom:8px; }
+
+    .tower-bar { position:absolute; bottom:0; left:0; width:100%; height:0%; background:linear-gradient(to top, rgba(245,158,11,0.2), rgba(245,158,11,0.5)); z-index:0; transition:height 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; }
+    .name-group { display:flex; flex-direction:row; align-items:center; height:200px; z-index:2; position:relative; }
+    .subname-input { writing-mode:vertical-rl; text-orientation:upright; background:transparent; border:none; color:var(--color-gold); font-weight:700; font-size:13px; height:100%; width:24px; text-align:center; letter-spacing:1px; z-index:2; }
+    .subname-input:focus { outline:none; }
+    .score-area { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; margin-bottom:8px; z-index:2; }
     
     .correct-count { 
       font-size:48px; font-weight:900; color:var(--color-blue); 
@@ -98,7 +104,7 @@
     
     .wrong-count { font-size:18px; font-weight:800; color:var(--color-red); height:26px; margin-top:6px; letter-spacing: 2px; }
     
-    .buttons { display:flex; gap:8px; width:100%; }
+    .buttons { display:flex; gap:8px; width:100%; z-index:2; position:relative; }
     .btn-op { flex:1; border:none; padding:10px 0; border-radius:8px; cursor:pointer; font-weight:900; font-size:15px; color:rgba(255,255,255,0.9); transition: transform 0.1s; }
     .btn-op:active:not(:disabled) { transform: translateY(2px); }
     .btn-correct { background:var(--color-green); color:#064e3b; }
@@ -106,11 +112,14 @@
 
     .column.set-eliminated { background: rgba(15,23,42,0.95); border-color: rgba(239,68,68,0.2); opacity: 0.7; }
     .column.set-winner { border-color: var(--color-gold); background: rgba(245, 158, 11, 0.1); box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+    .column.match-winner .tower-bar { background: linear-gradient(to top, rgba(245,158,11,0.4), rgba(245,158,11,0.7)); height: 100% !important; }
     .match-winner { box-shadow: 0 0 50px rgba(245,158,11,0.4) !important; border: 2px solid var(--color-gold) !important; transform: scale(1.02); z-index: 10; }
 
     @media (max-width:768px){ 
       header{flex-direction:column;} 
-      .name-input{height:90px;font-size:14px;width:30px;} 
+      .name-group{height:120px;}
+      .name-input{font-size:14px;width:30px;}
+      .subname-input{font-size:11px;width:20px;} 
       .correct-count{font-size:36px;} 
     }
   </style>
@@ -213,8 +222,12 @@
     const col = document.createElement('div');
     col.className = 'column';
     col.innerHTML = `
-      <div class="stars">◯</div>
-      <input class="name-input" value="プレイヤー${i+1}" />
+      <div class="tower-bar"></div>
+      <div class="stars" style="z-index:2;position:relative;">◯</div>
+      <div class="name-group">
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <input class="subname-input" placeholder="　" />
+      </div>
       <div class="score-area">
         <div class="correct-count"><span class="correct-num">0</span></div>
         <div class="wrong-count"></div>
@@ -228,12 +241,14 @@
 
     const starsEl = col.querySelector('.stars');
     const nameEl = col.querySelector('.name-input');
+    const subnameEl = col.querySelector('.subname-input');
+    const towerBar = col.querySelector('.tower-bar');
     const correctNumEl = col.querySelector('.correct-num');
     const wrongEl = col.querySelector('.wrong-count');
     const btnC = col.querySelector('.btn-correct');
     const btnW = col.querySelector('.btn-wrong');
 
-    const p = { idx:i, el:col, starsEl, nameEl, correctNumEl, wrongEl, btnC, btnW, correct:0, wrong:0, setFinished:false, setsWon:0 };
+    const p = { idx:i, el:col, starsEl, nameEl, subnameEl, towerBar, correctNumEl, wrongEl, btnC, btnW, correct:0, wrong:0, setFinished:false, setsWon:0 };
 
     btnC.addEventListener('click', ()=>{
       if(matchOver) return;
@@ -333,8 +348,11 @@
   }
 
   function renderAll(animate=true, activeIdx=-1){
+    const matchTgt = Math.max(1, parseInt(matchTarget.value || 1));
     players.forEach(p=>{
       p.starsEl.textContent = p.setsWon > 0 ? '★'.repeat(p.setsWon) : '';
+      const towerPct = Math.max(0, Math.min(100, (p.setsWon / matchTgt) * 100));
+      p.towerBar.style.height = towerPct + '%';
 
       p.el.classList.remove('set-eliminated','set-winner');
       p.correctNumEl.textContent = p.setFinished && p.setWonThisSet ? 'WIN' : (p.setFinished && p.eliminatedThisSet ? 'LOSE' : String(p.correct));
@@ -405,8 +423,18 @@
   }
 
   setupBtn.addEventListener('click', ()=>{
-    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
-    createGrid(cnt);
+    if(players.length > 0){
+      players.forEach((p)=>{
+        p.correct=0; p.wrong=0; p.setFinished=false; p.setsWon=0;
+        p.eliminatedThisSet=false; p.setWonThisSet=false; p.setWinRank=0;
+        p.starsEl.textContent='';
+        p.el.classList.remove('set-eliminated','set-winner','match-winner');
+      });
+      historyStack=[]; setsPlayed=1; matchOver=false;
+      updateDisplays(); renderAll(false); updateUndoState();
+    } else {
+      createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+    }
   });
   resetBtn.addEventListener('click', resetMatch);
   undoBtn.addEventListener('click', undoGlobal);
