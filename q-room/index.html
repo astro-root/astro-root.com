@@ -277,6 +277,112 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .r-header { padding: 80px 24px 50px; text-align: center; border-bottom: 1px solid var(--border-color); }
 .r-title { font-family: var(--font-en); font-size: 3.8rem; color: var(--yellow); font-weight: 900; text-shadow: 0 0 32px rgba(245,158,11,0.4); letter-spacing: 0.08em; margin-bottom: 28px;}
+
+/* ===== CHAT ===== */
+.h-btn-icon.chat-btn { position: relative; }
+.chat-badge {
+  position: absolute; top: -5px; right: -5px; background: var(--magenta);
+  color: #fff; font-size: 0.6rem; font-weight: 700; font-family: var(--font-en);
+  min-width: 18px; height: 18px; border-radius: 9px; display: none;
+  align-items: center; justify-content: center; padding: 0 4px;
+  box-shadow: 0 0 8px rgba(225,29,72,0.6);
+}
+.chat-badge.show { display: flex; }
+.chat-drawer {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 540px; height: 70vh; max-height: 600px;
+  background: rgba(14,14,16,0.98); backdrop-filter: blur(24px);
+  border-top: 1px solid var(--border-color); border-radius: 24px 24px 0 0;
+  z-index: 200; display: flex; flex-direction: column;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
+}
+.chat-drawer.open { transform: translateX(-50%) translateY(0); }
+.chat-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.chat-overlay.show { opacity: 1; pointer-events: auto; }
+.chat-handle {
+  width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px;
+  margin: 14px auto 0;
+}
+.chat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;
+}
+.chat-title { font-family: var(--font-en); font-weight: 900; font-size: 0.9rem; letter-spacing: 0.15em; color: var(--cyan); }
+.chat-close {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 1.2rem; line-height: 1; padding: 4px; transition: 0.2s;
+}
+.chat-close:hover { color: var(--text-main); }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px 16px 8px;
+  display: flex; flex-direction: column; gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+.chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 80%; }
+.chat-msg.me { align-self: flex-end; align-items: flex-end; }
+.chat-msg.other { align-self: flex-start; align-items: flex-start; }
+.chat-msg-name {
+  font-size: 0.72rem; font-weight: 700; font-family: var(--font-en);
+  letter-spacing: 0.08em; padding: 0 4px;
+}
+.chat-msg.me .chat-msg-name { color: var(--cyan); }
+.chat-msg.other .chat-msg-name { color: var(--text-muted); }
+.chat-msg-bubble {
+  padding: 10px 14px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5;
+  word-break: break-word; max-width: 100%;
+}
+.chat-msg.me .chat-msg-bubble {
+  background: linear-gradient(135deg, var(--cyan), #0284c7); color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.other .chat-msg-bubble {
+  background: rgba(255,255,255,0.08); color: var(--text-main); border: 1px solid var(--border-color);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg-stamp { font-size: 2rem; line-height: 1; background: none; border: none; padding: 0; }
+.chat-sys {
+  align-self: center; font-size: 0.75rem; color: var(--text-muted);
+  font-family: var(--font-en); letter-spacing: 0.08em;
+  background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px;
+}
+.chat-stamps {
+  display: flex; gap: 6px; padding: 10px 16px; flex-shrink: 0;
+  border-top: 1px solid var(--border-color); overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.chat-stamps::-webkit-scrollbar { display: none; }
+.stamp-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 6px 10px; font-size: 1.3rem; cursor: pointer;
+  transition: 0.2s; flex-shrink: 0; line-height: 1;
+}
+.stamp-btn:hover { background: rgba(255,255,255,0.14); transform: scale(1.15); border-color: rgba(255,255,255,0.3); }
+.stamp-btn:active { transform: scale(0.95); }
+.chat-input-row {
+  display: flex; gap: 10px; padding: 10px 16px 16px; flex-shrink: 0;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+.chat-input {
+  flex: 1; background: rgba(255,255,255,0.07); border: 1px solid var(--border-color);
+  border-radius: 14px; padding: 12px 16px; color: var(--text-main);
+  font-family: var(--font-ja); font-size: 0.95rem; outline: none; transition: 0.3s;
+}
+.chat-input:focus { border-color: var(--cyan); background: rgba(6,182,212,0.08); }
+.chat-send {
+  background: linear-gradient(135deg, var(--cyan), #0284c7); border: none;
+  border-radius: 14px; width: 48px; height: 48px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: 0.3s; box-shadow: 0 4px 16px rgba(6,182,212,0.3);
+}
+.chat-send:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6,182,212,0.4); }
+.chat-send:active { transform: scale(0.95); }
+.chat-send svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 </head>
 <body>
@@ -294,7 +400,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <div class="field">
       <label>ROOM ID</label>
       <div class="row">
-        <input type="text" id="in-room" placeholder="5 numbers" maxlength="5" pattern="[0-9]*" inputmode="numeric">
+        <input type="text" id="in-room" placeholder="5 digits" maxlength="5" pattern="[0-9]*" inputmode="numeric">
         <button class="btn-gen" onclick="document.getElementById('in-room').value = String(Math.floor(10000+Math.random()*90000))">🎲</button>
       </div>
     </div>
@@ -323,6 +429,10 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <div class="room-info">ROOM<span id="game-rid">—</span></div>
     <div class="rule-badge" id="game-rule">—</div>
     <div style="display:flex; gap:10px; flex-shrink:0;">
+      <button class="h-btn-icon chat-btn" onclick="toggleChat()" title="Chat" id="chat-header-btn">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span class="chat-badge" id="chat-badge"></span>
+      </button>
       <button class="h-btn-icon" onclick="openFeedback()" title="Feedback">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       </button>
@@ -449,6 +559,23 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   </div>
 </div>
 
+<div class="chat-overlay" id="chat-overlay" onclick="toggleChat()"></div>
+<div class="chat-drawer" id="chat-drawer">
+  <div class="chat-handle"></div>
+  <div class="chat-header">
+    <span class="chat-title">CHAT</span>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-stamps" id="chat-stamps"></div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chat-input" type="text" placeholder="メッセージを入力…" maxlength="200" autocomplete="off" onkeydown="if(event.key==='Enter')sendChatMsg()">
+    <button class="chat-send" onclick="sendChatMsg()">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </button>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -466,6 +593,9 @@ const firebaseConfig = {
 
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
+let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
+
+const STAMPS = ['👍','🎉','😂','🔥','😮','💪','🤔','👏','❤️','😭','✨','🙏'];
 
 const DEF_CONF = {
   survival: {m:5, n:2}, rentou: {m:5, n:2}, updown: {m:5, n:2},
@@ -599,6 +729,8 @@ function enterRoom(isCreate=false) {
   document.getElementById('game-rid').innerText = rId;
   show('room');
   showRoomInfo(isCreate);
+  initChat();
+
   if(rRef) rRef.off('value', rCb);
   rRef = db.ref('rooms/'+rId);
   rCb = rRef.on('value', snap => {
@@ -619,7 +751,11 @@ function enterRoom(isCreate=false) {
 
 async function leaveRoom() {
   if(rRef) { rRef.off('value', rCb); rRef = null; }
+  if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
   if(db && rId && myId) {
+    const myName = roomData && roomData.players && roomData.players[myId]
+      ? roomData.players[myId].name : '???';
+    await pushSysMsg(`${myName} が退室しました`);
     const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
     await playerRef.onDisconnect().cancel();
     await playerRef.remove();
@@ -936,6 +1072,105 @@ function copyUrl(){
   toast('URL copied'); 
 }
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
+
+// ===== CHAT =====
+function initChat() {
+  const stampsEl = document.getElementById('chat-stamps');
+  stampsEl.innerHTML = STAMPS.map(s =>
+    `<button class="stamp-btn" onclick="sendStamp('${s}')">${s}</button>`
+  ).join('');
+
+  if(chatRef) chatRef.off('child_added', chatCb);
+  lastSeenMsgTs = Date.now();
+  chatRef = db.ref(`rooms/${rId}/chat`).limitToLast(100);
+  chatCb = chatRef.on('child_added', snap => {
+    const msg = snap.val();
+    renderChatMsg(msg);
+    if(!chatOpen && msg.ts > lastSeenMsgTs && msg.playerId !== myId) {
+      chatUnread++;
+      updateChatBadge();
+    }
+  });
+
+  const myName = roomData && roomData.players && roomData.players[myId]
+    ? roomData.players[myId].name : '???';
+  pushSysMsg(`${myName} が入室しました`);
+}
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-drawer').classList.toggle('open', chatOpen);
+  document.getElementById('chat-overlay').classList.toggle('show', chatOpen);
+  if(chatOpen) {
+    chatUnread = 0;
+    lastSeenMsgTs = Date.now();
+    updateChatBadge();
+    setTimeout(() => {
+      const el = document.getElementById('chat-messages');
+      el.scrollTop = el.scrollHeight;
+      document.getElementById('chat-input').focus();
+    }, 50);
+  }
+}
+
+function updateChatBadge() {
+  const badge = document.getElementById('chat-badge');
+  if(chatUnread > 0) {
+    badge.textContent = chatUnread > 99 ? '99+' : chatUnread;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+function renderChatMsg(msg) {
+  const el = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  if(msg.type === 'system') {
+    div.className = 'chat-sys';
+    div.textContent = msg.text;
+  } else {
+    const isMe = msg.playerId === myId;
+    const isStamp = msg.stamp;
+    div.className = `chat-msg ${isMe ? 'me' : 'other'}`;
+    div.innerHTML = `
+      <div class="chat-msg-name">${esc(msg.playerName)}</div>
+      <div class="${isStamp ? 'chat-msg-stamp' : 'chat-msg-bubble'}">${esc(msg.text)}</div>
+    `;
+  }
+  el.appendChild(div);
+  if(chatOpen || msg.playerId === myId) el.scrollTop = el.scrollHeight;
+}
+
+async function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text || !rId) return;
+  input.value = '';
+  const myName = roomData && roomData.players && roomData.players[myId]
+    ? roomData.players[myId].name : '???';
+  await db.ref(`rooms/${rId}/chat`).push({
+    type: 'msg', playerId: myId, playerName: myName,
+    text, stamp: false, ts: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+async function sendStamp(emoji) {
+  if(!rId) return;
+  const myName = roomData && roomData.players && roomData.players[myId]
+    ? roomData.players[myId].name : '???';
+  await db.ref(`rooms/${rId}/chat`).push({
+    type: 'msg', playerId: myId, playerName: myName,
+    text: emoji, stamp: true, ts: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+async function pushSysMsg(text) {
+  if(!rId || !db) return;
+  await db.ref(`rooms/${rId}/chat`).push({
+    type: 'system', text, ts: firebase.database.ServerValue.TIMESTAMP
+  });
+}
 </script>
 </body>
 </html>
