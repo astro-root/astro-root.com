@@ -1029,7 +1029,7 @@ async function reqUndo() {
   prevState.hist = hist;
   
   await db.ref(`rooms/${rId}/players/${myId}`).update(prevState);
-  toast('↩ UNDO have done!');
+  toast('↩ UNDO done!');
 }
 
 async function toggleRole() {
