@@ -12,21 +12,16 @@
       --card-border: rgba(255, 255, 255, 0.1);
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      
       --color-blue: #3b82f6;
       --color-green: #10b981;
       --color-red: #ef4444;
       --color-gold: #f59e0b;
       --color-cyan: #06b6d4;
-      
       --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
       --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-      --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.3);
     }
-
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
-    
     body {
       background: var(--bg-color);
       background-image: var(--bg-gradient);
@@ -36,7 +31,6 @@
       flex-direction: column;
       overflow-x: hidden;
     }
-
     header {
       display: flex;
       flex-wrap: wrap;
@@ -51,7 +45,6 @@
       backdrop-filter: blur(10px);
       box-shadow: var(--shadow-soft);
     }
-    
     .title-group { display: flex; align-items: center; gap: 10px; }
     .logo {
       width: 40px; height: 40px;
@@ -62,7 +55,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-
     .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     .control-group {
       display: flex; align-items: center; gap: 8px;
@@ -76,7 +68,6 @@
       border-bottom: 2px solid rgba(255,255,255,0.2);
     }
     .control-group input:focus { outline: none; border-color: var(--color-cyan); }
-
     .btn-action {
       border: none; padding: 8px 16px; border-radius: 6px;
       font-weight: bold; cursor: pointer; color: white;
@@ -85,22 +76,13 @@
     }
     .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
     .btn-action:active { transform: translateY(0); }
-    
     #setupBtn { background: var(--color-blue); }
     #resetAll { background: var(--color-red); }
+    #addPlayer { background: #64748b; }
     #undoGlobal { background: #64748b; }
     #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .scoreboard {
-      flex: 1;
-      width: 100%;
-      min-height: 0;
-    }
-    #grid {
-      display: grid;
-      gap: 15px;
-      align-items: start;
-    }
+    .scoreboard { flex: 1; width: 100%; min-height: 0; }
+    #grid { display: grid; gap: 15px; align-items: start; }
 
     .column {
       background: var(--card-bg);
@@ -113,8 +95,49 @@
       position: relative;
       transition: all 0.3s ease;
       box-shadow: var(--shadow-soft);
+      overflow: hidden;
     }
-    
+
+    .tower-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 0%;
+      background: linear-gradient(to top, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.5));
+      z-index: 0;
+      transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .name-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+      height: 200px;
+      width: 100%;
+      margin-bottom: 5px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .subname-input {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      background: transparent;
+      border: none;
+      color: var(--color-cyan);
+      font-weight: 400;
+      font-size: 13px;
+      height: 100%;
+      width: 24px;
+      text-align: center;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      padding: 0;
+    }
+    .subname-input:focus { outline: none; opacity: 1; }
+
     .name-input {
       writing-mode: vertical-rl;
       text-orientation: upright;
@@ -123,12 +146,12 @@
       color: var(--text-muted);
       font-weight: 700;
       font-size: 24px;
-      height: 240px;
+      height: 100%;
       width: 40px;
       text-align: center;
       letter-spacing: 2px;
-      margin-bottom: 5px;
       transition: color 0.2s;
+      padding: 0;
     }
     .name-input:focus { outline: none; color: var(--text-main); }
 
@@ -140,6 +163,8 @@
       justify-content: center;
       margin-bottom: 10px;
       width: 100%;
+      position: relative;
+      z-index: 2;
     }
 
     .points-score {
@@ -165,7 +190,7 @@
     .score-part.correct-val { color: var(--color-cyan); }
     .score-part.wrong-val { color: var(--color-red); }
 
-    .buttons { display: flex; gap: 8px; width: 100%; }
+    .buttons { display: flex; gap: 8px; width: 100%; position: relative; z-index: 2; }
     .btn-op {
       flex: 1; border: none; padding: 12px 0; border-radius: 8px;
       cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
@@ -179,7 +204,9 @@
       background: rgba(15, 23, 42, 0.95);
       border-color: rgba(239, 68, 68, 0.2);
     }
+    .column.eliminated .tower-bar { display: none; }
     .column.eliminated .name-input { color: #334155; }
+    .column.eliminated .subname-input { opacity: 0.3; }
     .column.eliminated .points-score { font-size: 24px; color: #475569; text-shadow: none; }
     .column.eliminated .sub-scores { opacity: 0.5; }
     .column.eliminated .btn-op { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
@@ -188,6 +215,10 @@
       border-color: var(--color-gold);
       box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
       background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
+    }
+    .column.winner .tower-bar {
+      background: linear-gradient(to top, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.6));
+      height: 100% !important;
     }
     .column.winner .points-score {
       color: var(--color-gold);
@@ -202,7 +233,9 @@
       body { padding: 10px; }
       header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
       .controls { justify-content: space-between; }
-      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .name-group { height: 120px; gap: 0; }
+      .name-input { font-size: 14px; width: 30px; letter-spacing: 0; }
+      .subname-input { font-size: 10px; width: 16px; }
       .points-score { font-size: 36px; }
       .sub-scores { font-size: 14px; gap: 8px; }
       .btn-op { padding: 8px 0; font-size: 14px; }
@@ -235,6 +268,7 @@
     </div>
     <div style="flex:1"></div>
     <button id="setupBtn" class="btn-action">開始</button>
+    <button id="addPlayer" class="btn-action">追加</button>
     <button id="resetAll" class="btn-action">リセット</button>
     <button id="undoGlobal" class="btn-action">戻る</button>
   </div>
@@ -254,8 +288,9 @@
   const setupBtn = document.getElementById('setupBtn');
   const resetBtn = document.getElementById('resetAll');
   const undoBtn = document.getElementById('undoGlobal');
+  const addBtn = document.getElementById('addPlayer');
 
-  let players = []; 
+  let players = [];
   let historyStack = [];
   let winners = [];
 
@@ -272,11 +307,12 @@
     grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
   }
 
-  function pushHistory(idx, prev){
-    historyStack.push({ 
-      idx, 
-      prev: JSON.parse(JSON.stringify(prev)), 
-      winners: winners.slice() 
+  function pushHistory(){
+    historyStack.push({
+      players: players.map(p => ({
+        correct: p.correct, wrong: p.wrong, points: p.points, rank: p.rank, eliminated: p.eliminated
+      })),
+      winners: winners.slice()
     });
     if(historyStack.length > 500) historyStack.shift();
     updateUndoState();
@@ -286,102 +322,98 @@
     undoBtn.disabled = historyStack.length === 0;
   }
 
+  function createPlayerObject(i, defaultName){
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.innerHTML = `
+      <div class="tower-bar"></div>
+      <div class="name-group">
+        <input class="name-input" value="${defaultName}" />
+        <input class="subname-input" placeholder="二つ名" />
+      </div>
+      <div class="score-area">
+        <div class="points-score"><span class="points-num">0</span></div>
+        <div class="sub-scores">
+          <div class="score-part correct-val" title="正解数">0</div>
+          <span>/</span>
+          <div class="score-part wrong-val" title="誤答数">0</div>
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="btn-op btn-correct">正解</button>
+        <button class="btn-op btn-wrong">誤答</button>
+      </div>
+    `;
+    grid.appendChild(col);
+
+    const nameEl = col.querySelector('.name-input');
+    const subnameEl = col.querySelector('.subname-input');
+    const pointsNumEl = col.querySelector('.points-num');
+    const pointsScoreEl = col.querySelector('.points-score');
+    const correctValEl = col.querySelector('.correct-val');
+    const wrongValEl = col.querySelector('.wrong-val');
+    const towerBar = col.querySelector('.tower-bar');
+    const btnC = col.querySelector('.btn-correct');
+    const btnW = col.querySelector('.btn-wrong');
+
+    const p = {
+      idx: i, el: col, nameEl, subnameEl, pointsNumEl, pointsScoreEl,
+      correctValEl, wrongValEl, towerBar, btnC, btnW,
+      correct: 0, wrong: 0, points: 0, eliminated: false, rank: 0
+    };
+
+    btnC.addEventListener('click', () => {
+      if(p.eliminated || p.rank > 0) return;
+      pushHistory();
+      const plus = Math.max(0, parseInt(plusInput.value || 1));
+      p.correct++;
+      p.points += plus;
+      checkFinishAndEliminate(p);
+      renderAll(true, p.idx);
+    });
+
+    btnW.addEventListener('click', () => {
+      if(p.eliminated || p.rank > 0) return;
+      pushHistory();
+      const minus = Math.max(0, parseInt(minusInput.value || 1));
+      p.wrong++;
+      p.points -= minus;
+      checkFinishAndEliminate(p);
+      renderAll(true, p.idx);
+    });
+
+    return p;
+  }
+
   function createGrid(count){
     grid.innerHTML = '';
     players = [];
     historyStack = [];
     winners = [];
     setGridColumnsByCount(count);
-
-    for(let i=0;i<count;i++){
-      const col = document.createElement('div');
-      col.className = 'column';
-      col.innerHTML = `
-        <input class="name-input" value="プレイヤー${i+1}" />
-        <div class="score-area">
-          <div class="points-score"><span class="points-num">0</span></div>
-          <div class="sub-scores">
-            <div class="score-part correct-val" title="正解数">0</div>
-            <span>/</span>
-            <div class="score-part wrong-val" title="誤答数">0</div>
-          </div>
-        </div>
-        <div class="buttons">
-          <button class="btn-op btn-correct">正解</button>
-          <button class="btn-op btn-wrong">誤答</button>
-        </div>
-      `;
-      grid.appendChild(col);
-
-      const nameEl = col.querySelector('.name-input');
-      const pointsNumEl = col.querySelector('.points-num');
-      const pointsScoreEl = col.querySelector('.points-score');
-      const correctValEl = col.querySelector('.correct-val');
-      const wrongValEl = col.querySelector('.wrong-val');
-      const btnC = col.querySelector('.btn-correct');
-      const btnW = col.querySelector('.btn-wrong');
-
-      const p = { 
-        idx:i, 
-        el:col, 
-        nameEl, 
-        pointsNumEl, 
-        pointsScoreEl,
-        correctValEl,
-        wrongValEl,
-        btnC, 
-        btnW, 
-        correct:0, 
-        wrong:0, 
-        points:0,
-        eliminated:false, 
-        rank:0
-      };
-
-      btnC.addEventListener('click', ()=>{
-        if(p.eliminated || p.rank>0) return;
-        pushHistory(p.idx, { correct:p.correct, wrong:p.wrong, points:p.points, rank:p.rank, eliminated:p.eliminated });
-        
-        const plus = Math.max(0, parseInt(plusInput.value || 1));
-        p.correct++;
-        p.points += plus;
-        
-        checkFinishAndEliminate(p);
-        renderAll(true, p.idx);
-      });
-
-      btnW.addEventListener('click', ()=>{
-        if(p.eliminated || p.rank>0) return;
-        pushHistory(p.idx, { correct:p.correct, wrong:p.wrong, points:p.points, rank:p.rank, eliminated:p.eliminated });
-        
-        const minus = Math.max(0, parseInt(minusInput.value || 1));
-        p.wrong++;
-        p.points -= minus;
-        
-        checkFinishAndEliminate(p);
-        renderAll(true, p.idx);
-      });
-
-      players.push(p);
+    for(let i = 0; i < count; i++){
+      players.push(createPlayerObject(i, `プレイヤー${i+1}`));
     }
-    
     renderAll(false);
     updateUndoState();
   }
 
   function checkFinishAndEliminate(p){
     const winPts = Math.max(1, parseInt(winPointsInput.value || 10));
-
     if(!p.eliminated && p.rank === 0 && p.points >= winPts){
       winners.push(p.idx);
       p.rank = winners.length;
     }
   }
 
-  function renderAll(animate=true, activeIdx = -1){
-    players.forEach(p=>{
+  function renderAll(animate = true, activeIdx = -1){
+    const winPts = Math.max(1, parseInt(winPointsInput.value || 10));
+    players.forEach(p => {
       p.el.classList.remove('eliminated', 'winner');
-      
+
+      const pct = Math.min(100, Math.max(0, (p.points / winPts) * 100));
+      p.towerBar.style.height = pct + '%';
+
       p.correctValEl.textContent = p.correct;
       p.wrongValEl.textContent = p.wrong;
 
@@ -391,6 +423,7 @@
         p.btnC.disabled = true;
         p.btnW.disabled = true;
         p.nameEl.disabled = true;
+        p.subnameEl.disabled = true;
       } else {
         if(p.rank > 0){
           p.el.classList.add('winner');
@@ -398,11 +431,13 @@
           p.btnC.disabled = true;
           p.btnW.disabled = true;
           p.nameEl.disabled = true;
+          p.subnameEl.disabled = true;
         } else {
           p.pointsNumEl.textContent = String(p.points);
           p.btnC.disabled = false;
           p.btnW.disabled = false;
           p.nameEl.disabled = false;
+          p.subnameEl.disabled = false;
         }
       }
 
@@ -412,80 +447,80 @@
         p.pointsScoreEl.classList.add('pop-anim');
       }
     });
-
     updateUndoState();
   }
 
   function undoGlobal(){
     if(historyStack.length === 0) return;
-    const last = historyStack.pop();
-    if(!last) return;
-    
-    const idx = last.idx;
-    const prev = last.prev;
-    winners = (last.winners || []).slice();
-    
-    const p = players[idx];
-    if(p){
-      p.correct = prev.correct;
-      p.wrong = prev.wrong;
-      p.points = prev.points;
-      p.eliminated = prev.eliminated;
-      p.rank = prev.rank || 0;
-    }
-    
-    players.forEach(pl => {
-      const pos = winners.indexOf(pl.idx);
-      pl.rank = pos === -1 ? (pl.rank>0 && pl.idx===idx ? 0 : pl.rank) : pos+1;
+    const prev = historyStack.pop();
+    winners = prev.winners.slice();
+    players.forEach((p, i) => {
+      const s = prev.players[i];
+      p.correct = s.correct;
+      p.wrong = s.wrong;
+      p.points = s.points;
+      p.eliminated = s.eliminated;
+      p.rank = s.rank;
     });
-    players.forEach(pl => { 
-      if(winners.indexOf(pl.idx) === -1 && pl.rank>0 && pl.idx !== idx) pl.rank = 0; 
-    });
-
-    renderAll(true, idx);
-  }
-
-  function resetAll(){
-    players.forEach((p,i)=>{
-      p.correct = 0; p.wrong = 0; p.points = 0; p.eliminated = false; p.rank = 0;
-      p.nameEl.value = `プレイヤー${i+1}`;
-      p.nameEl.disabled = false;
-      p.btnC.disabled = false;
-      p.btnW.disabled = false;
-      p.el.classList.remove('eliminated', 'winner');
-    });
-    historyStack = [];
-    winners = [];
     renderAll(false);
-    updateUndoState();
   }
 
-  setupBtn.addEventListener('click', ()=>{
+  function addPlayer(){
+    if(players.length >= 20) return;
+    const newIdx = players.length;
+    setGridColumnsByCount(newIdx + 1);
+    players.push(createPlayerObject(newIdx, `プレイヤー${newIdx + 1}`));
+    countInput.value = players.length;
+    renderAll(false);
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  setupBtn.addEventListener('click', () => {
+    if(players.length === 0){
+      const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
+      createGrid(cnt);
+    } else {
+      players.forEach(p => {
+        p.correct = 0; p.wrong = 0; p.points = 0; p.eliminated = false; p.rank = 0;
+        p.btnC.disabled = false;
+        p.btnW.disabled = false;
+        p.nameEl.disabled = false;
+        p.subnameEl.disabled = false;
+        p.el.classList.remove('eliminated', 'winner');
+      });
+      historyStack = [];
+      winners = [];
+      renderAll(false);
+      updateUndoState();
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if(!confirm('リセットしますか？（名前もすべてリセットされます）')) return;
     const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
     createGrid(cnt);
   });
 
-  resetBtn.addEventListener('click', resetAll);
   undoBtn.addEventListener('click', undoGlobal);
+  addBtn.addEventListener('click', addPlayer);
 
   winPointsInput.addEventListener('input', () => {
     const winPts = Math.max(1, parseInt(winPointsInput.value || 10));
     players.forEach(p => {
-       if(!p.eliminated && p.rank === 0 && p.points >= winPts){
-          winners.push(p.idx);
-          p.rank = winners.length;
-       }
+      if(!p.eliminated && p.rank === 0 && p.points >= winPts){
+        winners.push(p.idx);
+        p.rank = winners.length;
+      }
     });
     renderAll(false);
   });
 
   createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
-  
-  window.addEventListener('resize', ()=> {
+
+  window.addEventListener('resize', () => {
     const cnt = players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
     setGridColumnsByCount(cnt);
   });
-
 })();
 </script>
 </body>
