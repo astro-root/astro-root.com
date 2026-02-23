@@ -142,6 +142,13 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
   font-size: 0.8rem; padding: 8px 14px; background: rgba(225,29,72,0.15);
   border: 1px solid rgba(225,29,72,0.4); border-radius: 10px; color: #fb7185; font-weight: 700;
   margin-right: auto; letter-spacing: 0.05em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90px;
+}
+@media (max-width: 380px) {
+  .rule-badge { display: none; }
+  .room-info span { font-size: 1.1rem; }
+  .h-btn-icon { width: 36px; height: 36px; }
+  .h-btn-icon svg { width: 17px; height: 17px; }
 }
 .h-btn {
   background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-main);
@@ -409,7 +416,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <button class="btn btn-sec" onclick="handleJoin()">JOIN ROOM</button>
     <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:28px; padding-bottom:8px;">
       <button onclick="openFeedback()" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
-        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">FEEDBACK</span>
       </button>
       <a href="https://twitter.com/astro_root" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='#1d9bf0'" onmouseout="this.style.color='var(--text-muted)'">
@@ -434,7 +441,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
         <span class="chat-badge" id="chat-badge"></span>
       </button>
       <button class="h-btn-icon" onclick="openFeedback()" title="Feedback">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
       </button>
       <button class="h-btn-icon" onclick="openModal()" title="Settings">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -665,7 +672,7 @@ async function handleCreate() {
       lastActiveAt: firebase.database.ServerValue.TIMESTAMP,
       players: { [myId]: newPlayer(n) }
     });
-    enterRoom(true);
+    enterRoom(true, n);
   } catch(e) {
     console.error(e);
     err('エラーが発生しました。通信状態を確認してください。');
@@ -694,7 +701,7 @@ async function handleJoin() {
     localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
     if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
-    enterRoom(false);
+    enterRoom(false, n);
   } catch(e) {
     console.error(e);
     err('エラーが発生しました。通信状態を確認してください。');
@@ -705,7 +712,7 @@ function newPlayer(name) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), hist: [] };
 }
 
-function enterRoom(isCreate=false) {
+function enterRoom(isCreate=false, playerName='') {
   try {
     if (window.location.protocol !== 'file:') {
       const base = window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
@@ -729,7 +736,7 @@ function enterRoom(isCreate=false) {
   document.getElementById('game-rid').innerText = rId;
   show('room');
   showRoomInfo(isCreate);
-  initChat();
+  initChat(playerName);
 
   if(rRef) rRef.off('value', rCb);
   rRef = db.ref('rooms/'+rId);
@@ -753,8 +760,7 @@ async function leaveRoom() {
   if(rRef) { rRef.off('value', rCb); rRef = null; }
   if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
   if(db && rId && myId) {
-    const myName = roomData && roomData.players && roomData.players[myId]
-      ? roomData.players[myId].name : '???';
+    const myName = getMyName();
     await pushSysMsg(`${myName} が退室しました`);
     const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
     await playerRef.onDisconnect().cancel();
@@ -1074,7 +1080,13 @@ function copyUrl(){
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
 
 // ===== CHAT =====
-function initChat() {
+function getMyName(fallback='') {
+  if(roomData && roomData.players && roomData.players[myId] && roomData.players[myId].name)
+    return roomData.players[myId].name;
+  return fallback || localStorage.getItem('qr_name') || 'Player';
+}
+
+function initChat(playerName='') {
   const stampsEl = document.getElementById('chat-stamps');
   stampsEl.innerHTML = STAMPS.map(s =>
     `<button class="stamp-btn" onclick="sendStamp('${s}')">${s}</button>`
@@ -1092,9 +1104,8 @@ function initChat() {
     }
   });
 
-  const myName = roomData && roomData.players && roomData.players[myId]
-    ? roomData.players[myId].name : '???';
-  pushSysMsg(`${myName} が入室しました`);
+  const name = playerName || getMyName();
+  pushSysMsg(`${name} が入室しました`);
 }
 
 function toggleChat() {
@@ -1147,20 +1158,16 @@ async function sendChatMsg() {
   const text = input.value.trim();
   if(!text || !rId) return;
   input.value = '';
-  const myName = roomData && roomData.players && roomData.players[myId]
-    ? roomData.players[myId].name : '???';
   await db.ref(`rooms/${rId}/chat`).push({
-    type: 'msg', playerId: myId, playerName: myName,
+    type: 'msg', playerId: myId, playerName: getMyName(),
     text, stamp: false, ts: firebase.database.ServerValue.TIMESTAMP
   });
 }
 
 async function sendStamp(emoji) {
   if(!rId) return;
-  const myName = roomData && roomData.players && roomData.players[myId]
-    ? roomData.players[myId].name : '???';
   await db.ref(`rooms/${rId}/chat`).push({
-    type: 'msg', playerId: myId, playerName: myName,
+    type: 'msg', playerId: myId, playerName: getMyName(),
     text: emoji, stamp: true, ts: firebase.database.ServerValue.TIMESTAMP
   });
 }
