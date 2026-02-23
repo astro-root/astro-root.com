@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Room ユーザーマニュアル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #09090b;
+  --surface: rgba(24,24,27,0.8);
+  --border: rgba(255,255,255,0.1);
+  --cyan: #06b6d4;
+  --magenta: #e11d48;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --en: 'Inter', sans-serif;
+  --ja: 'Noto Sans JP', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(6,182,212,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(225,29,72,0.07) 0%, transparent 55%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--ja);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── LAYOUT ── */
+.wrapper { max-width: 760px; margin: 0 auto; padding: 0 24px 120px; }
+
+/* ── HERO ── */
+.hero {
+  padding: 80px 0 60px;
+  text-align: center;
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.hero-logo {
+  font-family: var(--en); font-size: clamp(3rem, 10vw, 5rem); font-weight: 900;
+  background: linear-gradient(135deg, #fff, var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 8px 32px rgba(6,182,212,0.35));
+}
+.hero-sub {
+  font-family: var(--mono); font-size: 0.8rem; color: var(--muted);
+  letter-spacing: 0.3em; margin: 10px 0 20px; text-transform: uppercase;
+}
+.hero-desc { color: var(--muted); font-size: 0.95rem; max-width: 480px; margin: 0 auto; }
+
+/* ── TOC ── */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin: 48px 0;
+  backdrop-filter: blur(20px);
+}
+.toc-title {
+  font-family: var(--en); font-size: 0.75rem; font-weight: 700;
+  color: var(--cyan); letter-spacing: 0.2em; text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.toc-list a {
+  color: var(--muted); text-decoration: none; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 10px; transition: color 0.2s;
+}
+.toc-list a:hover { color: var(--cyan); }
+.toc-num {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--cyan);
+  min-width: 20px; opacity: 0.7;
+}
+
+/* ── SECTION ── */
+.section { margin-top: 72px; }
+.section-label {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--cyan);
+  letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(6,182,212,0.4), transparent);
+}
+.section-title {
+  font-family: var(--en); font-size: clamp(1.4rem, 4vw, 1.9rem); font-weight: 900;
+  letter-spacing: 0.05em; margin-bottom: 24px; color: var(--text);
+}
+.section-body { color: var(--muted); font-size: 0.95rem; }
+.section-body p { margin-bottom: 16px; }
+.section-body p:last-child { margin-bottom: 0; }
+
+/* ── STEPS ── */
+.steps { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+.step {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px 24px;
+  display: flex; gap: 20px; align-items: flex-start;
+  backdrop-filter: blur(16px);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.step:hover { border-color: rgba(6,182,212,0.35); transform: translateX(4px); }
+.step-num {
+  font-family: var(--en); font-size: 1.8rem; font-weight: 900;
+  color: var(--cyan); opacity: 0.35; line-height: 1;
+  flex-shrink: 0; width: 40px; text-align: center; padding-top: 2px;
+}
+.step-body {}
+.step-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; color: var(--text); }
+.step-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+/* ── RULES GRID ── */
+.rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+@media (max-width: 540px) { .rules-grid { grid-template-columns: 1fr; } }
+.rule-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px; backdrop-filter: blur(16px);
+  transition: border-color 0.3s, transform 0.3s;
+  cursor: default;
+}
+.rule-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
+.rule-name {
+  font-family: var(--en); font-size: 0.8rem; font-weight: 900;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 8px; display: inline-block;
+  margin-bottom: 10px;
+}
+.tag-c { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
+.tag-m { background: rgba(225,29,72,0.15); color: #fb7185; border: 1px solid rgba(225,29,72,0.3); }
+.tag-g { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.tag-y { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+.tag-p { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+.rule-summary { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+.rule-formula {
+  font-family: var(--mono); font-size: 0.78rem;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; color: var(--text);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.formula-win { color: var(--green); }
+.formula-lose { color: var(--red); }
+.formula-note { color: var(--muted); font-size: 0.72rem; }
+
+/* ── BUTTONS ROW ── */
+.buttons-doc { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
+.btn-doc {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 22px;
+  display: flex; align-items: center; gap: 18px;
+  backdrop-filter: blur(16px);
+}
+.btn-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; flex-shrink: 0;
+}
+.btn-icon.o { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); }
+.btn-icon.x { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); }
+.btn-icon.undo { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); }
+.btn-icon.watch { background: rgba(255,255,255,0.07); border: 1px solid var(--border); }
+.btn-icon.leave { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+.btn-icon.reset { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+.btn-icon.finish { background: rgba(225,29,72,0.12); border: 1px solid rgba(225,29,72,0.3); }
+.btn-doc-title { font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 3px; }
+.btn-doc-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+
+/* ── CAUTION ── */
+.caution-list { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
+.caution {
+  background: var(--surface); border-radius: 14px; padding: 18px 22px;
+  display: flex; gap: 16px; align-items: flex-start;
+  backdrop-filter: blur(12px);
+}
+.caution.warn { border: 1px solid rgba(245,158,11,0.35); }
+.caution.info { border: 1px solid rgba(6,182,212,0.3); }
+.caution.danger { border: 1px solid rgba(239,68,68,0.35); }
+.caution-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+.caution-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+.caution.warn .caution-title { color: var(--yellow); }
+.caution.info .caution-title { color: var(--cyan); }
+.caution.danger .caution-title { color: var(--red); }
+.caution-body { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+/* ── BADGE TABLE ── */
+.badge-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.88rem; }
+.badge-table th {
+  font-family: var(--en); font-size: 0.72rem; font-weight: 700;
+  color: var(--cyan); letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.badge-table td {
+  padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: var(--muted); vertical-align: top;
+}
+.badge-table td:first-child { color: var(--text); font-weight: 700; white-space: nowrap; }
+.badge-table tr:last-child td { border-bottom: none; }
+.badge-sample {
+  display: inline-block; font-size: 0.7rem; padding: 4px 9px; border-radius: 7px;
+  font-family: var(--en); font-weight: 700; letter-spacing: 0.08em;
+}
+
+/* ── CHAT DOC ── */
+.chat-features { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+@media (max-width: 480px) { .chat-features { grid-template-columns: 1fr; } }
+.chat-feat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 20px; backdrop-filter: blur(12px);
+}
+.chat-feat-icon { font-size: 1.5rem; margin-bottom: 10px; }
+.chat-feat-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); }
+.chat-feat-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+/* ── FAQ ── */
+.faq { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.faq-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; backdrop-filter: blur(12px);
+}
+.faq-q {
+  padding: 18px 22px; font-weight: 700; font-size: 0.92rem;
+  cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; user-select: none; transition: background 0.2s;
+}
+.faq-q:hover { background: rgba(255,255,255,0.04); }
+.faq-q::before { content: 'Q.'; font-family: var(--mono); color: var(--cyan); flex-shrink: 0; }
+.faq-arrow { color: var(--muted); font-size: 0.8rem; transition: transform 0.3s; flex-shrink: 0; }
+.faq-item.open .faq-arrow { transform: rotate(180deg); }
+.faq-a {
+  padding: 0 22px; max-height: 0; overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.3s;
+  font-size: 0.87rem; color: var(--muted); line-height: 1.7;
+}
+.faq-item.open .faq-a { max-height: 400px; padding: 0 22px 20px; }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 80px; padding-top: 32px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.footer-logo { font-family: var(--en); font-size: 1.6rem; font-weight: 900; color: var(--cyan); letter-spacing: 0.1em; }
+.footer-links { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
+.footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+.footer-links a:hover { color: var(--cyan); }
+.footer-copy { font-size: 0.78rem; color: rgba(161,161,170,0.5); }
+
+/* ── MISC ── */
+.highlight { color: var(--cyan); font-weight: 700; }
+.hl-green { color: var(--green); font-weight: 700; }
+.hl-red { color: var(--red); font-weight: 700; }
+.hl-yellow { color: var(--yellow); font-weight: 700; }
+code {
+  font-family: var(--mono); font-size: 0.85em;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+  border-radius: 5px; padding: 1px 6px; color: var(--text);
+}
+.divider { height: 1px; background: var(--border); margin: 40px 0; }
+
+/* ── SCROLL INDICATOR ── */
+.scroll-top {
+  position: fixed; bottom: 28px; right: 28px;
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4);
+  color: var(--cyan); cursor: pointer; display: none; align-items: center;
+  justify-content: center; font-size: 1.1rem; transition: 0.3s;
+  backdrop-filter: blur(16px); z-index: 100;
+}
+.scroll-top:hover { background: rgba(6,182,212,0.25); transform: translateY(-3px); }
+.scroll-top.show { display: flex; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.section { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-logo">Q-Room</div>
+    <div class="hero-sub">User Manual</div>
+    <p class="hero-desc">リアルタイム・オンラインクイズシステムの使い方ガイドです。</p>
+  </div>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-title">目次</div>
+    <ul class="toc-list">
+      <li><a href="#start"><span class="toc-num">01</span>はじめ方</a></li>
+      <li><a href="#room"><span class="toc-num">02</span>部屋の操作</a></li>
+      <li><a href="#buttons"><span class="toc-num">03</span>ボタンの説明</a></li>
+      <li><a href="#rules"><span class="toc-num">04</span>ルール一覧</a></li>
+      <li><a href="#chat"><span class="toc-num">05</span>チャット機能</a></li>
+      <li><a href="#status"><span class="toc-num">06</span>プレイヤーの状態</a></li>
+      <li><a href="#notes"><span class="toc-num">07</span>注意事項</a></li>
+      <li><a href="#faq"><span class="toc-num">08</span>よくある質問</a></li>
+    </ul>
+  </nav>
+
+  <!-- 01 はじめ方 -->
+  <section class="section" id="start">
+    <div class="section-label">01</div>
+    <h2 class="section-title">はじめ方</h2>
+    <div class="section-body">
+      <p>Q-Roomはアカウント登録不要で、すぐにクイズ対戦を始められます。部屋を作る人と参加する人で手順が異なります。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">プレイヤー名を入力する</div>
+          <div class="step-desc">他のプレイヤーに表示される名前を入力します。最大20文字。前回使った名前は自動入力されます。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">ルームIDを決める（部屋を作る場合）</div>
+          <div class="step-desc">5桁の数字を入力するか、🎲ボタンでランダム生成します。そのIDを参加者に共有しましょう。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">CREATE または JOIN を押す</div>
+          <div class="step-desc"><span class="highlight">CREATE ROOM</span> で新しい部屋を作成。<span class="highlight">JOIN ROOM</span> で既存の部屋に参加。入室時にRoom IDとURLが表示されるので、仲間に共有できます。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">ルールを設定する（部屋を作った人）</div>
+          <div class="step-desc">右上の⚙️（設定）アイコンからルールと各種パラメータを変更できます。参加者全員にリアルタイムで反映されます。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">問題を出して◯✕を押す</div>
+          <div class="step-desc">司会者が問題を読み上げ、各プレイヤーが自分で◯または✕を押します。スコアは自動計算されます。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 部屋の操作 -->
+  <section class="section" id="room">
+    <div class="section-label">02</div>
+    <h2 class="section-title">部屋の操作</h2>
+    <div class="section-body">
+      <p>入室後はリアルタイムで全員の状態が同期されます。ヘッダーにはルーム情報と主要機能へのアクセスが集約されています。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">💬</div>
+        <div class="step-body">
+          <div class="step-title">チャットアイコン</div>
+          <div class="step-desc">チャットドロワーを開閉します。未読メッセージがあると赤いバッジで件数が表示されます。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">✉</div>
+        <div class="step-body">
+          <div class="step-title">フィードバックアイコン</div>
+          <div class="step-desc">開発者へのフィードバック送信やSNS・公式サイトへのリンクです。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">⚙</div>
+        <div class="step-body">
+          <div class="step-title">設定アイコン</div>
+          <div class="step-desc">ルール変更・パラメータ設定・URL/IDコピー・スコアリセット・ゲーム終了を行えます。設定の変更は即座に全員に反映されます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="caution-list" style="margin-top:24px;">
+      <div class="caution info">
+        <div class="caution-icon">🔗</div>
+        <div>
+          <div class="caution-title">URLで直接参加できます</div>
+          <div class="caution-body">設定画面の「Copy URL」またはシェアモーダルのURLを共有すると、受け取った相手はURLを開くだけでルームIDが自動入力されます。</div>
+        </div>
+      </div>
+      <div class="caution warn">
+        <div class="caution-icon">⏱</div>
+        <div>
+          <div class="caution-title">部屋の有効期限</div>
+          <div class="caution-body">全員が退室してから<span class="hl-yellow">5分以上</span>が経過すると、そのルームIDは使用できなくなります。同じIDで再開したい場合は5分以内に再入室してください。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 ボタンの説明 -->
+  <section class="section" id="buttons">
+    <div class="section-label">03</div>
+    <h2 class="section-title">ボタンの説明</h2>
+    <div class="section-body">
+      <p>プレイ中に使用するボタンの機能一覧です。</p>
+    </div>
+    <div class="buttons-doc">
+      <div class="btn-doc">
+        <div class="btn-icon o">◯</div>
+        <div>
+          <div class="btn-doc-title">◯（正解）</div>
+          <div class="btn-doc-desc">正解したときに押します。ルールに応じてスコアが加算・連答カウントが増加します。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon x">✕</div>
+        <div>
+          <div class="btn-doc-title">✕（誤答）</div>
+          <div class="btn-doc-desc">不正解のときに押します。ルールによってはペナルティ（休み・失格・スコア減）が発生します。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);font-size:1rem;">休み</div>
+        <div>
+          <div class="btn-doc-title">休み消化</div>
+          <div class="btn-doc-desc">FreezeやM◯N休などのルールで「休み」が付与された場合に表示されます。残り休み数が表示され、押すたびに1回消化します。休みが残っている間は◯✕ボタンは表示されません。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon undo" style="font-size:1.1rem;">↩</div>
+        <div>
+          <div class="btn-doc-title">↩ UNDO</div>
+          <div class="btn-doc-desc">直前の◯✕操作を最大5回まで取り消せます。操作履歴がない場合はグレーアウトされます。自分のスコアのみ対象です。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon watch" style="font-size:1rem;">👀</div>
+        <div>
+          <div class="btn-doc-title">👀 WATCH / 🎮 JOIN</div>
+          <div class="btn-doc-desc">観戦モードと参加モードを切り替えます。観戦中は◯✕ボタンが非表示になりスコアに影響しません。途中参加や一時抜けに使えます。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon leave" style="font-size:1rem;">🚪</div>
+        <div>
+          <div class="btn-doc-title">🚪 LEAVE</div>
+          <div class="btn-doc-desc">部屋から退室します。押すと自分のプレイヤーデータがリストから削除され、トップ画面へ戻ります。再入室すると新しいプレイヤーとして追加されます。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon reset" style="font-size:1rem;">🔄</div>
+        <div>
+          <div class="btn-doc-title">🔄 RESET SCORES（設定内）</div>
+          <div class="btn-doc-desc">全員のスコア（◯✕・得点・休み・連答数）をリセットして再スタートします。プレイヤーは退室しません。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon finish" style="font-size:1rem;">🏁</div>
+        <div>
+          <div class="btn-doc-title">🏁 FINISH GAME（設定内）</div>
+          <div class="btn-doc-desc">ゲームを強制終了してリザルト画面へ全員を移行します。全員が結果を確認できます。「Back to ROOM」で同じ部屋に戻ることも可能です。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 ルール一覧 -->
+  <section class="section" id="rules">
+    <div class="section-label">04</div>
+    <h2 class="section-title">ルール一覧</h2>
+    <div class="section-body">
+      <p>全13種類のルールに対応しています。設定画面からいつでも変更でき、変更は即座に全員に適用されます。</p>
+    </div>
+    <div class="rules-grid">
+
+      <div class="rule-card">
+        <span class="rule-name tag-c">m◯n×</span>
+        <div class="rule-summary">最もスタンダードなルール。m回正解で勝ち抜け、n回誤答で失格。</div>
+        <div class="rule-formula">
+          <span class="formula-win">◯ × m → 勝ち抜け</span>
+          <span class="formula-lose">✕ × n → 失格</span>
+          <span class="formula-note">デフォルト: 5◯2×</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-c">連答付き</span>
+        <div class="rule-summary">連続正解でボーナス。2連答目以降は1問で2点加算。連答中に誤答するとリセット。</div>
+        <div class="rule-formula">
+          <span class="formula-win">スコア ≥ m → 勝ち抜け</span>
+          <span class="formula-lose">✕ × n → 失格</span>
+          <span class="formula-note">連答中は+2点、通常時は+1点</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-c">up-down</span>
+        <div class="rule-summary">正解でスコアアップ、誤答でスコアがゼロにリセット。崩れても上り直せる。</div>
+        <div class="rule-formula">
+          <span class="formula-win">スコア ≥ m → 勝ち抜け</span>
+          <span class="formula-lose">✕ × n → 失格</span>
+          <span class="formula-note">誤答でスコアは0にリセット</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-m">by</span>
+        <div class="rule-summary">スコア＝正解数×（定数−誤答数）。誤答が増えるほど1問あたりの価値が下がる。</div>
+        <div class="rule-formula">
+          <span class="formula-win">◯ × (m − ✕) ≥ m² → 勝ち抜け</span>
+          <span class="formula-lose">✕ × n → 失格</span>
+          <span class="formula-note">デフォルト: 定数5、失格3×</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-g">Freeze</span>
+        <div class="rule-summary">誤答するとその時点の誤答数だけ「休み」が付与される。休み中は解答できない。</div>
+        <div class="rule-formula">
+          <span class="formula-win">◯ × m → 勝ち抜け</span>
+          <span class="formula-lose">誤答 → 誤答累計数だけ休み</span>
+          <span class="formula-note">失格なし（n=0で設定）</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-g">m◯n休</span>
+        <div class="rule-summary">誤答するとn回の「休み」が付く。毎回固定休みのシンプル版。</div>
+        <div class="rule-formula">
+          <span class="formula-win">◯ × m → 勝ち抜け</span>
+          <span class="formula-lose">✕ → n休み</span>
+          <span class="formula-note">デフォルト: 5◯3休</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-y">Swedish</span>
+        <div class="rule-summary">誤答ペナルティが正解数に比例して増加。正解が多いほど誤答が重くなる上級ルール。</div>
+        <div class="rule-formula">
+          <span class="formula-win">◯ × m → 勝ち抜け</span>
+          <span class="formula-lose">誤答ペナルティ ＝ √(8◯+1) 切上</span>
+          <span class="formula-note">デフォルト: 10◯10×</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-y">連誤答付き</span>
+        <div class="rule-summary">連続誤答でペナルティ増加。2連誤答目は2×分のペナルティ。正解するとリセット。</div>
+        <div class="rule-formula">
+          <span class="formula-win">◯ × m → 勝ち抜け</span>
+          <span class="formula-lose">連誤答中は2倍×カウント</span>
+          <span class="formula-note">デフォルト: 5◯3×</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-p">divide</span>
+        <div class="rule-summary">初期値から始まり、正解で加算、誤答で「スコア÷誤答累計数」に激減。1を割ると失格。</div>
+        <div class="rule-formula">
+          <span class="formula-win">スコア ≥ win → 勝ち抜け</span>
+          <span class="formula-lose">スコア &lt; 1 → 失格</span>
+          <span class="formula-note">デフォルト: 初期10、加点+10、勝ち抜け100</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-p">m hits Combo</span>
+        <div class="rule-summary">連続正解でコンボ加算。1問目+1、2問目+2…と連答が続くほど加速する。</div>
+        <div class="rule-formula">
+          <span class="formula-win">スコア ≥ m → 勝ち抜け</span>
+          <span class="formula-lose">誤答でコンボリセット（失格なし）</span>
+          <span class="formula-note">デフォルト: 勝ち抜け10点</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-m">アタック風サバ</span>
+        <div class="rule-summary">全員にHP。自分の正解は自分を回復＋他全員にダメージ。誤答は自分にダメージ。</div>
+        <div class="rule-formula">
+          <span class="formula-win">規定人数まで生き残る</span>
+          <span class="formula-lose">HP ≤ 0 → 失格</span>
+          <span class="formula-note">デフォルト: 初期HP20</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-m">LuckyShot</span>
+        <div class="rule-summary">◯✕でランダムな点数が加減される運試しルール。作戦よりも運次第。</div>
+        <div class="rule-formula">
+          <span class="formula-win">スコア ≥ win → 勝ち抜け</span>
+          <span class="formula-lose">スコア ≤ lose → 失格</span>
+          <span class="formula-note">デフォルト: 乱数最大10</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <span class="rule-name tag-g">螺旋階段</span>
+        <div class="rule-summary">最上位にいる状態での連続正解で勝ち抜け、最下位での連続誤答で失格。順位が重要。</div>
+        <div class="rule-formula">
+          <span class="formula-win">最上位でN連答 → 勝ち抜け</span>
+          <span class="formula-lose">最下位でN連誤 → 失格</span>
+          <span class="formula-note">デフォルト: 上位3連答 / 下位3連誤</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 チャット -->
+  <section class="section" id="chat">
+    <div class="section-label">05</div>
+    <h2 class="section-title">チャット機能</h2>
+    <div class="section-body">
+      <p>ゲーム中にリアルタイムでメッセージのやり取りができます。ヘッダーの💬アイコンから開閉できます。</p>
+    </div>
+    <div class="chat-features">
+      <div class="chat-feat">
+        <div class="chat-feat-icon">💬</div>
+        <div class="chat-feat-title">テキストチャット</div>
+        <div class="chat-feat-desc">テキスト入力後Enterまたは送信ボタンで投稿。自分の発言は右側、他者は左側に表示。200文字まで。</div>
+      </div>
+      <div class="chat-feat">
+        <div class="chat-feat-icon">🎉</div>
+        <div class="chat-feat-title">スタンプ</div>
+        <div class="chat-feat-desc">👍🎉😂🔥などのスタンプをワンタップで送信。テキスト入力欄の上に並んでいます。</div>
+      </div>
+      <div class="chat-feat">
+        <div class="chat-feat-icon">🔔</div>
+        <div class="chat-feat-title">未読バッジ</div>
+        <div class="chat-feat-desc">チャットを閉じている間に届いたメッセージの件数が💬アイコンに赤いバッジで表示されます。</div>
+      </div>
+      <div class="chat-feat">
+        <div class="chat-feat-icon">📢</div>
+        <div class="chat-feat-title">システムメッセージ</div>
+        <div class="chat-feat-desc">誰かが入室・退室したタイミングで自動的に通知メッセージが表示されます。</div>
+      </div>
+    </div>
+    <div class="caution-list" style="margin-top:20px;">
+      <div class="caution info">
+        <div class="caution-icon">📜</div>
+        <div>
+          <div class="caution-title">履歴の保持</div>
+          <div class="caution-body">メッセージはルームが存在する限り保持されます（最新100件）。ルームが削除されると消えます。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 プレイヤーの状態 -->
+  <section class="section" id="status">
+    <div class="section-label">06</div>
+    <h2 class="section-title">プレイヤーの状態</h2>
+    <div class="section-body">
+      <p>プレイヤーカードの表示や色でステータスを確認できます。</p>
+    </div>
+    <table class="badge-table">
+      <thead>
+        <tr>
+          <th>表示</th>
+          <th>意味</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(6,182,212,0.2);color:#06b6d4;border:1px solid rgba(6,182,212,0.4);">シアン枠</span></td>
+          <td>自分（YOU）のカード。操作中のプレイヤー。</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(16,185,129,0.2);color:#10b981;border:1px solid rgba(16,185,129,0.4);">WINNER</span></td>
+          <td>勝ち抜け済み。緑のカードで表示。</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid rgba(239,68,68,0.4);">ELIMINATED</span></td>
+          <td>失格。グレースケールで半透明表示。</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(255,255,255,0.05);color:#a1a1aa;border:1px dashed rgba(255,255,255,0.2);">破線枠</span></td>
+          <td>観戦中（WATCHモード）。スコアに影響なし。</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(245,158,11,0.15);color:#f59e0b;">休:N</span></td>
+          <td>休みがN回残っている状態。</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(6,182,212,0.1);color:#06b6d4;">連:N</span></td>
+          <td>N回連続正解中のコンボ数。</td>
+        </tr>
+        <tr>
+          <td><span class="badge-sample" style="background:rgba(239,68,68,0.1);color:#ef4444;">DAdv!</span></td>
+          <td>連誤答付きルールで連誤答中の状態。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 07 注意事項 -->
+  <section class="section" id="notes">
+    <div class="section-label">07</div>
+    <h2 class="section-title">注意事項</h2>
+    <div class="caution-list">
+      <div class="caution warn">
+        <div class="caution-icon">⚠️</div>
+        <div>
+          <div class="caution-title">スコアは自己申告制です</div>
+          <div class="caution-body">◯✕ボタンは各プレイヤーが自分で押します。不正な操作を防ぐ仕組みはないため、信頼できるメンバー同士での利用を前提としています。</div>
+        </div>
+      </div>
+      <div class="caution warn">
+        <div class="caution-icon">🔄</div>
+        <div>
+          <div class="caution-title">ルール変更はゲーム中でも即時反映されます</div>
+          <div class="caution-body">設定画面でルールやパラメータを変更すると、全員にリアルタイムで適用されます。ゲーム途中での変更はスコアの整合性に影響する場合があるため注意してください。</div>
+        </div>
+      </div>
+      <div class="caution danger">
+        <div class="caution-icon">🚪</div>
+        <div>
+          <div class="caution-title">タブを閉じると自動退室されます</div>
+          <div class="caution-body">ブラウザのタブを閉じた場合、自動的に退室処理が行われます。再入室すると新しいプレイヤーとして追加されます。誤って閉じた場合はすぐに再度アクセスして再入室してください。</div>
+        </div>
+      </div>
+      <div class="caution info">
+        <div class="caution-icon">👤</div>
+        <div>
+          <div class="caution-title">プレイヤーIDはブラウザに紐付きます</div>
+          <div class="caution-body">同じIDで同じ部屋に再入室すると、以前のプレイヤーデータが引き継がれます。別のブラウザや別の端末からは別プレイヤーとして扱われます。</div>
+        </div>
+      </div>
+      <div class="caution info">
+        <div class="caution-icon">🌐</div>
+        <div>
+          <div class="caution-title">インターネット接続が必要です</div>
+          <div class="caution-body">Q-RoomはFirebase Realtime Databaseを使用したリアルタイム同期システムです。通信が不安定な環境では操作が反映されない場合があります。</div>
+        </div>
+      </div>
+      <div class="caution warn">
+        <div class="caution-icon">📱</div>
+        <div>
+          <div class="caution-title">同時接続数の制限があります</div>
+          <div class="caution-body">無料プランのため、サービス全体での同時接続数は100までです。多人数での同時利用は動作が不安定になる場合があります。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 FAQ -->
+  <section class="section" id="faq">
+    <div class="section-label">08</div>
+    <h2 class="section-title">よくある質問</h2>
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>ルームIDを忘れてしまいました</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">設定画面（⚙アイコン）の「Copy ID」ボタンで現在のIDをコピーできます。また「Copy URL」でURLをコピーして共有すれば、相手はIDを入力せずに参加できます。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>誤って◯または✕を押してしまいました</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">「↩ UNDO」ボタンで直前の操作を取り消せます。最大5回まで遡ることができます。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>観戦だけしたい（スコアに含めたくない）</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">「👀 WATCH」ボタンを押すと観戦モードに切り替わります。◯✕ボタンが非表示になり、スコアに影響しません。「🎮 JOIN」で再参加できます。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>別の人のスコアを修正したい</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">他のプレイヤーのスコアを個別に修正する機能はありません。全員リセット（🔄 RESET SCORES）してやり直すか、誤った操作をしたプレイヤー本人にUNDOを使ってもらう必要があります。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>ゲームを途中で終了したい</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">設定画面の「🏁 FINISH GAME」で強制終了できます。全員のリザルト画面が表示されます。「Back to ROOM」で同じ部屋に戻って続けることもできます。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>スマートフォンで操作しにくい</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">◯✕ボタンは大きくタップしやすい設計になっています。スクロールしてボタンが見えない場合は、画面を上にスクロールしてアクションパネルを確認してください。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>名前を変更したい</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">現在、入室後に名前を変更する機能はありません。一度退室し、名前を変えて再入室してください。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>何人まで参加できますか</span>
+          <span class="faq-arrow">▾</span>
+        </div>
+        <div class="faq-a">人数制限は設けていませんが、Firebase無料プランの同時接続100という制限があります。また参加者が増えるほど画面が長くなりスクロール操作が必要になります。現実的には10〜20人程度を推奨します。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-logo">Q-Room</div>
+    <div class="footer-links">
+      <a href="https://astro-root.com/q-room/">アプリを開く</a>
+      <a href="https://twitter.com/astro_root" target="_blank">Twitter</a>
+      <a href="https://astro-root.com/" target="_blank">公式サイト</a>
+    </div>
+    <div class="footer-copy">© astro-root.com</div>
+  </footer>
+
+</div>
+
+<!-- scroll to top -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// FAQ toggle
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+// Scroll to top button
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scrollTop');
+  btn.classList.toggle('show', window.scrollY > 400);
+});
+
+// Section fade-in on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) { e.target.style.animationDelay = '0s'; }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
