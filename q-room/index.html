@@ -149,6 +149,40 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
   font-family: var(--font-en); font-weight: 700; letter-spacing: 0.05em; white-space: nowrap;
 }
 .h-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); transform: translateY(-2px); }
+.h-btn-icon {
+  background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-muted);
+  width: 42px; height: 42px; border-radius: 12px; cursor: pointer; transition: 0.3s;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.h-btn-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.h-btn-icon:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); transform: translateY(-2px); }
+.room-share-modal .share-row {
+  display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px;
+}
+.share-label { font-family: var(--font-en); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; flex-shrink: 0; }
+.share-val { font-family: var(--font-mono); font-size: 1rem; color: var(--text-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-copy-btn {
+  background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-muted);
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-family: var(--font-en);
+  font-weight: 700; transition: 0.3s; white-space: nowrap; flex-shrink: 0;
+}
+.share-copy-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); }
+.share-copy-btn.copied { border-color: var(--green); color: var(--green); background: rgba(16,185,129,0.1); }
+.share-native-btn {
+  width: 100%; padding: 18px; border: 1px solid rgba(6,182,212,0.5); border-radius: 14px;
+  background: rgba(6,182,212,0.1); color: var(--cyan); font-family: var(--font-en); font-weight: 700;
+  font-size: 0.95rem; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.share-native-btn:hover { background: rgba(6,182,212,0.2); border-color: var(--cyan); transform: translateY(-2px); }
+.share-native-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.room-info-dismiss {
+  width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 14px;
+  background: transparent; color: var(--text-muted); font-family: var(--font-en); font-weight: 700;
+  font-size: 0.85rem; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; margin-top: 12px;
+}
+.room-info-dismiss:hover { border-color: rgba(255,255,255,0.3); color: var(--text-main); }
 .plist { padding: 28px; display: flex; flex-direction: column; gap: 18px; }
 .pcard {
   background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 20px;
@@ -267,7 +301,12 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <div id="top-err" class="err"></div>
     <button class="btn btn-pri" onclick="handleCreate()" style="margin-bottom:20px;">CREATE ROOM</button>
     <button class="btn btn-sec" onclick="handleJoin()">JOIN ROOM</button>
-    <button class="btn btn-ghost" onclick="openFeedback()">Contact &amp; Feedback</button>
+    <div style="display:flex; justify-content:center; margin-top:28px; padding-bottom:8px;">
+      <button onclick="openFeedback()" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">FEEDBACK</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -275,9 +314,13 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   <div class="header">
     <div class="room-info">ROOM<span id="game-rid">—</span></div>
     <div class="rule-badge" id="game-rule">—</div>
-    <div style="display:flex; gap:12px;">
-      <button class="h-btn" onclick="openFeedback()">FEEDBACK</button>
-      <button class="h-btn" onclick="openModal()">SETTINGS</button>
+    <div style="display:flex; gap:10px; flex-shrink:0;">
+      <button class="h-btn-icon" onclick="openFeedback()" title="Feedback">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      </button>
+      <button class="h-btn-icon" onclick="openModal()" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
     </div>
   </div>
   <div class="scroll-area"><div id="plist" class="plist"></div></div>
@@ -337,6 +380,31 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
   </div>
 </div>
+
+<div id="modal-room-info" class="modal room-share-modal" onclick="if(event.target===this)closeRoomInfo()">
+  <div class="m-content">
+    <button class="m-close" onclick="closeRoomInfo()">✕</button>
+    <div class="m-title" id="room-info-title">ROOM CREATED</div>
+
+    <div class="share-row">
+      <span class="share-label">ID</span>
+      <span class="share-val" id="share-room-id">—</span>
+      <button class="share-copy-btn" id="btn-copy-id" onclick="copyShareId()">COPY</button>
+    </div>
+    <div class="share-row">
+      <span class="share-label">URL</span>
+      <span class="share-val" id="share-room-url">—</span>
+      <button class="share-copy-btn" id="btn-copy-url" onclick="copyShareUrl()">COPY</button>
+    </div>
+
+    <button class="share-native-btn" id="btn-native-share" onclick="nativeShare()">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+      INVITE FRIENDS
+    </button>
+    <button class="room-info-dismiss" onclick="closeRoomInfo()">START PLAYING →</button>
+  </div>
+</div>
+
 
 <div id="modal-feedback" class="modal" onclick="if(event.target===this)closeFeedback()">
   <div class="m-content">
@@ -426,7 +494,7 @@ async function handleCreate() {
       status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
       players: { [myId]: newPlayer(n) }
     });
-    enterRoom();
+    enterRoom(true);
   } catch(e) {
     console.error(e);
     err('エラーが発生しました。通信状態を確認してください。');
@@ -447,7 +515,7 @@ async function handleJoin() {
     myId = getMyId(); rId = r;
     const p = s.val().players || {};
     if(!p[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
-    enterRoom();
+    enterRoom(false);
   } catch(e) {
     console.error(e);
     err('エラーが発生しました。通信状態を確認してください。');
@@ -458,7 +526,7 @@ function newPlayer(name) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), hist: [] };
 }
 
-function enterRoom() {
+function enterRoom(isCreate=false) {
   try {
     if (window.location.protocol !== 'file:') {
       window.history.replaceState({},'',`/q-room/${rId}`);
@@ -469,6 +537,7 @@ function enterRoom() {
   
   document.getElementById('game-rid').innerText = rId;
   show('room');
+  showRoomInfo(isCreate);
   if(rRef) rRef.off('value', rCb);
   rRef = db.ref('rooms/'+rId);
   rCb = rRef.on('value', snap => {
@@ -501,6 +570,46 @@ function closeModal(){ document.getElementById('modal').classList.remove('active
 
 function openFeedback(){ document.getElementById('modal-feedback').classList.add('active'); }
 function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
+
+function getRoomUrl() {
+  return window.location.protocol === 'file:'
+    ? `https://astro-root.com/q-room/${rId}`
+    : `${window.location.origin}/q-room/${rId}`;
+}
+
+function showRoomInfo(isCreate) {
+  document.getElementById('room-info-title').innerText = isCreate ? 'ROOM CREATED' : 'ROOM JOINED';
+  document.getElementById('share-room-id').innerText = rId;
+  const url = getRoomUrl();
+  document.getElementById('share-room-url').innerText = url;
+  document.getElementById('btn-native-share').style.display = (navigator.share ? 'flex' : 'none');
+  document.getElementById('modal-room-info').classList.add('active');
+}
+
+function closeRoomInfo() { document.getElementById('modal-room-info').classList.remove('active'); }
+
+function copyShareId() {
+  navigator.clipboard.writeText(rId);
+  const btn = document.getElementById('btn-copy-id');
+  btn.innerText = 'COPIED!'; btn.classList.add('copied');
+  setTimeout(() => { btn.innerText = 'COPY'; btn.classList.remove('copied'); }, 2000);
+}
+
+function copyShareUrl() {
+  navigator.clipboard.writeText(getRoomUrl());
+  const btn = document.getElementById('btn-copy-url');
+  btn.innerText = 'COPIED!'; btn.classList.add('copied');
+  setTimeout(() => { btn.innerText = 'COPY'; btn.classList.remove('copied'); }, 2000);
+}
+
+function nativeShare() {
+  if(!navigator.share) return;
+  navigator.share({
+    title: 'Q-Room クイズ対戦しよう！',
+    text: `🎮 Q-Roomでクイズ対戦しよう！\nルームID: ${rId}\n合言葉を入力して参加してね👇`,
+    url: getRoomUrl()
+  }).catch(() => {});
+}
 
 function changeRuleUI(skipRender=false) {
   const r = document.getElementById('sel-rule').value;
@@ -756,8 +865,7 @@ function renderResult() {
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function copyUrl(){ 
-  const url = window.location.protocol === 'file:' ? 'https://astro-root.com/q-room/'+rId : window.location.href;
-  navigator.clipboard.writeText(url); 
+  navigator.clipboard.writeText(getRoomUrl()); 
   toast('URL copied'); 
 }
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
