@@ -285,7 +285,6 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 .r-header { padding: 80px 24px 50px; text-align: center; border-bottom: 1px solid var(--border-color); }
 .r-title { font-family: var(--font-en); font-size: 3.8rem; color: var(--yellow); font-weight: 900; text-shadow: 0 0 32px rgba(245,158,11,0.4); letter-spacing: 0.08em; margin-bottom: 28px;}
 
-/* ===== CHAT ===== */
 .h-btn-icon.chat-btn { position: relative; }
 .chat-badge {
   position: absolute; top: -5px; right: -5px; background: var(--magenta);
@@ -414,7 +413,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <div id="top-err" class="err"></div>
     <button class="btn btn-pri" onclick="handleCreate()" style="margin-bottom:20px;">CREATE ROOM</button>
     <button class="btn btn-sec" onclick="handleJoin()">JOIN ROOM</button>
-    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:28px; padding-bottom:8px;">
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:28px; padding-bottom:8px; flex-wrap:wrap;">
       <button onclick="openFeedback()" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
         <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">FEEDBACK</span>
@@ -426,6 +425,10 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
       <a href="https://astro-root.com/" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
         <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">WEBSITE</span>
+      </a>
+      <a href="https://astro-root.com/q-room/manual.html" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">MANUAL</span>
       </a>
     </div>
   </div>
@@ -479,6 +482,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
       <label>RULE</label>
       <select id="sel-rule" onchange="changeRuleUI()">
         <option value="survival">m◯n×</option>
+        <option value="free">フリバ</option>
         <option value="rentou">連答付き</option>
         <option value="updown">up-down</option>
         <option value="by">by</option>
@@ -605,10 +609,10 @@ let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsg
 const STAMPS = ['👍','🎉','😂','🔥','😮','💪','🤔','👏','❤️','😭','✨','🙏'];
 
 const DEF_CONF = {
-  survival: {m:5, n:2}, rentou: {m:5, n:2}, updown: {m:5, n:2},
+  survival: {m:5, n:2}, free: {}, rentou: {m:5, n:2}, updown: {m:5, n:2},
   by: {m:5, n:3}, freeze: {m:5, n:0}, m_n_rest: {m:5, n:3},
   swedish: {m:10, n:10}, ren_wrong: {m:5, n:3},
-  divide: {init:10, add:10, win:100}, combo: {win:10},
+  divide: {init:10, add:10, win:100}, combo: {win:10, lose:3},
   attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
   lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3}
 };
@@ -725,13 +729,7 @@ function enterRoom(isCreate=false, playerName='') {
   db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
 
   const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
-  playerRef.onDisconnect().remove();
   db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-
-  window.addEventListener('beforeunload', () => {
-    playerRef.onDisconnect().cancel();
-    playerRef.remove();
-  });
 
   document.getElementById('game-rid').innerText = rId;
   show('room');
@@ -763,7 +761,6 @@ async function leaveRoom() {
     const myName = getMyName();
     await pushSysMsg(`${myName} が退室しました`);
     const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
-    await playerRef.onDisconnect().cancel();
     await playerRef.remove();
     await db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
   }
@@ -827,11 +824,12 @@ function changeRuleUI(skipRender=false) {
   const mkn = (id,lbl,v) => `<div class="field"><label>${lbl}</label><input type="number" id="c_${id}" value="${v !== undefined ? v : ''}"></div>`;
   
   if(r==='survival'||r==='rentou'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
+  else if(r==='free') h = '';
   else if(r==='by') h = `<div class="s-grid">${mkn('m','初期誤答pt/定数',c.m)}${mkn('n','失格回数',c.n)}</div>`;
   else if(r==='freeze'||r==='m_n_rest') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n',r==='freeze'?'失格':'休み数',c.n)}</div>`;
   else if(r==='swedish') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格×数',c.n)}</div>`;
   else if(r==='divide') h = `<div class="s-grid">${mkn('init','初期値',c.init)}${mkn('add','正解加点',c.add)}</div><div class="field">${mkn('win','勝ち抜け',c.win)}</div>`;
-  else if(r==='combo') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}</div>`;
+  else if(r==='combo') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div>`;
   else if(r==='attack_surv') h = `<div class="s-grid">${mkn('life','初期ライフ',c.life)}${mkn('dmg_to_oth','自正解時他減',c.dmg_to_oth)}${mkn('heal','自正解時自加',c.heal)}${mkn('dmg_to_me','自誤時自減',c.dmg_to_me)}</div><div class="field">${mkn('surv','終了人数',c.surv)}</div>`;
   else if(r==='lucky') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div><div class="field">${mkn('max','乱数最大',c.max)}</div>`;
   else if(r==='spiral') h = `<div class="s-grid">${mkn('up','正解上昇',c.up)}${mkn('down','誤答下降',c.down)}${mkn('top_req','最上位要正解',c.top_req)}${mkn('btm_req','最下位要誤答',c.btm_req)}</div>`;
@@ -856,7 +854,7 @@ function sortPlayers(pl, rule) {
     const rs = v=>v==='win'?0:v==='active'?1:v==='lose'?2:3;
     if(rs(p1.st) !== rs(p2.st)) return rs(p1.st) - rs(p2.st);
     let m1=p1.sc||0, m2=p2.sc||0;
-    if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(rule)){ m1=p1.c; m2=p2.c; }
+    if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(rule)){ m1=p1.c; m2=p2.c; }
     else if(rule==='by') { m1=p1.sc; m2=p2.sc; }
     if(m1 !== m2) return m2 - m1;
     if(p1.w !== p2.w) return p1.w - p2.w;
@@ -875,7 +873,7 @@ function renderPlayers() {
     let cls = p.st==='win'?'win':p.st==='lose'?'lose':p.st==='spec'?'spec':'';
     if(isMe && !cls) cls = 'me';
     let sv = p.sc||0;
-    if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
+    if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
     else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
     
     let wtxt = p.w;
@@ -979,7 +977,7 @@ async function sendAction(type) {
       me.sc = Math.floor((me.sc||c.init)/me.w);
       if(me.sc < 1) me.st='lose';
     }
-    else if(r==='combo') { me.str=0; }
+    else if(r==='combo') { me.str=0; if(c.lose > 0 && me.w >= c.lose) me.st='lose'; }
     else if(r==='attack_surv') {
       me.sc = (me.sc||c.life)-c.dmg_to_me;
       if(me.sc<=0) me.st='lose';
@@ -1053,7 +1051,7 @@ function renderResult() {
   let h = '';
   sorted.forEach(([id, p], idx) => {
     let sv = p.sc||0;
-    if(['survival','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
+    if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
     else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
     let mst = p.st==='win'?'WINNER':p.st==='lose'?'ELIMINATED':'-';
     h += `
@@ -1079,7 +1077,6 @@ function copyUrl(){
 }
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
 
-// ===== CHAT =====
 function getMyName(fallback='') {
   if(roomData && roomData.players && roomData.players[myId] && roomData.players[myId].name)
     return roomData.players[myId].name;
