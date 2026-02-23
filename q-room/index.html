@@ -669,7 +669,7 @@ function nativeShare() {
   if(!navigator.share) return;
   navigator.share({
     title: 'Q-Room クイズ対戦しよう！',
-    text: `🎮 Q-Roomでクイズ対戦しよう！\nルームID: ${rId}\n合言葉を入力して参加してね👇`,
+    text: `💡 Q-Roomでクイズ対戦しよう！\nルームID: ${rId}\n合言葉を入力して参加してね👇`,
     url: getRoomUrl()
   }).catch(() => {});
 }
