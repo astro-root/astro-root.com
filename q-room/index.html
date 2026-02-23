@@ -588,12 +588,13 @@ function enterRoom(isCreate=false) {
   });
 }
 
-function leaveRoom() {
-  if(rRef) rRef.off('value', rCb);
+async function leaveRoom() {
+  if(rRef) { rRef.off('value', rCb); rRef = null; }
   if(db && rId && myId) {
-    db.ref(`rooms/${rId}/players/${myId}`).onDisconnect().cancel();
-    db.ref(`rooms/${rId}/players/${myId}`).remove();
-    db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+    const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
+    await playerRef.onDisconnect().cancel();
+    await playerRef.remove();
+    await db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
   }
   window.location.href = 'https://astro-root.com/q-room/';
 }
