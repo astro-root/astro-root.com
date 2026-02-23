@@ -98,6 +98,7 @@
       position: relative;
       transition: all 0.3s ease;
       box-shadow: var(--shadow-soft);
+      overflow: hidden;
     }
     .name-input {
       writing-mode: vertical-rl;
@@ -107,14 +108,32 @@
       color: var(--text-muted);
       font-weight: 700;
       font-size: 24px;
-      height: 240px;
+      height: 100%;
       width: 40px;
       text-align: center;
       letter-spacing: 2px;
-      margin-bottom: 5px;
       transition: color 0.2s;
+      z-index: 2;
     }
     .name-input:focus { outline: none; color: var(--text-main); }
+
+    .tower-bar {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+      background: linear-gradient(to top, rgba(6,182,212,0.2), rgba(6,182,212,0.5));
+      z-index: 0; transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    .name-group {
+      display: flex; flex-direction: row; align-items: center;
+      height: 200px; z-index: 2; position: relative;
+    }
+    .subname-input {
+      writing-mode: vertical-rl; text-orientation: upright;
+      background: transparent; border: none; color: var(--color-cyan);
+      font-weight: 700; font-size: 13px; height: 100%; width: 24px;
+      text-align: center; letter-spacing: 1px; z-index: 2;
+    }
+    .subname-input:focus { outline: none; }
     .score-area {
       flex: 1;
       display: flex;
@@ -124,6 +143,7 @@
       margin-bottom: 10px;
       width: 100%;
       position: relative;
+      z-index: 1;
     }
     .correct-count {
       font-size: 56px;
@@ -165,7 +185,7 @@
       display: flex; align-items: center; justify-content: center;
       margin-top: 5px;
     }
-    .buttons { display: flex; gap: 8px; width: 100%; }
+    .buttons { display: flex; gap: 8px; width: 100%; z-index: 2; position: relative; }
     .btn-op {
       flex: 1; border: none; padding: 12px 0; border-radius: 8px;
       cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
@@ -180,6 +200,7 @@
       box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
       background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
     }
+    .column.winner .tower-bar { background: linear-gradient(to top, rgba(245,158,11,0.3), rgba(245,158,11,0.6)); height: 100% !important; }
     .column.winner .correct-count {
       color: var(--color-gold);
       text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
@@ -193,7 +214,9 @@
       body { padding: 10px; }
       header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
       .controls { justify-content: space-between; }
-      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .name-group { height: 120px; }
+      .name-input { font-size: 14px; width: 30px; letter-spacing: 0; }
+      .subname-input { font-size: 11px; width: 20px; }
       .correct-count { font-size: 36px; }
       .休み-info { font-size: 14px; }
       .btn-op { padding: 8px 0; font-size: 14px; }
@@ -281,7 +304,11 @@
     const col = document.createElement('div');
     col.className = 'column';
     col.innerHTML = `
-      <input class="name-input" value="プレイヤー${i+1}" />
+      <div class="tower-bar"></div>
+      <div class="name-group">
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <input class="subname-input" placeholder="　" />
+      </div>
       <div class="score-area">
         <div class="correct-count"><span class="correct-num">0</span></div>
         <div class="ren-indicator">Adv.</div>
@@ -295,6 +322,8 @@
     `;
     grid.appendChild(col);
     const nameEl = col.querySelector('.name-input');
+    const subnameEl = col.querySelector('.subname-input');
+    const towerBar = col.querySelector('.tower-bar');
     const correctNumEl = col.querySelector('.correct-num');
     const correctWrapper = col.querySelector('.correct-count');
     const wrongDisplayEl = col.querySelector('.wrong-display');
@@ -302,7 +331,7 @@
     const btnC = col.querySelector('.btn-correct');
     const btnW = col.querySelector('.btn-wrong');
     const p = { 
-      idx:i, el:col, nameEl, correctNumEl, correctWrapper, wrongDisplayEl, yasumiEl,
+      idx:i, el:col, nameEl, subnameEl, towerBar, correctNumEl, correctWrapper, wrongDisplayEl, yasumiEl,
       btnC, btnW, correct:0, wrong:0, renCount:0, yasumiCount:0, yasumiUntil:0, rank:0
     };
     btnC.addEventListener('click', ()=>{
@@ -348,9 +377,12 @@
     }
   }
   function renderAll(animate=true, activeIdx = -1){
+    const winTh = Math.max(1, parseInt(winInput.value || 10));
     players.forEach(p=>{
       p.el.classList.remove('winner');
       p.correctWrapper.classList.remove('is-ren');
+      const towerPct = Math.max(0, Math.min(100, (p.correct / winTh) * 100));
+      if(p.rank === 0) p.towerBar.style.height = towerPct + '%';
       if(p.rank > 0){
         p.el.classList.add('winner');
         p.correctNumEl.textContent = ordinalLabel(p.rank);
@@ -410,8 +442,13 @@
     renderAll(true, last.idx);
   });
   setupBtn.addEventListener('click', ()=>{
-    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
-    createGrid(cnt);
+    if(players.length > 0){
+      players.forEach(p=>{ p.correct=0; p.wrong=0; p.rank=0; p.renCount=0; p.yasumiCount=0; p.yasumiUntil=0; });
+      historyStack=[]; winners=[]; lastAnswerPlayer=-1; globalQuestionCount=0;
+      renderAll(false); updateUndoState();
+    } else {
+      createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+    }
   });
   addPlayerBtn.addEventListener('click', ()=>{
     if(players.length >= 20) return;
@@ -420,13 +457,8 @@
     renderAll(false);
   });
   resetBtn.addEventListener('click', ()=>{
-    players.forEach((p,i)=>{
-      p.correct = 0; p.wrong = 0; p.rank = 0; p.renCount = 0;
-      p.yasumiCount = 0; p.yasumiUntil = 0;
-      p.nameEl.value = `プレイヤー${i+1}`;
-    });
-    historyStack = []; winners = []; lastAnswerPlayer = -1; globalQuestionCount = 0;
-    renderAll(false);
+    if(!confirm('リセットしますか？')) return;
+    createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
   });
   winInput.addEventListener('input', ()=> {
     const winTh = Math.max(1, parseInt(winInput.value || 10));
