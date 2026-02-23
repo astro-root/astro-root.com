@@ -301,11 +301,19 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     <div id="top-err" class="err"></div>
     <button class="btn btn-pri" onclick="handleCreate()" style="margin-bottom:20px;">CREATE ROOM</button>
     <button class="btn btn-sec" onclick="handleJoin()">JOIN ROOM</button>
-    <div style="display:flex; justify-content:center; margin-top:28px; padding-bottom:8px;">
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:28px; padding-bottom:8px;">
       <button onclick="openFeedback()" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
         <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">FEEDBACK</span>
       </button>
+      <a href="https://twitter.com/astro_root" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='#1d9bf0'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">TWITTER</span>
+      </a>
+      <a href="https://astro-root.com/" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">WEBSITE</span>
+      </a>
     </div>
   </div>
 </div>
