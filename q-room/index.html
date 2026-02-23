@@ -534,7 +534,6 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   </div>
 </div>
 
-
 <div id="modal-feedback" class="modal" onclick="if(event.target===this)closeFeedback()">
   <div class="m-content">
     <button class="m-close" onclick="closeFeedback()">✕</button>
@@ -609,7 +608,7 @@ let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsg
 const STAMPS = ['👍','🎉','😂','🔥','😮','💪','🤔','👏','❤️','😭','✨','🙏'];
 
 const DEF_CONF = {
-  survival: {m:5, n:2}, free: {}, rentou: {m:5, n:2}, updown: {m:5, n:2},
+  survival: {m:5, n:2}, free: {}, rentou: {m:5, n:2, mode:'fast'}, updown: {m:5, n:2},
   by: {m:5, n:3}, freeze: {m:5, n:0}, m_n_rest: {m:5, n:3},
   swedish: {m:10, n:10}, ren_wrong: {m:5, n:3},
   divide: {init:10, add:10, win:100}, combo: {win:10, lose:3},
@@ -822,8 +821,10 @@ function changeRuleUI(skipRender=false) {
   const c = (roomData && roomData.rule === r && roomData.conf) ? roomData.conf : DEF_CONF[r];
   let h = '';
   const mkn = (id,lbl,v) => `<div class="field"><label>${lbl}</label><input type="number" id="c_${id}" value="${v !== undefined ? v : ''}"></div>`;
+  const mks = (id,lbl,v,opts) => `<div class="field"><label>${lbl}</label><select id="c_${id}">${opts.map(o=>`<option value="${o.v}" ${v===o.v?'selected':''}>${o.l}</option>`).join('')}</select></div>`;
   
-  if(r==='survival'||r==='rentou'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
+  if(r==='survival'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
+  else if(r==='rentou') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>${mks('mode','連答モード',c.mode||'fast',[{v:'fast',l:'加速'},{v:'const',l:'等速'}])}`;
   else if(r==='free') h = '';
   else if(r==='by') h = `<div class="s-grid">${mkn('m','初期誤答pt/定数',c.m)}${mkn('n','失格回数',c.n)}</div>`;
   else if(r==='freeze'||r==='m_n_rest') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n',r==='freeze'?'失格':'休み数',c.n)}</div>`;
@@ -842,9 +843,9 @@ function changeRuleUI(skipRender=false) {
 
 function updateConf() {
   if(!roomData) return;
-  const r = document.getElementById('sel-rule').value;
   let nc = {};
   document.querySelectorAll('#config-area input').forEach(el => nc[el.id.replace('c_','')] = parseInt(el.value)||0);
+  document.querySelectorAll('#config-area select').forEach(el => nc[el.id.replace('c_','')] = el.value);
   if(Object.keys(nc).length > 0) db.ref(`rooms/${rId}/conf`).update(nc);
 }
 
@@ -931,7 +932,20 @@ async function sendAction(type) {
   } else if(type === 'correct') {
     me.c++;
     if(r==='survival') { if(me.c >= c.m) me.st='win'; }
-    else if(r==='rentou') { me.sc = (me.sc||0) + (me.str>0?2:1); me.str++; if(me.sc>=c.m) me.st='win'; }
+    else if(r==='rentou') {
+      if (c.mode === 'const') {
+        me.sc = (me.sc||0) + (me.str>0?2:1);
+        const pStr = me.str;
+        me.str = pStr > 0 ? 0 : 1;
+        Object.keys(pData).forEach(id => {
+          if(id !== myId) pData[id].str = 0;
+        });
+      } else {
+        me.sc = (me.sc||0) + (me.str>0?2:1);
+        me.str++;
+      }
+      if(me.sc>=c.m) me.st='win';
+    }
     else if(r==='updown') { me.sc = (me.sc||0) + 1; if(me.sc>=c.m) me.st='win'; }
     else if(r==='by') { me.sc = me.c * (c.m - me.w); if(me.sc >= c.m*c.m) me.st='win'; }
     else if(r==='freeze') { if(me.c >= c.m) me.st='win'; }
