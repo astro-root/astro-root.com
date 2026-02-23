@@ -35,11 +35,7 @@ body {
   line-height: 1.7;
   overflow-x: hidden;
 }
-
-/* ── LAYOUT ── */
 .wrapper { max-width: 760px; margin: 0 auto; padding: 0 24px 120px; }
-
-/* ── HERO ── */
 .hero {
   padding: 80px 0 60px;
   text-align: center;
@@ -65,8 +61,6 @@ body {
   letter-spacing: 0.3em; margin: 10px 0 20px; text-transform: uppercase;
 }
 .hero-desc { color: var(--muted); font-size: 0.95rem; max-width: 480px; margin: 0 auto; }
-
-/* ── TOC ── */
 .toc {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -90,8 +84,6 @@ body {
   font-family: var(--mono); font-size: 0.7rem; color: var(--cyan);
   min-width: 20px; opacity: 0.7;
 }
-
-/* ── SECTION ── */
 .section { margin-top: 72px; }
 .section-label {
   font-family: var(--mono); font-size: 0.7rem; color: var(--cyan);
@@ -109,8 +101,6 @@ body {
 .section-body { color: var(--muted); font-size: 0.95rem; }
 .section-body p { margin-bottom: 16px; }
 .section-body p:last-child { margin-bottom: 0; }
-
-/* ── STEPS ── */
 .steps { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
 .step {
   background: var(--surface); border: 1px solid var(--border);
@@ -125,11 +115,8 @@ body {
   color: var(--cyan); opacity: 0.35; line-height: 1;
   flex-shrink: 0; width: 40px; text-align: center; padding-top: 2px;
 }
-.step-body {}
 .step-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; color: var(--text); }
 .step-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
-
-/* ── RULES GRID ── */
 .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
 @media (max-width: 540px) { .rules-grid { grid-template-columns: 1fr; } }
 .rule-card {
@@ -160,8 +147,6 @@ body {
 .formula-win { color: var(--green); }
 .formula-lose { color: var(--red); }
 .formula-note { color: var(--muted); font-size: 0.72rem; }
-
-/* ── BUTTONS ROW ── */
 .buttons-doc { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
 .btn-doc {
   background: var(--surface); border: 1px solid var(--border);
@@ -183,8 +168,6 @@ body {
 .btn-icon.finish { background: rgba(225,29,72,0.12); border: 1px solid rgba(225,29,72,0.3); }
 .btn-doc-title { font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 3px; }
 .btn-doc-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
-
-/* ── CAUTION ── */
 .caution-list { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
 .caution {
   background: var(--surface); border-radius: 14px; padding: 18px 22px;
@@ -200,8 +183,6 @@ body {
 .caution.info .caution-title { color: var(--cyan); }
 .caution.danger .caution-title { color: var(--red); }
 .caution-body { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
-
-/* ── BADGE TABLE ── */
 .badge-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.88rem; }
 .badge-table th {
   font-family: var(--en); font-size: 0.72rem; font-weight: 700;
@@ -219,8 +200,6 @@ body {
   display: inline-block; font-size: 0.7rem; padding: 4px 9px; border-radius: 7px;
   font-family: var(--en); font-weight: 700; letter-spacing: 0.08em;
 }
-
-/* ── CHAT DOC ── */
 .chat-features { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
 @media (max-width: 480px) { .chat-features { grid-template-columns: 1fr; } }
 .chat-feat {
@@ -230,8 +209,6 @@ body {
 .chat-feat-icon { font-size: 1.5rem; margin-bottom: 10px; }
 .chat-feat-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); }
 .chat-feat-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
-
-/* ── FAQ ── */
 .faq { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 .faq-item {
   background: var(--surface); border: 1px solid var(--border);
@@ -252,8 +229,6 @@ body {
   font-size: 0.87rem; color: var(--muted); line-height: 1.7;
 }
 .faq-item.open .faq-a { max-height: 400px; padding: 0 22px 20px; }
-
-/* ── FOOTER ── */
 .footer {
   margin-top: 80px; padding-top: 32px;
   border-top: 1px solid var(--border);
@@ -264,8 +239,6 @@ body {
 .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
 .footer-links a:hover { color: var(--cyan); }
 .footer-copy { font-size: 0.78rem; color: rgba(161,161,170,0.5); }
-
-/* ── MISC ── */
 .highlight { color: var(--cyan); font-weight: 700; }
 .hl-green { color: var(--green); font-weight: 700; }
 .hl-red { color: var(--red); font-weight: 700; }
@@ -276,8 +249,6 @@ code {
   border-radius: 5px; padding: 1px 6px; color: var(--text);
 }
 .divider { height: 1px; background: var(--border); margin: 40px 0; }
-
-/* ── SCROLL INDICATOR ── */
 .scroll-top {
   position: fixed; bottom: 28px; right: 28px;
   width: 44px; height: 44px; border-radius: 12px;
@@ -288,8 +259,6 @@ code {
 }
 .scroll-top:hover { background: rgba(6,182,212,0.25); transform: translateY(-3px); }
 .scroll-top.show { display: flex; }
-
-/* ── ANIMATIONS ── */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .section { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
 </style>
@@ -298,14 +267,12 @@ code {
 
 <div class="wrapper">
 
-  <!-- HERO -->
   <div class="hero">
     <div class="hero-logo">Q-Room</div>
     <div class="hero-sub">User Manual</div>
-    <p class="hero-desc">リアルタイム・オンラインクイズシステムの使い方ガイドです。</p>
+    <p class="hero-desc">DiscordやZoomなどの通話アプリと組み合わせて、本格的なクイズ対戦を手軽に楽しめるリアルタイムクイズシステムです。</p>
   </div>
 
-  <!-- TOC -->
   <nav class="toc">
     <div class="toc-title">目次</div>
     <ul class="toc-list">
@@ -320,7 +287,6 @@ code {
     </ul>
   </nav>
 
-  <!-- 01 はじめ方 -->
   <section class="section" id="start">
     <div class="section-label">01</div>
     <h2 class="section-title">はじめ方</h2>
@@ -339,7 +305,7 @@ code {
         <div class="step-num">2</div>
         <div class="step-body">
           <div class="step-title">ルームIDを決める（部屋を作る場合）</div>
-          <div class="step-desc">5桁の数字を入力するか、🎲ボタンでランダム生成します。そのIDを参加者に共有しましょう。</div>
+          <div class="step-desc">5桁の数字を入力するか、🎲ボタンでランダム生成します。そのIDを参加者に共有しましょう。なお、空欄の場合は自動で生成されます。</div>
         </div>
       </div>
       <div class="step">
@@ -352,7 +318,7 @@ code {
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-body">
-          <div class="step-title">ルールを設定する（部屋を作った人）</div>
+          <div class="step-title">ルールを設定する</div>
           <div class="step-desc">右上の⚙️（設定）アイコンからルールと各種パラメータを変更できます。参加者全員にリアルタイムで反映されます。</div>
         </div>
       </div>
@@ -360,13 +326,12 @@ code {
         <div class="step-num">5</div>
         <div class="step-body">
           <div class="step-title">問題を出して◯✕を押す</div>
-          <div class="step-desc">司会者が問題を読み上げ、各プレイヤーが自分で◯または✕を押します。スコアは自動計算されます。</div>
+          <div class="step-desc">出題者が問題を読み上げ、プレイヤーは自身の正誤に合わせて手元の◯または✕を押します。スコアや勝敗は自動計算されます。</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 02 部屋の操作 -->
   <section class="section" id="room">
     <div class="section-label">02</div>
     <h2 class="section-title">部屋の操作</h2>
@@ -414,7 +379,6 @@ code {
     </div>
   </section>
 
-  <!-- 03 ボタンの説明 -->
   <section class="section" id="buttons">
     <div class="section-label">03</div>
     <h2 class="section-title">ボタンの説明</h2>
@@ -433,7 +397,7 @@ code {
         <div class="btn-icon x">✕</div>
         <div>
           <div class="btn-doc-title">✕（誤答）</div>
-          <div class="btn-doc-desc">不正解のときに押します。ルールによってはペナルティ（休み・失格・スコア減）が発生します。</div>
+          <div class="btn-doc-desc">不正解（お手付き）のときに押します。ルールによってはペナルティ（休み・失格・スコア減）が発生します。</div>
         </div>
       </div>
       <div class="btn-doc">
@@ -468,7 +432,7 @@ code {
         <div class="btn-icon reset" style="font-size:1rem;">🔄</div>
         <div>
           <div class="btn-doc-title">🔄 RESET SCORES（設定内）</div>
-          <div class="btn-doc-desc">全員のスコア（◯✕・得点・休み・連答数）をリセットして再スタートします。プレイヤーは退室しません。</div>
+          <div class="btn-doc-desc">全員のスコア（◯✕・得点・休み・連答数）をリセットして再スタートします。プレイヤーは退室しません。セット間の切り替えに使用します。</div>
         </div>
       </div>
       <div class="btn-doc">
@@ -481,18 +445,17 @@ code {
     </div>
   </section>
 
-  <!-- 04 ルール一覧 -->
   <section class="section" id="rules">
     <div class="section-label">04</div>
     <h2 class="section-title">ルール一覧</h2>
     <div class="section-body">
-      <p>全13種類のルールに対応しています。設定画面からいつでも変更でき、変更は即座に全員に適用されます。</p>
+      <p>様々なクイズ形式に対応できるよう全14種類のルールを用意しています。設定画面からいつでも変更でき、変更は即座に全員に適用されます。</p>
     </div>
     <div class="rules-grid">
 
       <div class="rule-card">
         <span class="rule-name tag-c">m◯n×</span>
-        <div class="rule-summary">最もスタンダードなルール。m回正解で勝ち抜け、n回誤答で失格。</div>
+        <div class="rule-summary">クイズにおける最も基本的なルールです。m問正解すれば勝ち抜けとなり、n問誤答（お手付き）すると失格（トビ）になります。まずはこのルールから遊んでみましょう。</div>
         <div class="rule-formula">
           <span class="formula-win">◯ × m → 勝ち抜け</span>
           <span class="formula-lose">✕ × n → 失格</span>
@@ -501,18 +464,26 @@ code {
       </div>
 
       <div class="rule-card">
+        <span class="rule-name tag-c">フリバ</span>
+        <div class="rule-summary">勝ち抜けや失格の判定が行われない、自由な練習用モードです。エンドレスでクイズを楽しみたい場合や、スコアだけを記録し続けたい場合に使用します。</div>
+        <div class="rule-formula">
+          <span class="formula-note">勝敗判定なし</span>
+        </div>
+      </div>
+
+      <div class="rule-card">
         <span class="rule-name tag-c">連答付き</span>
-        <div class="rule-summary">連続正解でボーナス。2連答目以降は1問で2点加算。連答中に誤答するとリセット。</div>
+        <div class="rule-summary">正解したあとに連続して正解するとボーナスポイントが加算されるルールです。<br>【加速】2連答目以降はずっと＋2点になります。誤答でリセットされます。<br>【等速】1問正解で「連答権」を獲得し、次問正解で＋2点になりますが、そこで連答権は消費されます。自分が誤答するか、他の人が正解した場合も連答権は消滅します。</div>
         <div class="rule-formula">
           <span class="formula-win">スコア ≥ m → 勝ち抜け</span>
           <span class="formula-lose">✕ × n → 失格</span>
-          <span class="formula-note">連答中は+2点、通常時は+1点</span>
+          <span class="formula-note">連答中は+2点、通常時は+1点 / 加速・等速を選択可能</span>
         </div>
       </div>
 
       <div class="rule-card">
         <span class="rule-name tag-c">up-down</span>
-        <div class="rule-summary">正解でスコアアップ、誤答でスコアがゼロにリセット。崩れても上り直せる。</div>
+        <div class="rule-summary">正解すると1点プラスされますが、1度でも誤答するとスコアが0点にリセットされてしまうシビアなルールです。崩れても上り直すことができますが、n回誤答での失格も設定可能です。</div>
         <div class="rule-formula">
           <span class="formula-win">スコア ≥ m → 勝ち抜け</span>
           <span class="formula-lose">✕ × n → 失格</span>
@@ -522,7 +493,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-m">by</span>
-        <div class="rule-summary">スコア＝正解数×（定数−誤答数）。誤答が増えるほど1問あたりの価値が下がる。</div>
+        <div class="rule-summary">スコアが「正解数 × (定数 − 誤答数)」で計算されるルールです。誤答するたびに1問正解あたりの価値が下がっていくため、お手付きのリスクが徐々に高まります。</div>
         <div class="rule-formula">
           <span class="formula-win">◯ × (m − ✕) ≥ m² → 勝ち抜け</span>
           <span class="formula-lose">✕ × n → 失格</span>
@@ -532,7 +503,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-g">Freeze</span>
-        <div class="rule-summary">誤答するとその時点の誤答数だけ「休み」が付与される。休み中は解答できない。</div>
+        <div class="rule-summary">誤答すると、その時点での自分の「誤答累計数」と同じ回数だけ解答権が失われる（休みになる）ルールです。休みの間は◯✕ボタンが押せません。失格はなく最後までクイズに参加できます。</div>
         <div class="rule-formula">
           <span class="formula-win">◯ × m → 勝ち抜け</span>
           <span class="formula-lose">誤答 → 誤答累計数だけ休み</span>
@@ -542,7 +513,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-g">m◯n休</span>
-        <div class="rule-summary">誤答するとn回の「休み」が付く。毎回固定休みのシンプル版。</div>
+        <div class="rule-summary">誤答した際のリスクが常に一定のルールです。誤答すると固定でn回の「休み」が与えられ、その間は解答に参加できません。</div>
         <div class="rule-formula">
           <span class="formula-win">◯ × m → 勝ち抜け</span>
           <span class="formula-lose">✕ → n休み</span>
@@ -552,7 +523,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-y">Swedish</span>
-        <div class="rule-summary">誤答ペナルティが正解数に比例して増加。正解が多いほど誤答が重くなる上級ルール。</div>
+        <div class="rule-summary">誤答ペナルティが現在の正解数に応じて重くなっていく上級者向けルールです。正解を重ねるほど、1回の誤答で増える✕の数（ペナルティ）が大きくなります。</div>
         <div class="rule-formula">
           <span class="formula-win">◯ × m → 勝ち抜け</span>
           <span class="formula-lose">誤答ペナルティ ＝ √(8◯+1) 切上</span>
@@ -562,7 +533,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-y">連誤答付き</span>
-        <div class="rule-summary">連続誤答でペナルティ増加。2連誤答目は2×分のペナルティ。正解するとリセット。</div>
+        <div class="rule-summary">連続して誤答するとペナルティが倍増するルールです。2回連続で間違えると一気に2✕が追加されます。一度正解すれば連誤答状態はリセットされます。</div>
         <div class="rule-formula">
           <span class="formula-win">◯ × m → 勝ち抜け</span>
           <span class="formula-lose">連誤答中は2倍×カウント</span>
@@ -572,7 +543,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-p">divide</span>
-        <div class="rule-summary">初期値から始まり、正解で加算、誤答で「スコア÷誤答累計数」に激減。1を割ると失格。</div>
+        <div class="rule-summary">持ち点（初期値）からスタートし、正解で固定点が加算されますが、誤答すると「現在のスコア ÷ 誤答累計数」にまで持ち点が激減してしまいます。スコアが1未満になると失格です。</div>
         <div class="rule-formula">
           <span class="formula-win">スコア ≥ win → 勝ち抜け</span>
           <span class="formula-lose">スコア &lt; 1 → 失格</span>
@@ -582,17 +553,17 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-p">m hits Combo</span>
-        <div class="rule-summary">連続正解でコンボ加算。1問目+1、2問目+2…と連答が続くほど加速する。</div>
+        <div class="rule-summary">連続正解するほど獲得スコアが加速するルールです。1問目は1点、2連答目は2点、3連答目は3点…と増えますが、誤答するとコンボは途切れてしまいます。</div>
         <div class="rule-formula">
           <span class="formula-win">スコア ≥ m → 勝ち抜け</span>
-          <span class="formula-lose">誤答でコンボリセット（失格なし）</span>
+          <span class="formula-lose">誤答でコンボリセット、n回誤答で失格</span>
           <span class="formula-note">デフォルト: 勝ち抜け10点</span>
         </div>
       </div>
 
       <div class="rule-card">
-        <span class="rule-name tag-m">アタック風サバ</span>
-        <div class="rule-summary">全員にHP。自分の正解は自分を回復＋他全員にダメージ。誤答は自分にダメージ。</div>
+        <span class="rule-name tag-m">アタック風サバイバル</span>
+        <div class="rule-summary">全員がHP（ライフ）を持った状態で戦うサバイバルルールです。自分が正解すると自分以外の全員にダメージを与え（自身の回復も可能）、誤答すると自分にダメージが入ります。規定の人数まで生き残れば勝利です。</div>
         <div class="rule-formula">
           <span class="formula-win">規定人数まで生き残る</span>
           <span class="formula-lose">HP ≤ 0 → 失格</span>
@@ -602,7 +573,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-m">LuckyShot</span>
-        <div class="rule-summary">◯✕でランダムな点数が加減される運試しルール。作戦よりも運次第。</div>
+        <div class="rule-summary">クイズの実力だけでなく「運」も絡むルールです。正解・誤答時に、設定された最大値までのランダムな点数が加算・減算されます。</div>
         <div class="rule-formula">
           <span class="formula-win">スコア ≥ win → 勝ち抜け</span>
           <span class="formula-lose">スコア ≤ lose → 失格</span>
@@ -612,7 +583,7 @@ code {
 
       <div class="rule-card">
         <span class="rule-name tag-g">螺旋階段</span>
-        <div class="rule-summary">最上位にいる状態での連続正解で勝ち抜け、最下位での連続誤答で失格。順位が重要。</div>
+        <div class="rule-summary">スコアの絶対値ではなく、他プレイヤーとの「相対的な位置」が重要になる特殊ルールです。単独トップ（最上位）にいる状態で連続正解すると勝ち抜け、単独ビリ（最下位）で連続誤答すると失格になります。</div>
         <div class="rule-formula">
           <span class="formula-win">最上位でN連答 → 勝ち抜け</span>
           <span class="formula-lose">最下位でN連誤 → 失格</span>
@@ -623,7 +594,6 @@ code {
     </div>
   </section>
 
-  <!-- 05 チャット -->
   <section class="section" id="chat">
     <div class="section-label">05</div>
     <h2 class="section-title">チャット機能</h2>
@@ -663,7 +633,6 @@ code {
     </div>
   </section>
 
-  <!-- 06 プレイヤーの状態 -->
   <section class="section" id="status">
     <div class="section-label">06</div>
     <h2 class="section-title">プレイヤーの状態</h2>
@@ -688,7 +657,7 @@ code {
         </tr>
         <tr>
           <td><span class="badge-sample" style="background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid rgba(239,68,68,0.4);">ELIMINATED</span></td>
-          <td>失格。グレースケールで半透明表示。</td>
+          <td>失格（トビ）。グレースケールで半透明表示。</td>
         </tr>
         <tr>
           <td><span class="badge-sample" style="background:rgba(255,255,255,0.05);color:#a1a1aa;border:1px dashed rgba(255,255,255,0.2);">破線枠</span></td>
@@ -710,7 +679,6 @@ code {
     </table>
   </section>
 
-  <!-- 07 注意事項 -->
   <section class="section" id="notes">
     <div class="section-label">07</div>
     <h2 class="section-title">注意事項</h2>
@@ -760,7 +728,6 @@ code {
     </div>
   </section>
 
-  <!-- 08 FAQ -->
   <section class="section" id="faq">
     <div class="section-label">08</div>
     <h2 class="section-title">よくある質問</h2>
@@ -824,7 +791,6 @@ code {
     </div>
   </section>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-logo">Q-Room</div>
     <div class="footer-links">
@@ -837,11 +803,9 @@ code {
 
 </div>
 
-<!-- scroll to top -->
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <script>
-// FAQ toggle
 function toggleFaq(el) {
   const item = el.parentElement;
   const isOpen = item.classList.contains('open');
@@ -849,13 +813,11 @@ function toggleFaq(el) {
   if(!isOpen) item.classList.add('open');
 }
 
-// Scroll to top button
 window.addEventListener('scroll', () => {
   const btn = document.getElementById('scrollTop');
   btn.classList.toggle('show', window.scrollY > 400);
 });
 
-// Section fade-in on scroll
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if(e.isIntersecting) { e.target.style.animationDelay = '0s'; }
