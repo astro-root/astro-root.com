@@ -6,502 +6,145 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root {
-      --bg-color: #0f172a;
-      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
-      --card-bg: rgba(30, 41, 59, 0.7);
-      --card-border: rgba(255, 255, 255, 0.1);
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      
-      --color-blue: #3b82f6;
-      --color-green: #10b981;
-      --color-red: #ef4444;
-      --color-gold: #f59e0b;
-      --color-cyan: #06b6d4;
-      --color-pink: #d946ef;
-      
+      --bg-color: #0f172a; --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7); --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f1f5f9; --text-muted: #94a3b8;
+      --color-blue: #3b82f6; --color-green: #10b981; --color-red: #ef4444;
+      --color-gold: #f59e0b; --color-cyan: #06b6d4; --color-pink: #d946ef;
       --font-family: "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
       --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-      --shadow-glow: 0 0 15px rgba(217, 70, 239, 0.3);
     }
-
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; padding: 0; font-family: var(--font-family); }
-    
-    body {
-      background: var(--bg-color);
-      background-image: var(--bg-gradient);
-      color: var(--text-main);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 20px;
-      padding: 15px 20px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow-soft);
-    }
-    
+    body { background: var(--bg-color); background-image: var(--bg-gradient); color: var(--text-main); padding: 20px; display: flex; flex-direction: column; overflow-x: hidden; }
+    header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px; padding: 15px 20px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 12px; backdrop-filter: blur(10px); box-shadow: var(--shadow-soft); }
     .title-group { display: flex; align-items: center; gap: 10px; }
-    .logo {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--color-pink), var(--color-blue));
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 900; font-size: 16px; color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
+    .logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-pink), var(--color-blue)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-
     .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .control-group {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px;
-      border: 1px solid var(--card-border);
-    }
+    .control-group { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); }
     .control-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; white-space: nowrap; }
-    .control-group input {
-      background: transparent; border: none; color: var(--text-main);
-      font-weight: bold; font-size: 16px; width: 50px; text-align: center;
-      border-bottom: 2px solid rgba(255,255,255,0.2);
-    }
+    .control-group input { background: transparent; border: none; color: var(--text-main); font-weight: bold; font-size: 16px; width: 50px; text-align: center; border-bottom: 2px solid rgba(255,255,255,0.2); }
     .control-group input:focus { outline: none; border-color: var(--color-pink); }
-
-    .btn-action {
-      border: none; padding: 8px 16px; border-radius: 6px;
-      font-weight: bold; cursor: pointer; color: white;
-      transition: all 0.2s; font-size: 13px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
+    .btn-action { border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: all 0.2s; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
     .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
     .btn-action:active { transform: translateY(0); }
-    
     #setupBtn { background: var(--color-blue); }
+    #addPlayerBtn { background: var(--color-green); }
     #resetAll { background: var(--color-red); }
     #nextBtn { background: var(--color-pink); color: #fff; font-size: 14px; }
     #undoGlobal { background: #64748b; }
     #undoGlobal:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .scoreboard {
-      flex: 1;
-      width: 100%;
-      min-height: 0;
-    }
-    #grid {
-      display: grid;
-      gap: 15px;
-      align-items: start;
-    }
-
-    .column {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 15px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow-soft);
-      overflow: hidden;
-    }
-    
-    .name-input {
-      writing-mode: vertical-rl;
-      text-orientation: upright;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-weight: 700;
-      font-size: 24px;
-      height: 240px;
-      width: 40px;
-      text-align: center;
-      letter-spacing: 2px;
-      margin-bottom: 5px;
-      transition: color 0.2s;
-      z-index: 2;
-    }
+    .scoreboard { flex: 1; width: 100%; min-height: 0; }
+    #grid { display: grid; gap: 15px; align-items: start; }
+    .column { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; position: relative; transition: all 0.3s ease; box-shadow: var(--shadow-soft); overflow: hidden; }
+    .tower-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(to top, rgba(217, 70, 239, 0.2), rgba(217, 70, 239, 0.5)); z-index: 0; transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
+    .name-group { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 2px; height: 200px; width: 100%; margin-bottom: 5px; z-index: 2; position: relative; }
+    .subname-input { writing-mode: vertical-rl; text-orientation: upright; background: transparent; border: none; color: var(--color-pink); font-weight: 400; font-size: 13px; height: 100%; width: 24px; text-align: center; letter-spacing: 1px; opacity: 0.8; padding: 0; }
+    .subname-input:focus { outline: none; opacity: 1; }
+    .name-input { writing-mode: vertical-rl; text-orientation: upright; background: transparent; border: none; color: var(--text-muted); font-weight: 700; font-size: 24px; height: 100%; width: 40px; text-align: center; letter-spacing: 2px; transition: color 0.2s; z-index: 2; padding: 0; }
     .name-input:focus { outline: none; color: var(--text-main); }
-
-    .score-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-      width: 100%;
-      z-index: 2;
-    }
-
-    .total-points {
-      font-size: 56px;
-      font-weight: 800;
-      color: var(--color-pink);
-      line-height: 1;
-      text-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
-      min-height: 60px;
-      display: flex; align-items: center; justify-content: center;
-      transition: color 0.3s;
-    }
-
-    .lucky-values {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      width: 100%;
-      margin-top: 5px;
-      font-size: 21px;
-      font-weight: 800;
-    }
+    .score-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px; width: 100%; z-index: 2; }
+    .total-points { font-size: 56px; font-weight: 800; color: var(--color-pink); line-height: 1; text-shadow: 0 0 20px rgba(217, 70, 239, 0.4); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: color 0.3s; }
+    .lucky-values { display: flex; gap: 15px; justify-content: center; width: 100%; margin-top: 5px; font-size: 21px; font-weight: 800; }
     .val-plus { color: var(--color-blue); }
     .val-minus { color: var(--color-red); }
-
     .buttons { display: flex; gap: 8px; width: 100%; z-index: 2; }
-    .btn-op {
-      flex: 1; border: none; padding: 12px 0; border-radius: 8px;
-      cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
-      transition: transform 0.1s, filter 0.2s;
-    }
+    .btn-op { flex: 1; border: none; padding: 12px 0; border-radius: 8px; cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6); transition: transform 0.1s, filter 0.2s; }
     .btn-op:active { transform: scale(0.95); }
     .btn-correct { background: var(--color-green); color: #064e3b; }
     .btn-wrong { background: var(--color-red); color: #450a0a; }
-
-    .column.eliminated {
-      background: rgba(15, 23, 42, 0.95);
-      border-color: rgba(239, 68, 68, 0.2);
-    }
+    .column.eliminated { background: rgba(15, 23, 42, 0.95); border-color: rgba(239, 68, 68, 0.2); }
+    .column.eliminated .tower-bar { display: none; }
     .column.eliminated .name-input { color: #334155; }
+    .column.eliminated .subname-input { opacity: 0.3; }
     .column.eliminated .total-points { font-size: 24px; color: #475569; text-shadow: none; }
     .column.eliminated .lucky-values { opacity: 0.5; }
     .column.eliminated .btn-op { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
-
-    .column.winner {
-      border-color: var(--color-gold);
-      box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
-      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
-    }
-    .column.winner .total-points {
-      color: var(--color-gold);
-      text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
-      font-size: 40px; 
-    }
-
+    .column.winner { border-color: var(--color-gold); box-shadow: 0 0 30px rgba(245, 158, 11, 0.2); background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8)); }
+    .column.winner .tower-bar { background: linear-gradient(to top, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.6)); height: 100% !important; }
+    .column.winner .total-points { color: var(--color-gold); text-shadow: 0 0 20px rgba(245, 158, 11, 0.6); font-size: 40px; }
     .pop-anim { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .shake-anim { animation: shake 0.3s ease-in-out; }
     @keyframes pop { 0%{transform: scale(1);} 50%{transform: scale(1.3);} 100%{transform: scale(1);} }
     @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
-
-    .next-area {
-      display: flex; justify-content: center; margin-top: 15px;
-    }
-
+    .next-area { display: flex; justify-content: center; margin-top: 15px; }
     @media (max-width: 768px) {
       body { padding: 10px; }
       header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
       .controls { justify-content: space-between; }
-      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .name-group { height: 120px; gap: 0; }
+      .name-input { font-size: 14px; width: 30px; letter-spacing: 0; }
+      .subname-input { font-size: 10px; width: 16px; }
       .total-points { font-size: 36px; }
       .btn-op { padding: 8px 0; font-size: 14px; }
     }
   </style>
 </head>
 <body>
-
 <header>
-  <div class="title-group">
-    <div class="logo">LS</div>
-    <h1>Lucky Shot</h1>
-  </div>
+  <div class="title-group"><div class="logo">LS</div><h1>Lucky Shot</h1></div>
   <div class="controls">
-    <div class="control-group">
-      <label>Max Pt</label>
-      <input type="number" id="maxPoint" min="1" value="10">
-    </div>
-    <div class="control-group">
-      <label>WIN</label>
-      <input type="number" id="winScore" min="1" value="50">
-    </div>
-    <div class="control-group">
-      <label>LOSE</label>
-      <input type="number" id="loseScore" value="-20">
-    </div>
-    <div class="control-group">
-      <label>PLAYER</label>
-      <input type="number" id="playerCount" min="1" max="20" value="6">
-    </div>
-    
+    <div class="control-group"><label>Max Pt</label><input type="number" id="maxPoint" min="1" value="10"></div>
+    <div class="control-group"><label>WIN</label><input type="number" id="winScore" min="1" value="50"></div>
+    <div class="control-group"><label>LOSE</label><input type="number" id="loseScore" value="-20"></div>
+    <div class="control-group"><label>PLAYER</label><input type="number" id="playerCount" min="1" max="20" value="6"></div>
     <div style="flex:1"></div>
-    
     <button id="setupBtn" class="btn-action">開始</button>
+    <button id="addPlayerBtn" class="btn-action">追加</button>
     <button id="resetAll" class="btn-action">リセット</button>
     <button id="undoGlobal" class="btn-action">戻る</button>
   </div>
 </header>
-
-<div class="scoreboard">
-  <div id="grid" aria-label="scoreboard-grid"></div>
-</div>
-
+<div class="scoreboard"><div id="grid" aria-label="scoreboard-grid"></div></div>
 <div class="next-area">
   <button id="nextBtn" class="btn-action" style="padding: 12px 30px; font-size: 16px;">次の問題</button>
 </div>
-
 <script>
 (function(){
-  const grid = document.getElementById('grid');
-  const maxPointInput = document.getElementById('maxPoint');
-  const winScoreInput = document.getElementById('winScore');
-  const loseScoreInput = document.getElementById('loseScore');
-  const countInput = document.getElementById('playerCount');
-  
-  const setupBtn = document.getElementById('setupBtn');
-  const resetBtn = document.getElementById('resetAll');
-  const undoBtn = document.getElementById('undoGlobal');
-  const nextBtn = document.getElementById('nextBtn');
-
-  let players = []; 
-  let historyStack = [];
-  let winners = [];
-
-  function ordinalLabel(n){
-    if(n % 100 >= 11 && n % 100 <= 13) return n + 'th';
-    const last = n % 10;
-    if(last === 1) return n + 'st';
-    if(last === 2) return n + 'nd';
-    if(last === 3) return n + 'rd';
-    return n + 'th';
+  const grid=document.getElementById('grid'),maxPointInput=document.getElementById('maxPoint'),winScoreInput=document.getElementById('winScore'),loseScoreInput=document.getElementById('loseScore'),countInput=document.getElementById('playerCount');
+  const setupBtn=document.getElementById('setupBtn'),resetBtn=document.getElementById('resetAll'),undoBtn=document.getElementById('undoGlobal'),nextBtn=document.getElementById('nextBtn'),addPlayerBtn=document.getElementById('addPlayerBtn');
+  let players=[],historyStack=[],winners=[];
+  function ordinalLabel(n){if(n%100>=11&&n%100<=13)return n+'th';const l=n%10;if(l===1)return n+'st';if(l===2)return n+'nd';if(l===3)return n+'rd';return n+'th';}
+  function setGridColumnsByCount(c){grid.style.gridTemplateColumns=`repeat(${c}, 1fr)`;}
+  function pushHistory(){historyStack.push({players:JSON.parse(JSON.stringify(players.map(p=>({points:p.points,correct:p.correct,wrong:p.wrong,currentCorrectPt:p.currentCorrectPt,currentWrongPt:p.currentWrongPt,rank:p.rank,eliminated:p.eliminated})))),winners:[...winners]});if(historyStack.length>500)historyStack.shift();updateUndoState();}
+  function updateUndoState(){undoBtn.disabled=historyStack.length===0;}
+  function createPlayerObject(i,defaultName){
+    const col=document.createElement('div');col.className='column';
+    col.innerHTML=`<div class="tower-bar"></div><div class="name-group"><input class="name-input" value="${defaultName}" /><input class="subname-input" placeholder="二つ名" /></div><div class="score-area"><div class="total-points"><span class="pts-num">0</span></div><div class="lucky-values"><span class="val-plus">+?</span><span class="val-minus">-?</span></div></div><div class="buttons"><button class="btn-op btn-correct">◯</button><button class="btn-op btn-wrong">×</button></div>`;
+    grid.appendChild(col);
+    const nameEl=col.querySelector('.name-input'),subnameEl=col.querySelector('.subname-input'),ptsNumEl=col.querySelector('.pts-num'),ptsScoreEl=col.querySelector('.total-points'),valPlus=col.querySelector('.val-plus'),valMinus=col.querySelector('.val-minus'),towerBar=col.querySelector('.tower-bar'),btnC=col.querySelector('.btn-correct'),btnW=col.querySelector('.btn-wrong');
+    const p={idx:i,el:col,nameEl,subnameEl,ptsNumEl,ptsScoreEl,valPlus,valMinus,towerBar,btnC,btnW,points:0,correct:0,wrong:0,currentCorrectPt:0,currentWrongPt:0,eliminated:false,rank:0};
+    btnC.addEventListener('click',()=>{if(p.rank>0||p.eliminated)return;pushHistory();p.correct++;p.points+=p.currentCorrectPt;checkStatus(p);renderAll(true,p.idx,'correct');});
+    btnW.addEventListener('click',()=>{if(p.rank>0||p.eliminated)return;pushHistory();p.wrong++;p.points-=p.currentWrongPt;checkStatus(p);renderAll(true,p.idx,'wrong');});
+    return p;
   }
-
-  function setGridColumnsByCount(count){
-    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
-  }
-
-  function pushHistory(){
-    historyStack.push({
-      players: JSON.parse(JSON.stringify(players.map(p => ({
-        points: p.points, correct: p.correct, wrong: p.wrong, 
-        currentCorrectPt: p.currentCorrectPt, currentWrongPt: p.currentWrongPt,
-        rank: p.rank, eliminated: p.eliminated
-      })))),
-      winners: [...winners]
-    });
-    if(historyStack.length > 500) historyStack.shift();
-    updateUndoState();
-  }
-
-  function updateUndoState(){
-    undoBtn.disabled = historyStack.length === 0;
-  }
-
-  function createGrid(count){
-    grid.innerHTML = '';
-    players = [];
-    historyStack = [];
-    winners = [];
-    setGridColumnsByCount(count);
-
-    for(let i=0;i<count;i++){
-      const col = document.createElement('div');
-      col.className = 'column';
-      col.innerHTML = `
-        <input class="name-input" value="プレイヤー${i+1}" />
-        <div class="score-area">
-          <div class="total-points"><span class="pts-num">0</span></div>
-          <div class="lucky-values">
-            <span title="今回正解時" class="val-plus">+?</span>
-            <span title="今回誤答時" class="val-minus">-?</span>
-          </div>
-        </div>
-        <div class="buttons">
-          <button class="btn-op btn-correct">◯</button>
-          <button class="btn-op btn-wrong">×</button>
-        </div>
-      `;
-      grid.appendChild(col);
-
-      const nameEl = col.querySelector('.name-input');
-      const ptsNumEl = col.querySelector('.pts-num');
-      const ptsScoreEl = col.querySelector('.total-points');
-      const valPlus = col.querySelector('.val-plus');
-      const valMinus = col.querySelector('.val-minus');
-      const btnC = col.querySelector('.btn-correct');
-      const btnW = col.querySelector('.btn-wrong');
-
-      const p = { 
-        idx:i, 
-        el:col, 
-        nameEl, 
-        ptsNumEl, 
-        ptsScoreEl,
-        valPlus,
-        valMinus,
-        btnC, 
-        btnW, 
-        points:0, 
-        correct:0, 
-        wrong:0, 
-        currentCorrectPt:0, 
-        currentWrongPt:0, 
-        eliminated:false,
-        rank:0
-      };
-
-      btnC.addEventListener('click', () => handleCorrect(p));
-      btnW.addEventListener('click', () => handleWrong(p));
-
-      players.push(p);
-    }
-    
-    nextQuestion(); 
-    updateUndoState();
-    historyStack = [];
-    updateUndoState();
-  }
-
-  function handleCorrect(actor){
-    if(actor.rank > 0 || actor.eliminated) return;
-    pushHistory();
-    
-    actor.correct++;
-    actor.points += actor.currentCorrectPt;
-    
-    checkStatus(actor);
-    renderAll(true, actor.idx, 'correct');
-  }
-
-  function handleWrong(actor){
-    if(actor.rank > 0 || actor.eliminated) return;
-    pushHistory();
-
-    actor.wrong++;
-    actor.points -= actor.currentWrongPt;
-    
-    checkStatus(actor);
-    renderAll(true, actor.idx, 'wrong');
-  }
-
-  function nextQuestion(){
-    pushHistory();
-    const maxP = Math.max(1, parseInt(maxPointInput.value || 10));
-    
-    players.forEach(p => {
-      p.currentCorrectPt = Math.floor(Math.random() * maxP) + 1;
-      p.currentWrongPt = Math.floor(Math.random() * maxP) + 1;
-    });
-    
-    renderAll(false);
-  }
-
-  function checkStatus(p){
-    const winScore = parseInt(winScoreInput.value || 50);
-    const loseScore = parseInt(loseScoreInput.value || -20);
-    
-    if(!p.eliminated && p.rank === 0 && p.points >= winScore){
-      winners.push(p.idx);
-      p.rank = winners.length;
-    }
-
-    if(!p.eliminated && p.rank === 0 && p.points <= loseScore){
-      p.eliminated = true;
-    }
-  }
-
-  function renderAll(animate=true, activeIdx = -1, type=''){
+  function createGrid(count){grid.innerHTML='';players=[];historyStack=[];winners=[];setGridColumnsByCount(count);for(let i=0;i<count;i++)players.push(createPlayerObject(i,`プレイヤー${i+1}`));nextQuestion();historyStack=[];updateUndoState();}
+  function nextQuestion(){pushHistory();const maxP=Math.max(1,parseInt(maxPointInput.value||10));players.forEach(p=>{p.currentCorrectPt=Math.floor(Math.random()*maxP)+1;p.currentWrongPt=Math.floor(Math.random()*maxP)+1;});renderAll(false);}
+  function checkStatus(p){const winScore=parseInt(winScoreInput.value||50),loseScore=parseInt(loseScoreInput.value||-20);if(!p.eliminated&&p.rank===0&&p.points>=winScore){winners.push(p.idx);p.rank=winners.length;}if(!p.eliminated&&p.rank===0&&p.points<=loseScore){p.eliminated=true;}}
+  function renderAll(animate=true,activeIdx=-1,type=''){
+    const winScore=parseInt(winScoreInput.value||50),loseScore=parseInt(loseScoreInput.value||-20),range=winScore-loseScore;
     players.forEach(p=>{
-      p.el.classList.remove('eliminated', 'winner');
-      
-      p.valPlus.textContent = `+${p.currentCorrectPt}`;
-      p.valMinus.textContent = `-${p.currentWrongPt}`;
-
-      if(p.eliminated){
-        p.el.classList.add('eliminated');
-        p.ptsNumEl.textContent = 'LOSE';
-        p.btnC.disabled = true;
-        p.btnW.disabled = true;
-        p.nameEl.disabled = true;
-      } else if(p.rank > 0){
-        p.el.classList.add('winner');
-        p.ptsNumEl.textContent = ordinalLabel(p.rank);
-        p.btnC.disabled = true;
-        p.btnW.disabled = true;
-        p.nameEl.disabled = true;
-      } else {
-        p.ptsNumEl.textContent = String(p.points);
-        p.btnC.disabled = false;
-        p.btnW.disabled = false;
-        p.nameEl.disabled = false;
-      }
-
-      if(animate && p.idx === activeIdx){
-        if(type === 'correct'){
-          p.ptsScoreEl.classList.remove('pop-anim');
-          void p.ptsScoreEl.offsetWidth;
-          p.ptsScoreEl.classList.add('pop-anim');
-        } else if(type === 'wrong'){
-          p.el.classList.remove('shake-anim');
-          void p.el.offsetWidth;
-          p.el.classList.add('shake-anim');
-        }
-      }
+      p.el.classList.remove('eliminated','winner');
+      const pct=Math.min(100,Math.max(0,((p.points-loseScore)/range)*100));p.towerBar.style.height=pct+'%';
+      p.valPlus.textContent=`+${p.currentCorrectPt}`;p.valMinus.textContent=`-${p.currentWrongPt}`;
+      if(p.eliminated){p.el.classList.add('eliminated');p.ptsNumEl.textContent='LOSE';p.btnC.disabled=true;p.btnW.disabled=true;p.nameEl.disabled=true;p.subnameEl.disabled=true;}
+      else if(p.rank>0){p.el.classList.add('winner');p.ptsNumEl.textContent=ordinalLabel(p.rank);p.btnC.disabled=true;p.btnW.disabled=true;p.nameEl.disabled=true;p.subnameEl.disabled=true;}
+      else{p.ptsNumEl.textContent=String(p.points);p.btnC.disabled=false;p.btnW.disabled=false;p.nameEl.disabled=false;p.subnameEl.disabled=false;}
+      if(animate&&p.idx===activeIdx){if(type==='correct'){p.ptsScoreEl.classList.remove('pop-anim');void p.ptsScoreEl.offsetWidth;p.ptsScoreEl.classList.add('pop-anim');}else if(type==='wrong'){p.el.classList.remove('shake-anim');void p.el.offsetWidth;p.el.classList.add('shake-anim');}}
     });
-
     updateUndoState();
   }
-
-  function undoGlobal(){
-    if(historyStack.length === 0) return;
-    const prev = historyStack.pop();
-    winners = [...prev.winners];
-    
-    players.forEach((p, i) => {
-      const state = prev.players[i];
-      p.points = state.points;
-      p.correct = state.correct;
-      p.wrong = state.wrong;
-      p.currentCorrectPt = state.currentCorrectPt;
-      p.currentWrongPt = state.currentWrongPt;
-      p.rank = state.rank;
-      p.eliminated = state.eliminated;
-    });
-    
-    renderAll(false);
-  }
-
-  function resetAll(){
-    if(!confirm('リセットしますか？')) return;
-    createGrid(players.length);
-  }
-
-  setupBtn.addEventListener('click', ()=>{
-    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
-    createGrid(cnt);
+  function undoGlobal(){if(historyStack.length===0)return;const prev=historyStack.pop();winners=[...prev.winners];players.forEach((p,i)=>{const s=prev.players[i];p.points=s.points;p.correct=s.correct;p.wrong=s.wrong;p.currentCorrectPt=s.currentCorrectPt;p.currentWrongPt=s.currentWrongPt;p.rank=s.rank;p.eliminated=s.eliminated;});renderAll(false);}
+  function addPlayer(){if(players.length>=20)return;const newIdx=players.length;setGridColumnsByCount(newIdx+1);const p=createPlayerObject(newIdx,`プレイヤー${newIdx+1}`);const maxP=Math.max(1,parseInt(maxPointInput.value||10));p.currentCorrectPt=Math.floor(Math.random()*maxP)+1;p.currentWrongPt=Math.floor(Math.random()*maxP)+1;players.push(p);countInput.value=players.length;renderAll(false);}
+  setupBtn.addEventListener('click',()=>{
+    if(players.length===0){createGrid(Math.max(1,Math.min(20,parseInt(countInput.value||6))));}
+    else{players.forEach(p=>{p.points=0;p.correct=0;p.wrong=0;p.eliminated=false;p.rank=0;p.btnC.disabled=false;p.btnW.disabled=false;p.nameEl.disabled=false;p.subnameEl.disabled=false;p.el.classList.remove('eliminated','winner');});historyStack=[];winners=[];nextQuestion();historyStack=[];updateUndoState();}
   });
-
-  resetBtn.addEventListener('click', resetAll);
-  nextBtn.addEventListener('click', nextQuestion);
-  undoBtn.addEventListener('click', undoGlobal);
-
-  createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
-  
-  window.addEventListener('resize', ()=> {
-    const cnt = players.length || Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
-    setGridColumnsByCount(cnt);
-  });
-
+  resetBtn.addEventListener('click',()=>{if(!confirm('リセットしますか？（名前もすべてリセットされます）'))return;createGrid(Math.max(1,Math.min(20,parseInt(countInput.value||6))));});
+  nextBtn.addEventListener('click',nextQuestion);undoBtn.addEventListener('click',undoGlobal);addPlayerBtn.addEventListener('click',addPlayer);
+  createGrid(Math.max(1,Math.min(20,parseInt(countInput.value||6))));
+  window.addEventListener('resize',()=>{const c=players.length||Math.max(1,Math.min(20,parseInt(countInput.value||6)));setGridColumnsByCount(c);});
 })();
 </script>
 </body>
