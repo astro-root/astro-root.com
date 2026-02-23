@@ -454,6 +454,8 @@ const DEF_CONF = {
 window.onload = () => {
   const m = window.location.pathname.match(/\/q-room\/(\d{5})/);
   if(m) document.getElementById('in-room').value = m[1];
+  const savedName = localStorage.getItem('qr_name');
+  if(savedName) document.getElementById('in-name').value = savedName;
 };
 
 function initFB() {
@@ -485,13 +487,24 @@ async function handleCreate() {
     const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
     if(!n) return err('名前を入力してください');
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
-    
+
     const s = await db.ref('rooms/'+r).once('value');
-    if(s.exists()) return err('そのIDは使用中です');
-    
+    if(s.exists()) {
+      const d = s.val();
+      const players = d.players || {};
+      const hasPlayers = Object.keys(players).length > 0;
+      if(hasPlayers) return err('そのIDは使用中です');
+      const lastActive = d.lastActiveAt || d.createdAt || 0;
+      if(Date.now() - lastActive < 5*60*1000) return err('そのIDは使用中です');
+      await db.ref('rooms/'+r).remove();
+    }
+
+    localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
     await db.ref('rooms/'+r).set({
       status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+      lastActiveAt: firebase.database.ServerValue.TIMESTAMP,
       players: { [myId]: newPlayer(n) }
     });
     enterRoom(true);
@@ -508,13 +521,21 @@ async function handleJoin() {
     const r = document.getElementById('in-room').value.trim();
     if(!n) return err('名前を入力してください');
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
-    
+
     const s = await db.ref('rooms/'+r).once('value');
     if(!s.exists()) return err('部屋が見つかりません');
-    
+
+    const d = s.val();
+    const players = d.players || {};
+    const hasPlayers = Object.keys(players).length > 0;
+    if(!hasPlayers) {
+      const lastActive = d.lastActiveAt || d.createdAt || 0;
+      if(Date.now() - lastActive >= 5*60*1000) return err('このIDは期限切れです（5分以上誰もいませんでした）');
+    }
+
+    localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
-    const p = s.val().players || {};
-    if(!p[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
+    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
     enterRoom(false);
   } catch(e) {
     console.error(e);
@@ -534,7 +555,18 @@ function enterRoom(isCreate=false) {
   } catch(e) {
     console.warn("History API replaced failed.");
   }
-  
+
+  db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+
+  const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
+  playerRef.onDisconnect().remove();
+  db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+
+  window.addEventListener('beforeunload', () => {
+    playerRef.onDisconnect().cancel();
+    playerRef.remove();
+  });
+
   document.getElementById('game-rid').innerText = rId;
   show('room');
   showRoomInfo(isCreate);
@@ -558,6 +590,11 @@ function enterRoom(isCreate=false) {
 
 function leaveRoom() {
   if(rRef) rRef.off('value', rCb);
+  if(db && rId && myId) {
+    db.ref(`rooms/${rId}/players/${myId}`).onDisconnect().cancel();
+    db.ref(`rooms/${rId}/players/${myId}`).remove();
+    db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+  }
   window.location.href = 'https://astro-root.com/q-room/';
 }
 
