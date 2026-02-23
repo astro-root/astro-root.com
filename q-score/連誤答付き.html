@@ -114,6 +114,7 @@
       position: relative;
       transition: all 0.3s ease;
       box-shadow: var(--shadow-soft);
+      overflow: hidden;
     }
     
     .name-input {
@@ -124,15 +125,20 @@
       color: var(--text-muted);
       font-weight: 700;
       font-size: 24px;
-      height: 240px;
+      height: 100%;
       width: 40px;
       text-align: center;
       letter-spacing: 2px;
-      margin-bottom: 5px;
       transition: color 0.2s;
+      z-index: 2;
     }
     .name-input:focus { outline: none; color: var(--text-main); }
 
+
+    .tower-bar { position:absolute; bottom:0; left:0; width:100%; height:0%; background:linear-gradient(to top, rgba(249,115,22,0.2), rgba(249,115,22,0.5)); z-index:0; transition:height 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; }
+    .name-group { display:flex; flex-direction:row; align-items:center; height:200px; z-index:2; position:relative; }
+    .subname-input { writing-mode:vertical-rl; text-orientation:upright; background:transparent; border:none; color:var(--color-orange); font-weight:700; font-size:13px; height:100%; width:24px; text-align:center; letter-spacing:1px; z-index:2; }
+    .subname-input:focus { outline:none; }
     .score-area {
       flex: 1;
       display: flex;
@@ -142,6 +148,7 @@
       margin-bottom: 10px;
       width: 100%;
       position: relative;
+      z-index: 2;
     }
 
     .correct-count {
@@ -180,7 +187,7 @@
       letter-spacing: 2px;
     }
 
-    .buttons { display: flex; gap: 8px; width: 100%; }
+    .buttons { display: flex; gap: 8px; width: 100%; z-index: 2; position: relative; }
     .btn-op {
       flex: 1; border: none; padding: 12px 0; border-radius: 8px;
       cursor: pointer; font-weight: 900; font-size: 16px; color: rgba(0,0,0,0.6);
@@ -204,6 +211,8 @@
       box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
       background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(30, 41, 59, 0.8));
     }
+    .column.winner .tower-bar { background: linear-gradient(to top, rgba(245,158,11,0.3), rgba(245,158,11,0.6)); height: 100% !important; }
+    .column.disqualified .tower-bar { display: none; }
     .column.winner .correct-count {
       color: var(--color-gold);
       text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
@@ -218,7 +227,9 @@
       body { padding: 10px; }
       header { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
       .controls { justify-content: space-between; }
-      .name-input { height: 100px; font-size: 14px; width: 30px; letter-spacing: 0; }
+      .name-group { height: 120px; }
+      .name-input { font-size: 14px; width: 30px; letter-spacing: 0; }
+      .subname-input { font-size: 11px; width: 20px; }
       .correct-count { font-size: 36px; }
       .x-marks { font-size: 18px; }
       .btn-op { padding: 8px 0; font-size: 14px; }
@@ -313,7 +324,11 @@
       const col = document.createElement('div');
       col.className = 'column';
       col.innerHTML = `
-        <input class="name-input" value="プレイヤー${i+1}" />
+        <div class="tower-bar"></div>
+        <div class="name-group">
+          <input class="name-input" value="プレイヤー${i+1}" />
+          <input class="subname-input" placeholder="　" />
+        </div>
         <div class="score-area">
           <div class="correct-count"><span class="correct-num">0</span></div>
           <div class="disadvantage-indicator">DisAdv.</div>
@@ -327,6 +342,8 @@
       grid.appendChild(col);
 
       const nameEl = col.querySelector('.name-input');
+      const subnameEl = col.querySelector('.subname-input');
+      const towerBar = col.querySelector('.tower-bar');
       const correctNumEl = col.querySelector('.correct-num');
       const correctWrapper = col.querySelector('.correct-count');
       const xMarksEl = col.querySelector('.x-marks');
@@ -336,7 +353,7 @@
       const p = { 
         idx:i, 
         el:col, 
-        nameEl, 
+        nameEl, subnameEl, towerBar,
         correctNumEl, 
         correctWrapper, 
         xMarksEl,
@@ -405,9 +422,13 @@
   }
 
   function renderAll(animate=true, activeIdx = -1){
+    const winTh = Math.max(1, parseInt(winInput.value || 5));
+    const loseTh = Math.max(1, parseInt(loseInput.value || 3));
     players.forEach(p=>{
       p.el.classList.remove('disqualified', 'winner');
       p.correctWrapper.classList.remove('has-disadvantage');
+      const towerPct = Math.max(0, Math.min(100, (p.correct / winTh) * 100));
+      if(!p.disqualified && p.rank === 0) p.towerBar.style.height = towerPct + '%';
       
       if(p.disqualified){
         p.el.classList.add('disqualified');
@@ -484,18 +505,8 @@
   }
 
   function resetAll(){
-    players.forEach((p,i)=>{
-      p.correct = 0; p.wrong = 0; p.xCount = 0; p.disqualified = false; p.rank = 0; p.disadvantage = false;
-      p.nameEl.value = `プレイヤー${i+1}`;
-      p.nameEl.disabled = false;
-      p.btnC.disabled = false;
-      p.btnW.disabled = false;
-      p.el.classList.remove('disqualified', 'winner');
-    });
-    historyStack = [];
-    winners = [];
-    renderAll(false);
-    updateUndoState();
+    if(!confirm('リセットしますか？')) return;
+    createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
   }
 
   function addPlayer(){
@@ -505,7 +516,11 @@
     const col = document.createElement('div');
     col.className = 'column';
     col.innerHTML = `
-      <input class="name-input" value="プレイヤー${i+1}" />
+      <div class="tower-bar"></div>
+      <div class="name-group">
+        <input class="name-input" value="プレイヤー${i+1}" />
+        <input class="subname-input" placeholder="　" />
+      </div>
       <div class="score-area">
         <div class="correct-count"><span class="correct-num">0</span></div>
         <div class="disadvantage-indicator">DisAdv.</div>
@@ -519,6 +534,8 @@
     grid.appendChild(col);
 
     const nameEl = col.querySelector('.name-input');
+    const subnameEl = col.querySelector('.subname-input');
+    const towerBar = col.querySelector('.tower-bar');
     const correctNumEl = col.querySelector('.correct-num');
     const correctWrapper = col.querySelector('.correct-count');
     const xMarksEl = col.querySelector('.x-marks');
@@ -528,7 +545,7 @@
     const p = { 
       idx:i, 
       el:col, 
-      nameEl, 
+      nameEl, subnameEl, towerBar,
       correctNumEl, 
       correctWrapper, 
       xMarksEl,
@@ -578,8 +595,13 @@
   }
 
   setupBtn.addEventListener('click', ()=>{
-    const cnt = Math.max(1, Math.min(20, parseInt(countInput.value || 6)));
-    createGrid(cnt);
+    if(players.length > 0){
+      players.forEach(p=>{p.correct=0;p.wrong=0;p.xCount=0;p.disqualified=false;p.rank=0;p.disadvantage=false;});
+      historyStack=[]; winners=[];
+      renderAll(false); updateUndoState();
+    } else {
+      createGrid(Math.max(1, Math.min(20, parseInt(countInput.value || 6))));
+    }
   });
 
   addPlayerBtn.addEventListener('click', ()=>{
