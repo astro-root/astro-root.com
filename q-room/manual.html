@@ -158,6 +158,7 @@ body {
   width: 48px; height: 48px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.4rem; flex-shrink: 0;
+  font-family: var(--en); font-weight: 700;
 }
 .btn-icon.o { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); }
 .btn-icon.x { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); }
@@ -373,7 +374,7 @@ code {
         <div class="caution-icon">⏱</div>
         <div>
           <div class="caution-title">部屋の有効期限</div>
-          <div class="caution-body">全員が退室してから<span class="hl-yellow">5分以上</span>が経過すると、そのルームIDは使用できなくなります。同じIDで再開したい場合は5分以内に再入室してください。</div>
+          <div class="caution-body">全員が退室してから<span class="hl-yellow">5分以上</span>が誰もいない状態が続くと、そのルームIDは自動的にリセットされ使用できなくなります。</div>
         </div>
       </div>
     </div>
@@ -383,7 +384,7 @@ code {
     <div class="section-label">03</div>
     <h2 class="section-title">ボタンの説明</h2>
     <div class="section-body">
-      <p>プレイ中に使用するボタンの機能一覧です。</p>
+      <p>プレイ中や設定画面で使用するボタンの機能一覧です。</p>
     </div>
     <div class="buttons-doc">
       <div class="btn-doc">
@@ -425,7 +426,7 @@ code {
         <div class="btn-icon leave" style="font-size:1rem;">🚪</div>
         <div>
           <div class="btn-doc-title">🚪 LEAVE</div>
-          <div class="btn-doc-desc">部屋から退室します。押すと自分のプレイヤーデータがリストから削除され、トップ画面へ戻ります。再入室すると新しいプレイヤーとして追加されます。</div>
+          <div class="btn-doc-desc">部屋から完全に退室します。自分のプレイヤーデータが削除され、トップ画面へ戻ります。再入室すると新しいプレイヤーとして追加されます。</div>
         </div>
       </div>
       <div class="btn-doc">
@@ -442,6 +443,31 @@ code {
           <div class="btn-doc-desc">ゲームを強制終了してリザルト画面へ全員を移行します。全員が結果を確認できます。「Back to ROOM」で同じ部屋に戻ることも可能です。</div>
         </div>
       </div>
+      
+      <div class="divider" style="margin: 20px 0;"></div>
+      <h3 style="font-size: 0.85rem; color: var(--cyan); margin-bottom: 12px;">タイマー操作（Time Raceルール時のみ出現）</h3>
+      
+      <div class="btn-doc">
+        <div class="btn-icon" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);font-size:1rem;color:var(--green)">▶</div>
+        <div>
+          <div class="btn-doc-title">▶ START</div>
+          <div class="btn-doc-desc">タイマーを開始（または一時停止から再開）します。誤操作防止のため、押した際に確認のダイアログが出ます。5秒のカウントダウン後にスタートします。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);font-size:1rem;color:var(--yellow)">⏸</div>
+        <div>
+          <div class="btn-doc-title">⏸ STOP</div>
+          <div class="btn-doc-desc">稼働中のタイマーを一時停止します。確認ダイアログののち、即座に時間がストップします。</div>
+        </div>
+      </div>
+      <div class="btn-doc">
+        <div class="btn-icon" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);font-size:1rem;color:var(--red)">↺</div>
+        <div>
+          <div class="btn-doc-title">↺ RESET</div>
+          <div class="btn-doc-desc">タイマーを初期設定の時間にリセットします。（※スコアのリセットとは異なります）</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -449,7 +475,7 @@ code {
     <div class="section-label">04</div>
     <h2 class="section-title">ルール一覧</h2>
     <div class="section-body">
-      <p>様々なクイズ形式に対応できるよう全14種類のルールを用意しています。設定画面からいつでも変更でき、変更は即座に全員に適用されます。</p>
+      <p>様々なクイズ形式に対応できるよう全16種類のルールを用意しています。設定画面からいつでも変更でき、変更は即座に全員に適用されます。</p>
     </div>
     <div class="rules-grid">
 
@@ -464,10 +490,20 @@ code {
       </div>
 
       <div class="rule-card">
-        <span class="rule-name tag-c">フリバ</span>
+        <span class="rule-name tag-c">Free</span>
         <div class="rule-summary">勝ち抜けや失格の判定が行われない、自由な練習用モードです。エンドレスでクイズを楽しみたい場合や、スコアだけを記録し続けたい場合に使用します。</div>
         <div class="rule-formula">
           <span class="formula-note">勝敗判定なし</span>
+        </div>
+      </div>
+      
+      <div class="rule-card">
+        <span class="rule-name tag-c">NewYork</span>
+        <div class="rule-summary">正解で加点、誤答で減点されるシンプルなポイント制ルールです。目標スコア(win)に到達すると勝ち抜け、規定のマイナススコア(lose)に達すると失格となります。</div>
+        <div class="rule-formula">
+          <span class="formula-win">スコア ≥ win → 勝ち抜け</span>
+          <span class="formula-lose">スコア ≤ lose → 失格</span>
+          <span class="formula-note">デフォルト: 1問正解+1、誤答-1、10点勝ち抜け、-10点失格</span>
         </div>
       </div>
 
@@ -590,6 +626,15 @@ code {
           <span class="formula-note">デフォルト: 上位3連答 / 下位3連誤</span>
         </div>
       </div>
+      
+      <div class="rule-card">
+        <span class="rule-name tag-p">Time Race</span>
+        <div class="rule-summary">上部に表示されるタイマーを使い、制限時間内にどれだけスコアを稼げるかを競うルールです。タイマーが動いている間のみ解答が行え、時間切れ時に最もスコアが高かったプレイヤーが勝利となります。</div>
+        <div class="rule-formula">
+          <span class="formula-win">時間切れ時にスコアが単独または同点トップ → WIN</span>
+          <span class="formula-note">デフォルト: 5分、正解+1、誤答-1</span>
+        </div>
+      </div>
 
     </div>
   </section>
@@ -697,32 +742,25 @@ code {
           <div class="caution-body">設定画面でルールやパラメータを変更すると、全員にリアルタイムで適用されます。ゲーム途中での変更はスコアの整合性に影響する場合があるため注意してください。</div>
         </div>
       </div>
-      <div class="caution danger">
-        <div class="caution-icon">🚪</div>
-        <div>
-          <div class="caution-title">タブを閉じると自動退室されます</div>
-          <div class="caution-body">ブラウザのタブを閉じた場合、自動的に退室処理が行われます。再入室すると新しいプレイヤーとして追加されます。誤って閉じた場合はすぐに再度アクセスして再入室してください。</div>
-        </div>
-      </div>
       <div class="caution info">
         <div class="caution-icon">👤</div>
         <div>
-          <div class="caution-title">プレイヤーIDはブラウザに紐付きます</div>
-          <div class="caution-body">同じIDで同じ部屋に再入室すると、以前のプレイヤーデータが引き継がれます。別のブラウザや別の端末からは別プレイヤーとして扱われます。</div>
+          <div class="caution-title">タブを閉じても自動退室はされません</div>
+          <div class="caution-body">誤ってブラウザのタブを閉じてしまっても、プレイヤーのデータやスコアはそのまま部屋に残ります。同じブラウザ・端末で再アクセスすれば元の状態から復帰できます。完全にゲームから抜ける場合は、必ず「LEAVE」ボタンを押して退室してください。</div>
         </div>
       </div>
       <div class="caution info">
         <div class="caution-icon">🌐</div>
         <div>
           <div class="caution-title">インターネット接続が必要です</div>
-          <div class="caution-body">Q-RoomはFirebase Realtime Databaseを使用したリアルタイム同期システムです。通信が不安定な環境では操作が反映されない場合があります。</div>
+          <div class="caution-body">Q-RoomはFirebase Realtime Databaseを使用したリアルタイム同期システムです。通信が不安定な環境では操作が反映されない場合や、タイマーのラグが生じる場合があります。</div>
         </div>
       </div>
       <div class="caution warn">
         <div class="caution-icon">📱</div>
         <div>
           <div class="caution-title">同時接続数の制限があります</div>
-          <div class="caution-body">無料プランのため、サービス全体での同時接続数は100までです。多人数での同時利用は動作が不安定になる場合があります。</div>
+          <div class="caution-body">無料プランのデータベースを利用しているため、サービス全体での同時接続数は100までです。極端に多人数での同時利用は動作が不安定になる場合があります。</div>
         </div>
       </div>
     </div>
@@ -769,24 +807,17 @@ code {
       </div>
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
-          <span>スマートフォンで操作しにくい</span>
-          <span class="faq-arrow">▾</span>
-        </div>
-        <div class="faq-a">◯✕ボタンは大きくタップしやすい設計になっています。スクロールしてボタンが見えない場合は、画面を上にスクロールしてアクションパネルを確認してください。</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
           <span>名前を変更したい</span>
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">現在、入室後に名前を変更する機能はありません。一度退室し、名前を変えて再入室してください。</div>
+        <div class="faq-a">入室後に名前を変更する機能は現在ありません。一度「🚪 LEAVE」ボタンで退室し、最初の画面で新しい名前を入力してから「JOIN ROOM」で再入室してください。</div>
       </div>
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">
           <span>何人まで参加できますか</span>
           <span class="faq-arrow">▾</span>
         </div>
-        <div class="faq-a">人数制限は設けていませんが、Firebase無料プランの同時接続100という制限があります。また参加者が増えるほど画面が長くなりスクロール操作が必要になります。現実的には10〜20人程度を推奨します。</div>
+        <div class="faq-a">人数制限は設けていませんが、データベース無料プランの同時接続100人というシステム全体の制限があります。また、参加者が増えるほど画面が長くなりスクロール操作が必要になります。現実的には10〜20人程度でのプレイを推奨します。</div>
       </div>
     </div>
   </section>
