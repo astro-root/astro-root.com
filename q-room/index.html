@@ -273,6 +273,15 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
 .m-close:hover { color: var(--cyan); border-color: var(--cyan); transform: rotate(90deg); background: rgba(6,182,212,0.1); }
 .s-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
 .m-title { font-family: var(--font-en); font-size: 1.4rem; color: var(--cyan); margin-bottom: 32px; font-weight: 900; letter-spacing: 0.15em; }
+.kick-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35);
+  color: rgba(239,68,68,0.6); border-radius: 8px;
+  width: 26px; height: 26px; font-size: 0.75rem; line-height: 1;
+  cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.kick-btn:hover { background: rgba(239,68,68,0.3); border-color: var(--red); color: var(--red); transform: scale(1.1); }
 hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 .toast {
   position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -1029,6 +1038,7 @@ function renderPlayers() {
         <div class="score-val">${sv}</div>
         <div class="score-sub">${p.st==='win'?'<span class="st-win">WIN</span>':p.st==='lose'?'<span class="st-lose">LOSE</span>':sub}</div>
       </div>
+      ${!isMe ? `<button class="kick-btn" onclick="kickPlayer('${id}','${esc(p.name)}')" title="退出させる">✕</button>` : ''}
     </div>`;
   });
   document.getElementById('plist').innerHTML = h;
@@ -1044,6 +1054,13 @@ function renderPlayers() {
       else ox.innerHTML = `<button class="ox-btn btn-o" onclick="sendAction('correct')">◯</button><button class="ox-btn btn-x" onclick="sendAction('wrong')">✕</button>`;
     }
   }
+}
+
+async function kickPlayer(targetId, targetName) {
+  if(!confirm(`「${targetName}」を退出させますか？`)) return;
+  await db.ref(`rooms/${rId}/players/${targetId}`).remove();
+  await pushSysMsg(`${targetName} が退出させられました`);
+  toast(`${targetName} を退出させました`);
 }
 
 async function sendAction(type) {
