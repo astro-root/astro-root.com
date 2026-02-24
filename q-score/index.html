@@ -405,51 +405,6 @@
             color: var(--primary);
             font-weight: bold;
         }
-        .dev-profile {
-            display: flex;
-            align-items: flex-start;
-            gap: 32px;
-        }
-        .dev-avatar {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: linear-gradient(to bottom right, #38bdf8, #818cf8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border: 3px solid rgba(255,255,255,0.1);
-            transition: transform 0.3s;
-        }
-        .dev-avatar:hover {
-            transform: scale(1.05) rotate(5deg);
-        }
-        .dev-info { flex: 1; }
-        .dev-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-        .dev-role {
-            font-size: 0.85rem;
-            color: var(--primary);
-            font-family: 'Roboto Mono', monospace;
-            margin-bottom: 16px;
-            display: inline-block;
-            background: rgba(56, 189, 248, 0.1);
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-        .dev-bio p {
-            margin: 0 0 10px;
-            font-size: 1rem;
-            color: var(--text-sub);
-            line-height: 1.7;
-        }
         
         .action-area {
             position: relative;
@@ -696,11 +651,6 @@
             .grid-container { 
                 grid-template-columns: 1fr; 
                 gap: 16px;
-            }
-            .dev-profile { 
-                flex-direction: column; 
-                align-items: center; 
-                text-align: center; 
             }
             .button-grid {
                 grid-template-columns: 1fr 1fr; 
@@ -961,24 +911,6 @@
                     </div>
                 </div>
             </div>
-            <div>
-                <div class="section-header">Developer</div>
-                <div class="info-box">
-                    <div class="dev-profile">
-                        <img src="https://github.com/astro-root.png" alt="るーと" class="dev-avatar">
-                        <div class="dev-info">
-                            <div class="dev-name">るーと</div>
-                            <div class="dev-role">M1QC / High School Student / Developer</div>
-                            <div class="dev-bio">
-                                <p>個人で早押しクイズの得点表示ツールを開発。</p>
-                                <p>得意ジャンルは理系全般（特に物理学・天文学）、苦手ジャンルは歴史。</p>
-                                <p>日本物理学会学生会友。高校生向け天文学コミュニティ「AstroHigh」運営。</p>
-                                <p>推し：『ユイカ』 / まふまふ</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
     
@@ -988,22 +920,6 @@
             <div class="action-sub">Mondo風クイズ・フィードバック・開発者支援</div>
             
             <div class="button-grid">
-                <a href="https://astro-root.com/q-panel" target="_blank" rel="noopener noreferrer" class="action-card type-panel">
-                    <div class="action-icon-circle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                    </div>
-                    <span class="action-label">Q-Panel</span>
-                    <span class="action-detail">パネル開放クイズ</span>
-                </a>
-
-                <a href="https://astro-root.com/q-mark" target="_blank" rel="noopener noreferrer" class="action-card type-mark">
-                    <div class="action-icon-circle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 15l2 2 4-4"></path></svg>
-                    </div>
-                    <span class="action-label">Q-Mark</span>
-                    <span class="action-detail">ペーパーデジタル採点</span>
-                </a>
-
                 <a href="https://astro-root.github.io/quiz.pointshow/converter.html" target="_blank" rel="noopener noreferrer" class="action-card type-excel">
                     <div class="action-icon-circle">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
@@ -1012,12 +928,12 @@
                     <span class="action-detail">クイズ問題集変換</span>
                 </a>
 
-                <a href="https://note.com/astro_root/n/n21ea1ba407fd?sub_rt=share_pb" target="_blank" rel="noopener noreferrer" class="action-card type-note">
+                <a href="https://astro-root.com/" target="_blank" rel="noopener noreferrer" class="action-card type-panel">
                     <div class="action-icon-circle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                     </div>
-                    <span class="action-label">Manual</span>
-                    <span class="action-detail">使い方マニュアル</span>
+                    <span class="action-label">Official Site</span>
+                    <span class="action-detail">公式サイト</span>
                 </a>
 
                 <a href="https://forms.gle/7f9EYXkzycTQPBHr6" target="_blank" rel="noopener noreferrer" class="action-card type-feedback">
@@ -1027,22 +943,6 @@
                     <span class="action-label">Feedback</span>
                     <span class="action-detail">要望・バグ報告</span>
                 </a>
-
-                <a href="https://x.com/root_qscore" target="_blank" rel="noopener noreferrer" class="action-card type-x">
-                    <div class="action-icon-circle">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                    </div>
-                    <span class="action-label">@root_qscore</span>
-                    <span class="action-detail">公式アカウント</span>
-                </a>
-
-                <a href="https://qr.paypay.ne.jp/p2p01_Nd9eDklDCZoP1iPw" target="_blank" rel="noopener noreferrer" class="action-card type-paypay">
-                    <div class="action-icon-circle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    </div>
-                    <span class="action-label">Donation</span>
-                    <span class="action-detail">PayPayで支援</span>
-                </a>
             </div>
         </div>
     </div>
@@ -1050,7 +950,7 @@
         <div style="max-width:1100px;margin:0 auto;">
             <div style="margin-bottom:8px;">&copy; 2026 astro_root</div>
             <div style="opacity: 0.7; margin-bottom:4px;">UI Design enhanced with AI. Managed by Developer.</div>
-            <div style="opacity: 0.7;">Last Update: 2026/2/7 19:10</div>
+            <div style="opacity: 0.7;">Last Update: 2026/2/25 8:46</div>
         </div>
     </footer>
 
