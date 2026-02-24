@@ -791,7 +791,7 @@ async function handleJoin() {
 }
 
 function newPlayer(name) {
-  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), hist: [] };
+  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
 }
 
 function enterRoom(isCreate=false, playerName='') {
@@ -961,12 +961,13 @@ function sortPlayers(pl, rule) {
     const p1=a[1], p2=b[1];
     const rs = v=>v==='win'?0:v==='active'?1:v==='lose'?2:3;
     if(rs(p1.st) !== rs(p2.st)) return rs(p1.st) - rs(p2.st);
+    if(p1.st === 'win' && p2.st === 'win') return (p1.winAt||0) - (p2.winAt||0);
     let m1=p1.sc||0, m2=p2.sc||0;
     if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(rule)){ m1=p1.c; m2=p2.c; }
     else if(rule==='by') { m1=p1.sc; m2=p2.sc; }
     if(m1 !== m2) return m2 - m1;
     if(p1.w !== p2.w) return p1.w - p2.w;
-    return p2.joined - p1.joined;
+    return (p1.statsAt||p1.joined||0) - (p2.statsAt||p2.joined||0);
   });
 }
 
@@ -1132,6 +1133,14 @@ async function sendAction(type) {
   me.hist.unshift(mePrev);
   if(me.hist.length > 5) me.hist.length = 5;
 
+  const prevParsed = JSON.parse(mePrev);
+  if (me.c !== prevParsed.c || me.w !== prevParsed.w) {
+    me.statsAt = Date.now();
+  }
+  if (me.st === 'win' && prevParsed.st !== 'win') {
+    me.winAt = Date.now();
+  }
+
   await db.ref(`rooms/${rId}/players`).update(pData);
   
   if(r==='attack_surv') {
@@ -1166,7 +1175,7 @@ async function resetPoints() {
   const sc = roomData.rule==='divide' ? (c.init || 10) : roomData.rule==='attack_surv' ? (c.life || 20) : 0;
   
   Object.keys(pData).forEach(k => {
-    pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[] };
+    pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[], winAt:0, statsAt:Date.now() };
     if(pData[k].st !== 'spec') pData[k].st = 'active';
   });
   await db.ref(`rooms/${rId}/players`).set(pData);
