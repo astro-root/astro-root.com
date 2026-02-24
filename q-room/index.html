@@ -971,6 +971,24 @@ function sortPlayers(pl, rule) {
   });
 }
 
+function calcRanks(sorted) {
+  const ranks = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i === 0) {
+      ranks.push(1);
+    } else {
+      const prev = sorted[i-1][1];
+      const cur  = sorted[i][1];
+      if (prev.st === cur.st && prev.c === cur.c && prev.w === cur.w) {
+        ranks.push(ranks[i-1]);
+      } else {
+        ranks.push(i + 1);
+      }
+    }
+  }
+  return ranks;
+}
+
 function renderPlayers() {
   const pl = roomData.players || {};
   const r = roomData.rule;
@@ -979,7 +997,7 @@ function renderPlayers() {
   document.getElementById('timer-panel').classList.toggle('visible', r === 'time_race');
   
   let h = '';
-  
+  const ranks = calcRanks(sorted);
   sorted.forEach(([id, p], idx) => {
     const isMe = id===myId;
     let cls = p.st==='win'?'win':p.st==='lose'?'lose':p.st==='spec'?'spec':'';
@@ -999,7 +1017,7 @@ function renderPlayers() {
     
     h += `
     <div class="pcard ${cls}">
-      <div class="rank-num">${idx+1}</div>
+      <div class="rank-num">${ranks[idx]}</div>
       <div class="p-main">
         <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}</div>
         <div class="p-stats">
@@ -1199,6 +1217,7 @@ function renderResult() {
   const pl = roomData.players || {};
   const r = roomData.rule;
   const sorted = sortPlayers(pl, r).filter(x => x[1].st !== 'spec');
+  const ranks = calcRanks(sorted);
   let h = '';
   sorted.forEach(([id, p], idx) => {
     let sv = p.sc||0;
@@ -1208,7 +1227,7 @@ function renderResult() {
     let mst = p.st==='win'?'WIN':p.st==='lose'?'LOSE':'-';
     h += `
     <div class="pcard ${p.st==='win'?'win':p.st==='lose'?'lose':''}">
-      <div class="rank-num">${idx+1}</div>
+      <div class="rank-num">${ranks[idx]}</div>
       <div class="p-main">
         <div class="p-name">${esc(p.name)}</div>
         <div class="p-stats"><span class="c">◯ ${p.c}</span><span class="w">✕ ${p.w}</span></div>
