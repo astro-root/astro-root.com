@@ -1004,7 +1004,7 @@ function renderPlayers() {
     if(isMe && !cls) cls = 'me';
     let sv = p.sc||0;
     if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
-    else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
+    else if(r==='by') sv = p.sc||0;
     else if(r==='time_race') sv = p.sc||0;
     
     let wtxt = p.w;
@@ -1222,7 +1222,7 @@ function renderResult() {
   sorted.forEach(([id, p], idx) => {
     let sv = p.sc||0;
     if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
-    else if(r==='by') sv = `${p.c} × ${(roomData.conf && roomData.conf.m !== undefined ? roomData.conf.m : 10) - (p.w||0)}`;
+    else if(r==='by') sv = p.sc||0;
     else if(r==='time_race') sv = p.sc||0;
     let mst = p.st==='win'?'WIN':p.st==='lose'?'LOSE':'-';
     h += `
