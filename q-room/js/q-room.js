@@ -22,7 +22,8 @@ const DEF_CONF = {
   divide: {init:10, add:10, win:100}, combo: {win:10, lose:3},
   attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
   lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3},
-  time_race: {limit:5, correct_pt:1, wrong_pt:1}
+  time_race: {limit:5, correct_pt:1, wrong_pt:1},
+  board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
 };
 
 window.onload = () => {
@@ -167,6 +168,11 @@ function enterRoom(isCreate=false, playerName='') {
     changeRuleUI(true);
     renderPlayers();
     
+    if(r !== 'board_quiz') {
+      const hostBtn = document.getElementById('btn-board-host');
+      if(hostBtn) hostBtn.remove();
+    }
+    
     const me = roomData.players && roomData.players[myId];
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
   });
@@ -255,6 +261,17 @@ function changeRuleUI(skipRender=false) {
   else if(r==='lucky') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div><div class="field">${mkn('max','乱数最大',c.max)}</div>`;
   else if(r==='spiral') h = `<div class="s-grid">${mkn('up','正解上昇',c.up)}${mkn('down','誤答下降',c.down)}${mkn('top_req','最上位要正解',c.top_req)}${mkn('btm_req','最下位要誤答',c.btm_req)}</div>`;
   else if(r==='time_race') h = `<div class="s-grid">${mkn('limit','制限時間(分)',c.limit)}${mkn('correct_pt','正解 +pt',c.correct_pt)}${mkn('wrong_pt','誤答 -pt',c.wrong_pt)}</div>`;
+  else if(r==='board_quiz') h = `
+    <div class="s-grid">${mkn('m','正解 +pt',c.m)}${mkn('n','誤答 -pt',c.n)}</div>
+    <div class="s-grid">${mkn('x','少数正解閾値(人以下)',c.x)}${mkn('y','少数ボーナス +pt',c.y)}</div>
+    <div class="s-grid">${mkn('a','ボタン押し正解 +pt',c.a)}${mkn('z','ボタン押し誤答 -pt',c.z)}</div>
+    <div style="margin-top:4px;padding:12px 16px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);border-radius:12px;font-size:0.82rem;color:var(--text-muted);line-height:1.6;">
+      ① 司会者は「🎙 HOST」ボタンで担当を設定<br>
+      ② プレイヤーは回答を入力 → 「📝 提出」<br>
+      ③ 司会者が「解答オープン」→ 各プレイヤーを◯/✕判定<br>
+      ④「次の問題」で回答をリセット・少数正解ボーナスを適用
+    </div>`;
+
   
   document.getElementById('config-area').innerHTML = h;
   if(!skipRender && roomData && r !== roomData.rule) {
@@ -262,6 +279,10 @@ function changeRuleUI(skipRender=false) {
     if(r === 'time_race') {
       const lm = (DEF_CONF.time_race.limit) * 60 * 1000;
       db.ref(`rooms/${rId}/timer`).set({state:'idle', limitMs:lm, remaining:lm, startAt:null, cdStartAt:null});
+    }
+    if(r === 'board_quiz') {
+      db.ref(`rooms/${rId}/board_phase`).set('input');
+      db.ref(`rooms/${rId}/board_host`).remove();
     }
   }
 }
@@ -302,6 +323,7 @@ function sortPlayers(pl, rule) {
     let m1=p1.sc||0, m2=p2.sc||0;
     if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(rule)){ m1=p1.c; m2=p2.c; }
     else if(rule==='by') { m1=p1.sc; m2=p2.sc; }
+    else if(rule==='board_quiz') { m1=p1.sc||0; m2=p2.sc||0; }
     if(m1 !== m2) return m2 - m1;
     if(p1.w !== p2.w) return p1.w - p2.w;
     return (p1.statsAt||p1.joined||0) - (p2.statsAt||p2.joined||0);
@@ -333,6 +355,9 @@ function renderPlayers() {
   
   document.getElementById('timer-panel').classList.toggle('visible', r === 'time_race');
   
+  const isHostMe = r === 'board_quiz' && roomData.board_host === myId;
+  const boardPhase = roomData.board_phase || 'input';
+  
   let h = '';
   const ranks = calcRanks(sorted);
   sorted.forEach(([id, p], idx) => {
@@ -343,6 +368,7 @@ function renderPlayers() {
     if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
     else if(r==='by') sv = p.sc||0;
     else if(r==='time_race') sv = p.sc||0;
+    else if(r==='board_quiz') sv = p.sc||0;
     
     let wtxt = p.w;
     if(r==='swedish'||r==='ren_wrong') wtxt = p.w + '×';
@@ -351,6 +377,51 @@ function renderPlayers() {
     if(p.rst > 0) sub += `<span style="color:var(--yellow)">休:${p.rst}</span> `;
     if(p.str > 0) sub += `<span style="color:var(--cyan)">連:${p.str}</span> `;
     if(p.adv > 0) sub += `<span style="color:var(--red)">DAdv!</span> `;
+    if(r==='board_quiz' && roomData.board_host===id) sub += `<span style="color:var(--magenta)">🎙HOST</span> `;
+    
+    let boardSection = '';
+    if(r === 'board_quiz') {
+      if(isHostMe && id !== myId && p.st === 'active') {
+        if(boardPhase === 'open') {
+          const ans = p.board_ans || '';
+          const buzzMark = p.board_btn ? ' <span class="board-buzz-mark">🔔BUZZ</span>' : '';
+          const judged = p.board_judged;
+          if(!judged) {
+            boardSection = `
+              <div class="board-row">
+                <div class="board-ans-host">${esc(ans) || '<em style="opacity:.4">（未回答）</em>'}${buzzMark}</div>
+                <div class="board-judge-btns">
+                  <button class="board-judge-o" onclick="boardJudge('${id}',true)">◯</button>
+                  <button class="board-judge-x" onclick="boardJudge('${id}',false)">✕</button>
+                </div>
+              </div>`;
+          } else {
+            boardSection = `
+              <div class="board-row">
+                <div class="board-ans-host ${judged==='correct'?'board-judged-correct':'board-judged-wrong'}">${esc(ans) || '（未回答）'}${buzzMark} → ${judged==='correct'?'◯':'✕'}</div>
+              </div>`;
+          }
+        } else {
+          const submitted = !!(p.board_ans);
+          boardSection = `<div class="board-row"><div class="board-phase-hint">${submitted ? '✅ 回答済み' : '⏳ 未回答'}</div></div>`;
+        }
+      } else if(!isHostMe && isMe && p.st === 'active') {
+        const myAns = p.board_ans || '';
+        const buzOn = !!p.board_btn;
+        boardSection = `<div class="board-row board-my-row">
+          <span class="board-my-ans">${myAns ? esc(myAns) : '<em style="opacity:.4">未提出</em>'}</span>
+          ${buzOn ? '<span class="board-buzz-on">🔔 BUZZ中</span>' : ''}
+          ${p.board_judged==='correct'?'<span class="board-result-o">◯</span>':p.board_judged==='wrong'?'<span class="board-result-x">✕</span>':''}
+        </div>`;
+      } else if(!isHostMe && !isMe && boardPhase === 'open') {
+        const ans = p.board_ans || '';
+        const judged = p.board_judged;
+        boardSection = `<div class="board-row">
+          <div class="board-ans-open">${esc(ans) || '<em style="opacity:.4">（未回答）</em>'}</div>
+          ${judged==='correct'?'<span class="board-result-o">◯</span>':judged==='wrong'?'<span class="board-result-x">✕</span>':''}
+        </div>`;
+      }
+    }
     
     h += `
     <div class="pcard ${cls}">
@@ -361,6 +432,7 @@ function renderPlayers() {
           <span class="c">◯ ${p.c}</span>
           <span class="w">✕ ${wtxt}</span>
         </div>
+        ${boardSection}
       </div>
       <div class="score-box">
         <div class="score-val">${sv}</div>
@@ -374,13 +446,165 @@ function renderPlayers() {
   if(me) {
     document.getElementById('btn-role').innerText = me.st==='spec'?'🎮 JOIN':'👀 WATCH';
     const ox = document.getElementById('ox-grid');
-    if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
-    else {
-      ox.style.display = 'grid';
-      if(me.rst > 0) ox.innerHTML = `<button class="ox-btn btn-rest" onclick="sendAction('rest')">休み消化 (${me.rst})</button>`;
-      else ox.innerHTML = `<button class="ox-btn btn-o" onclick="sendAction('correct')">◯</button><button class="ox-btn btn-x" onclick="sendAction('wrong')">✕</button>`;
+    if(r === 'board_quiz') {
+      renderBoardQuizPanel(me, boardPhase, isHostMe);
+    } else {
+      if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
+      else {
+        ox.style.display = 'grid';
+        if(me.rst > 0) ox.innerHTML = `<button class="ox-btn btn-rest" onclick="sendAction('rest')">休み消化 (${me.rst})</button>`;
+        else ox.innerHTML = `<button class="ox-btn btn-o" onclick="sendAction('correct')">◯</button><button class="ox-btn btn-x" onclick="sendAction('wrong')">✕</button>`;
+      }
     }
   }
+}
+
+let boardAnsDebounce = null;
+
+function renderBoardQuizPanel(me, boardPhase, isHostMe) {
+  const ox = document.getElementById('ox-grid');
+  if(isHostMe) {
+    ox.style.display = 'grid';
+    ox.style.gridTemplateColumns = '1fr';
+    if(boardPhase === 'input') {
+      ox.innerHTML = `<button class="ox-btn btn-board-open" onclick="boardOpenPhase()">📋 解答オープン</button>`;
+    } else {
+      ox.innerHTML = `<button class="ox-btn btn-board-next" onclick="boardNextQuestion()">▶ 次の問題</button>`;
+    }
+  } else if(me.st === 'spec' || me.st === 'win' || me.st === 'lose') {
+    ox.style.display = 'none';
+    ox.style.gridTemplateColumns = '';
+  } else {
+    ox.style.display = 'grid';
+    ox.style.gridTemplateColumns = '1fr 1fr';
+    const buzOn = !!me.board_btn;
+    const judged = me.board_judged;
+    const currentAns = me.board_ans || '';
+    if(judged) {
+      ox.innerHTML = `<div class="board-judged-msg" style="grid-column:1/-1">${judged==='correct'?'◯ 正解！':'✕ 不正解'}</div>`;
+    } else {
+      ox.innerHTML = `
+        <div class="board-input-wrap" style="grid-column:1/-1">
+          <input type="text" id="board-ans-input" class="board-ans-field" placeholder="回答を入力…" value="${esc(currentAns)}" maxlength="80" autocomplete="off"
+            oninput="boardDebouncedUpdate(this.value)"
+            onkeydown="if(event.key==='Enter')boardSubmitAns()">
+        </div>
+        <button class="ox-btn btn-board-submit" onclick="boardSubmitAns()">📝 提出</button>
+        <button class="ox-btn ${buzOn?'btn-board-buzz-on':'btn-board-buzz'}" onclick="boardToggleBuzz()">${buzOn?'🔔 BUZZ中':'🔔 BUZZ'}</button>`;
+    }
+  }
+  const subActions = document.querySelector('.sub-actions');
+  if(subActions) {
+    const hostBtn = subActions.querySelector('#btn-board-host');
+    if(!hostBtn) {
+      const btn = document.createElement('button');
+      btn.className = 'sub-btn';
+      btn.id = 'btn-board-host';
+      btn.onclick = boardSetHost;
+      subActions.insertBefore(btn, subActions.firstChild);
+    }
+    const bh = subActions.querySelector('#btn-board-host');
+    const isCurrentHost = roomData.board_host === myId;
+    bh.innerText = isCurrentHost ? '🎙 HOST解除' : '🎙 HOSTになる';
+  }
+}
+
+function boardDebouncedUpdate(val) {
+  clearTimeout(boardAnsDebounce);
+  boardAnsDebounce = setTimeout(() => {
+    if(rId && db) db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
+  }, 400);
+}
+
+async function boardSubmitAns() {
+  const input = document.getElementById('board-ans-input');
+  if(!input) return;
+  const val = input.value.trim();
+  await db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
+  toast('📝 提出しました');
+}
+
+async function boardToggleBuzz() {
+  const me = roomData.players[myId];
+  const cur = me.board_btn || false;
+  await db.ref(`rooms/${rId}/players/${myId}/board_btn`).set(!cur);
+}
+
+async function boardSetHost() {
+  const isCurrentHost = roomData.board_host === myId;
+  if(isCurrentHost) {
+    await db.ref(`rooms/${rId}/board_host`).remove();
+    await db.ref(`rooms/${rId}/players/${myId}/st`).set('active');
+    toast('ホストを解除しました');
+  } else {
+    const prevHost = roomData.board_host;
+    if(prevHost && roomData.players[prevHost]) {
+      await db.ref(`rooms/${rId}/players/${prevHost}/st`).set('active');
+    }
+    await db.ref(`rooms/${rId}/board_host`).set(myId);
+    await db.ref(`rooms/${rId}/players/${myId}/st`).set('spec');
+    toast('🎙 ホストになりました');
+  }
+}
+
+async function boardOpenPhase() {
+  if(roomData.board_host !== myId) return;
+  await db.ref(`rooms/${rId}/board_phase`).set('open');
+  toast('📋 解答オープン！');
+}
+
+async function boardJudge(pid, isCorrect) {
+  if(roomData.board_host !== myId) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const p = pData[pid];
+  if(!p || p.st === 'spec') return;
+  const c = roomData.conf || DEF_CONF.board_quiz;
+  const mePrev = JSON.stringify({c:p.c, w:p.w, sc:p.sc, st:p.st});
+  
+  if(isCorrect) {
+    p.c++;
+    const pts = p.board_btn ? (c.a || 15) : (c.m || 10);
+    p.sc = (p.sc || 0) + pts;
+    p.board_judged = 'correct';
+    p.statsAt = Date.now();
+    toast(`◯ ${p.name} +${pts}pt`);
+  } else {
+    p.w++;
+    const pts = p.board_btn ? (c.z || 5) : (c.n || 3);
+    p.sc = (p.sc || 0) - pts;
+    p.board_judged = 'wrong';
+    p.statsAt = Date.now();
+    toast(`✕ ${p.name} -${pts}pt`);
+  }
+  p.hist = p.hist || [];
+  p.hist.unshift(mePrev);
+  if(p.hist.length > 5) p.hist.length = 5;
+  await db.ref(`rooms/${rId}/players`).update(pData);
+}
+
+async function boardNextQuestion() {
+  if(roomData.board_host !== myId) return;
+  if(!confirm('次の問題へ進みますか？（少数正解ボーナスを適用し、回答をリセットします）')) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const c = roomData.conf || DEF_CONF.board_quiz;
+  
+  const correctPlayers = Object.keys(pData).filter(pid => pData[pid].board_judged === 'correct');
+  const threshold = c.x !== undefined ? c.x : 1;
+  const bonus = c.y !== undefined ? c.y : 10;
+  if(correctPlayers.length > 0 && correctPlayers.length <= threshold) {
+    correctPlayers.forEach(pid => {
+      pData[pid].sc = (pData[pid].sc || 0) + bonus;
+    });
+    toast(`🌟 少数正解ボーナス +${bonus}pt（${correctPlayers.length}人）`);
+  }
+  
+  Object.keys(pData).forEach(pid => {
+    pData[pid].board_ans = '';
+    pData[pid].board_btn = false;
+    pData[pid].board_judged = null;
+  });
+  await db.ref(`rooms/${rId}/players`).update(pData);
+  await db.ref(`rooms/${rId}/board_phase`).set('input');
 }
 
 async function sendAction(type) {
@@ -532,6 +756,11 @@ async function resetPoints() {
   Object.keys(pData).forEach(k => {
     pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[], winAt:0, statsAt:Date.now() };
     if(pData[k].st !== 'spec') pData[k].st = 'active';
+    if(roomData.rule === 'board_quiz') {
+      pData[k].board_ans = '';
+      pData[k].board_btn = false;
+      pData[k].board_judged = null;
+    }
   });
   await db.ref(`rooms/${rId}/players`).set(pData);
   if(roomData.rule === 'time_race') {
