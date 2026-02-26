@@ -23,7 +23,7 @@ const DEF_CONF = {
   attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
   lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3},
   time_race: {limit:5, correct_pt:1, wrong_pt:1},
-  board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
+  board_quiz: {m:1, n:0, x:1, y:2, z:3, a:3}
 };
 
 window.onload = () => {
