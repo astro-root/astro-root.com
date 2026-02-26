@@ -45,46 +45,55 @@ body {
 }
 header {
     background-color: var(--bg-surface);
-    height: 60px;
-    padding: 0 20px;
+    height: 56px;
+    padding: 0 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border);
     z-index: 50;
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    gap: 8px;
 }
 .logo {
     font-weight: 800;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     color: var(--text-main);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     letter-spacing: -0.5px;
+    flex-shrink: 0;
+    cursor: pointer;
 }
+.logo:hover { opacity: 0.8; }
 .logo span {
     background: var(--primary-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
-.toolbar { display: flex; gap: 8px; align-items: center; }
-.divider { width: 1px; height: 24px; background: var(--border); margin: 0 8px; }
+.toolbar { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.divider { width: 1px; height: 22px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
 .btn {
     background: var(--bg-base);
     border: 1px solid var(--border);
     color: var(--text-sub);
-    padding: 0 14px;
-    height: 36px;
+    padding: 0 11px;
+    height: 34px;
     border-radius: var(--radius-sm);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1;
 }
 .btn:hover:not(:disabled) { background: #334155; color: var(--text-main); border-color: #475569; }
 .btn:active { transform: translateY(1px); }
@@ -108,10 +117,11 @@ header {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 0 4px;
-    height: 36px;
+    height: 34px;
+    flex-shrink: 0;
 }
-.control-label { font-size: 0.75rem; color: var(--text-muted); padding: 0 6px; font-weight: 600; }
-input[type="range"] { width: 80px; margin: 0 6px; accent-color: var(--primary); cursor: pointer; }
+.control-label { font-size: 0.72rem; color: var(--text-muted); padding: 0 5px; font-weight: 600; }
+input[type="range"] { width: 70px; margin: 0 4px; accent-color: var(--primary); cursor: pointer; }
 .zoom-group { display: flex; align-items: center; }
 .zoom-btn { width: 28px; height: 28px; border: none; background: transparent; color: var(--text-sub); cursor: pointer; font-size: 1rem; border-radius: 4px; }
 .zoom-btn:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -126,8 +136,9 @@ input[type="range"] { width: 80px; margin: 0 6px; accent-color: var(--primary); 
 .resizer::after { content: ''; height: 20px; width: 2px; background: var(--text-muted); border-radius: 1px; }
 .resizer:hover::after { background: white; }
 .pane-header {
-    height: 48px; padding: 0 16px; background: rgba(30, 41, 59, 0.95); border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; color: var(--text-sub);
+    height: 46px; padding: 0 12px; background: rgba(30, 41, 59, 0.95); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; font-size: 0.83rem; font-weight: 600; color: var(--text-sub);
+    flex-shrink: 0;
 }
 .canvas-container {
     flex: 1; overflow: auto; position: relative; background-color: #0b0f19;
@@ -212,16 +223,16 @@ canvas { display: block; width: 100%; height: auto; }
 
 /* ===== AUTH BADGE (header) ===== */
 .user-badge {
-    display: none; align-items: center; gap: 8px;
+    display: none; align-items: center; gap: 6px;
     background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3);
-    border-radius: 20px; padding: 4px 12px 4px 8px; height: 36px;
+    border-radius: 20px; padding: 3px 10px 3px 6px; height: 34px; flex-shrink: 0;
 }
 .user-avatar {
-    width: 24px; height: 24px; border-radius: 50%;
+    width: 22px; height: 22px; border-radius: 50%;
     background: var(--primary-gradient); display: flex; align-items: center; justify-content: center;
-    font-size: 0.7rem; font-weight: 800; color: white;
+    font-size: 0.68rem; font-weight: 800; color: white; flex-shrink: 0;
 }
-.user-name { font-size: 0.82rem; font-weight: 700; color: var(--primary-hover); max-width: 100px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.user-name { font-size: 0.8rem; font-weight: 700; color: var(--primary-hover); max-width: 80px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .folder-badge {
     background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3);
     color: var(--success); border-radius: 6px; padding: 2px 8px;
@@ -330,8 +341,17 @@ canvas { display: block; width: 100%; height: auto; }
 
 /* ===== CURRENT FOLDER INDICATOR ===== */
 #folderIndicator {
-    display: none; background: rgba(52,211,153,0.06); border-bottom: 1px solid rgba(52,211,153,0.15);
-    padding: 4px 20px; font-size: 0.75rem; color: var(--success); align-items: center; gap: 8px;
+    display: none;
+    background: rgba(52,211,153,0.05);
+    border-bottom: 1px solid rgba(52,211,153,0.15);
+    padding: 5px 20px;
+    font-size: 0.78rem;
+    color: var(--success);
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    height: 32px;
+    box-sizing: border-box;
 }
 #folderIndicator.visible { display: flex; }
 </style>
@@ -389,44 +409,46 @@ canvas { display: block; width: 100%; height: auto; }
       </button>
     </div>
   </div>
+
+  <div style="margin-top:20px; display:flex; justify-content:center; gap:16px;">
+    <a href="https://astro-root.github.io/quiz.pointshow/Q-Mark-how-to-use.html" target="_blank" style="color:var(--text-muted); font-size:0.78rem; text-decoration:none;">📖 使い方ガイド</a>
+    <span style="color:var(--border);">|</span>
+    <span style="color:var(--text-muted); font-size:0.78rem;">ショートカット: Z/1=正解　X/2=不正解　C/3=部分点　T=文字　←→=生徒切替</span>
+  </div>
 </div>
 </div>
 
 <!-- ======= HEADER ======= -->
 <header>
-  <div class="logo"><span>Q</span>-Mark</div>
+  <div class="logo" onclick="backToTop()" title="トップに戻る"><span>Q</span>-Mark</div>
   <div class="toolbar">
-    <button class="btn active" id="toolO" onclick="setTool('o')"><span style="color:var(--success)">○</span> 正解 (1)</button>
-    <button class="btn" id="toolX" onclick="setTool('x')"><span style="color:var(--danger)">×</span> 不正解 (2)</button>
-    <button class="btn" id="toolTri" onclick="setTool('tri')"><span style="color:var(--warning)">△</span> 部分 (3)</button>
-    <button class="btn" id="toolText" onclick="setTool('text')"><span>T</span> 文字 (T)</button>
+    <button class="btn active" id="toolO" onclick="setTool('o')"><span style="color:var(--success)">○</span> 正解</button>
+    <button class="btn" id="toolX" onclick="setTool('x')"><span style="color:var(--danger)">×</span> 不正解</button>
+    <button class="btn" id="toolTri" onclick="setTool('tri')"><span style="color:var(--warning)">△</span> 部分点</button>
+    <button class="btn" id="toolText" onclick="setTool('text')">T 文字</button>
     <div class="divider"></div>
     <div class="control-group">
       <span class="control-label">Size</span>
       <input type="range" id="markSizeRange" min="20" max="100" value="44" title="マークサイズ">
     </div>
-    <button class="btn" onclick="toggleLayoutMode()" title="問題番号のグリッド設定">
-      <span>📐</span> Grid
-    </button>
+    <button class="btn" onclick="toggleLayoutMode()" title="問題番号グリッド設定">📐 Grid</button>
   </div>
   <div class="toolbar">
-    <div style="margin-right:20px; font-family:'JetBrains Mono'; font-weight:700; display:flex; align-items:baseline; gap:6px;">
-      <span style="font-size:0.8rem; color:var(--text-muted);">SCORE</span>
-      <span id="scoreDisplay" style="font-size:1.6rem; color:var(--primary-hover);">0</span>
+    <div style="font-family:'JetBrains Mono'; font-weight:700; display:flex; align-items:baseline; gap:4px; margin-right:8px;">
+      <span style="font-size:0.72rem; color:var(--text-muted);">SCORE</span>
+      <span id="scoreDisplay" style="font-size:1.5rem; color:var(--primary-hover);">0</span>
     </div>
     <button id="folderBtn" class="btn btn-success" style="display:none;" onclick="openFolderModal()">📁 フォルダ</button>
     <button id="statBtn" class="btn" onclick="openStatsModal()" title="統計を表示">📊 統計</button>
-    <button class="btn" onclick="undo()" title="Ctrl+Z">戻る</button>
-    <button class="btn" onclick="window.open('https://astro-root.github.io/quiz.pointshow/Q-Mark-how-to-use.html', '_blank')">使い方</button>
+    <button class="btn" onclick="undo()" title="Ctrl+Z">↩ 戻る</button>
     <div class="divider"></div>
     <button class="btn btn-primary" onclick="downloadPDF()">PDF</button>
     <button class="btn" onclick="downloadCSV()">CSV</button>
     <div class="divider"></div>
-    <!-- Auth area -->
     <div id="userBadge" class="user-badge">
       <div class="user-avatar" id="userAvatarLetter">U</div>
       <span class="user-name" id="userNameDisplay">User</span>
-      <button class="btn" style="height:26px; padding:0 8px; font-size:0.75rem;" onclick="logout()">ログアウト</button>
+      <button class="btn" style="height:26px; padding:0 8px; font-size:0.72rem;" onclick="logout()">ログアウト</button>
     </div>
     <button id="authGuestBtn" class="btn" onclick="openAuthModal('login')">🔑 ログイン</button>
   </div>
@@ -1617,6 +1639,18 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // =============================================
 // INIT
 // =============================================
+function backToTop() {
+  if (!confirm('トップに戻りますか？\n（現在の採点データはブラウザに保存されています）')) return;
+  // Re-show the overlay
+  document.getElementById('overlay').style.display = 'flex';
+  // Re-init file status
+  document.getElementById('statKey').textContent = state.keyFile ? `OK: ${state.keyFile.name}` : '選択してください';
+  document.getElementById('statKey').className = 'upload-status' + (state.keyFile ? ' ok' : '');
+  document.getElementById('statStu').textContent = state.stuFiles.length > 0 ? `OK: ${state.stuFiles.length}枚` : '選択してください (複数可)';
+  document.getElementById('statStu').className = 'upload-status' + (state.stuFiles.length > 0 ? ' ok' : '');
+  btnStart.disabled = !(state.keyFile && state.stuFiles.length > 0);
+}
+
 (async () => {
   await initDB();
   updateAuthUI();
