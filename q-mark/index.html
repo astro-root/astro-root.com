@@ -363,7 +363,6 @@ canvas { display: block; width: 100%; height: auto; }
 </head>
 <body>
 
-<!-- ======= START OVERLAY ======= -->
 <div id="overlay">
 <div class="modal">
   <div class="logo" style="justify-content:center; font-size:2.5rem; margin-bottom:8px;">
@@ -390,7 +389,6 @@ canvas { display: block; width: 100%; height: auto; }
     採点スタート
   </button>
 
-  <!-- Auth promo (guest) -->
   <div id="overlayAuthSection">
     <div class="overlay-divider"><span>アカウント機能</span></div>
     <div class="auth-promo">
@@ -405,7 +403,6 @@ canvas { display: block; width: 100%; height: auto; }
     </div>
   </div>
 
-  <!-- Logged-in section -->
   <div id="overlayLoggedInSection" style="display:none;">
     <div class="overlay-divider"><span>フォルダ</span></div>
     <div class="folder-open-section">
@@ -423,7 +420,6 @@ canvas { display: block; width: 100%; height: auto; }
 </div>
 </div>
 
-<!-- ======= HEADER ======= -->
 <header>
   <div class="logo" onclick="backToTop()" title="トップに戻る"><span>Q</span>-Mark</div>
   <div class="toolbar">
@@ -460,7 +456,6 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </header>
 
-<!-- ======= SESSION BAR (folder status + URL indicator) ======= -->
 <div id="sessionBar">
   <div id="folderIndicator" style="display:none; align-items:center; gap:8px; flex:1; min-width:0; color:var(--success);">
     <span>📁</span>
@@ -478,7 +473,6 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </div>
 
-<!-- ======= LAYOUT BAR ======= -->
 <div id="layoutBar">
   <span style="color:var(--info); font-weight:700;">📐 レイアウトモード:</span>
   <span style="color:var(--text-sub)">始点(左上) → 終点(右下) をクリック</span>
@@ -497,7 +491,6 @@ canvas { display: block; width: 100%; height: auto; }
   <button class="btn" onclick="clearZones()" style="height:32px; color:var(--danger);">全クリア</button>
 </div>
 
-<!-- ======= WORKSPACE ======= -->
 <div class="workspace" id="workspace">
   <div class="pane" id="paneLeft" style="width: 40%;">
     <div class="pane-header">
@@ -560,7 +553,6 @@ canvas { display: block; width: 100%; height: auto; }
 
 <div id="toast">Message</div>
 
-<!-- ======= AUTH MODAL ======= -->
 <div class="modal-overlay" id="authModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -606,7 +598,6 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </div>
 
-<!-- ======= FOLDER MODAL ======= -->
 <div class="modal-overlay" id="folderModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -623,7 +614,6 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </div>
 
-<!-- ======= SAVE FOLDER MODAL ======= -->
 <div class="modal-overlay" id="saveFolderModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -646,7 +636,6 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </div>
 
-<!-- ======= STATS MODAL ======= -->
 <div class="modal-overlay" id="statsModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -867,9 +856,13 @@ async function openFolder(id) {
 
   if (data.keyFile) {
     state.keyFile = new File([data.keyFile.buffer], data.keyFile.name, { type: data.keyFile.type });
+  } else {
+    state.keyFile = null;
   }
   if (data.stuFiles && data.stuFiles.length > 0) {
     state.stuFiles = data.stuFiles.map(f => new File([f.buffer], f.name, { type: f.type }));
+  } else {
+    state.stuFiles = [];
   }
   state.marks = data.marks || {};
   state.zones = data.zones || [];
@@ -878,7 +871,6 @@ async function openFolder(id) {
   state.currentFolderId = id;
 
   closeModal('folderModal');
-  document.getElementById('overlay').style.display = 'none';
 
   const user = getCurrentUser();
   const meta = getFolderMeta(user);
@@ -891,10 +883,17 @@ async function openFolder(id) {
   }
 
   if (state.keyFile) {
+    document.getElementById('overlay').style.display = 'none';
     showToast('フォルダを読み込んでいます...');
     await drawImage(state.keyFile, 'cvLeft', 'wrapLeft', 'scrollLeft', 'left');
     if (state.stuFiles.length > 0) await loadStudent(0);
   } else {
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('statKey').textContent = '選択してください';
+    document.getElementById('statKey').className = 'upload-status';
+    document.getElementById('statStu').textContent = '選択してください (複数可)';
+    document.getElementById('statStu').className = 'upload-status';
+    btnStart.disabled = true;
     showToast('フォルダを開きました。ファイルをアップロードしてください。');
   }
 }
@@ -1259,16 +1258,16 @@ function handleFiles(files, type) {
 btnStart.onclick = async () => {
   loadFromStorage();
   document.getElementById('overlay').style.display = 'none';
-  // Show session bar
   const bar = document.getElementById('sessionBar');
   bar.classList.add('visible');
-  // If no folder active, show file info in the left slot
   if (!state.currentFolderId) {
     document.getElementById('folderIndicator').style.display = 'none';
     const info = document.getElementById('noFolderRow');
     info.style.display = 'flex';
     document.getElementById('sessionFileInfo').textContent =
       `📄 ${state.keyFile.name}  |  👥 ${state.stuFiles.length}名の答案  ·  ログインして💾保存できます`;
+  } else {
+    quickSaveFolder();
   }
   showToast('画像を読み込んでいます...');
   await drawImage(state.keyFile, 'cvLeft', 'wrapLeft', 'scrollLeft', 'left');
