@@ -1421,7 +1421,7 @@ function initChat(playerName='') {
   });
 
   const name = playerName || getMyName();
-  pushSysMsg(`${name} が入室しました`);
+  if(!isGhost) pushSysMsg(`${name} が入室しました`);
 }
 
 function toggleChat() {
