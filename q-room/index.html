@@ -785,7 +785,6 @@ let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
 let serverTimeOffset = 0;
-let isGhost = false;
 
 const STAMPS = ['👍','🎉','😂','🔥','😮','💪','🤔','👏','❤️','😭','✨','🙏'];
 
@@ -807,10 +806,6 @@ window.onload = () => {
   if(roomId) document.getElementById('in-room').value = roomId;
   const savedName = localStorage.getItem('qr_name');
   if(savedName) document.getElementById('in-name').value = savedName;
-
-  if(params.get('ghost') === '1' && roomId) {
-    handleGhostJoin(roomId);
-  }
 };
 
 function initFB() {
@@ -905,22 +900,7 @@ async function handleJoin() {
   }
 }
 
-async function handleGhostJoin(roomId) {
-  try {
-    initFB();
-    const r = roomId || document.getElementById('in-room').value.trim();
-    if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
-    const s = await db.ref('rooms/'+r).once('value');
-    if(!s.exists()) return err('部屋が見つかりません');
-    isGhost = true;
-    myId = '__ghost__' + Date.now().toString(36);
-    rId = r;
-    enterRoom(false, 'GHOST');
-  } catch(e) {
-    console.error(e);
-    err('エラーが発生しました。');
-  }
-}
+function newPlayer(name) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
 }
 
@@ -928,21 +908,20 @@ function enterRoom(isCreate=false, playerName='') {
   try {
     if (window.location.protocol !== 'file:') {
       const base = window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
-      window.history.replaceState({}, '', `${base}?r=${rId}${isGhost ? '&ghost=1' : ''}`);
+      window.history.replaceState({}, '', `${base}?r=${rId}`);
     }
   } catch(e) {
     console.warn("History API replaced failed.");
   }
 
-  if(!isGhost) {
-    db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
-    db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-  }
+  db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+
+  const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
+  db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
 
   document.getElementById('game-rid').innerText = rId;
   show('room');
-  if(!isGhost) showRoomInfo(isCreate);
-  else showGhostBanner();
+  showRoomInfo(isCreate);
   initChat(playerName);
   initTimerListener();
 
@@ -969,7 +948,7 @@ function enterRoom(isCreate=false, playerName='') {
 async function leaveRoom() {
   if(rRef) { rRef.off('value', rCb); rRef = null; }
   if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
-  if(!isGhost && db && rId && myId) {
+  if(db && rId && myId) {
     const myName = getMyName();
     await pushSysMsg(`${myName} が退室しました`);
     const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
@@ -1005,23 +984,6 @@ function showRoomInfo(isCreate) {
 }
 
 function closeRoomInfo() { document.getElementById('modal-room-info').classList.remove('active'); }
-
-function showGhostBanner() {
-  const banner = document.createElement('div');
-  banner.id = 'ghost-banner';
-  banner.style.cssText = `
-    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-    z-index: 9998; background: rgba(225,29,72,0.15);
-    border: 1px solid rgba(225,29,72,0.4); border-top: none;
-    border-radius: 0 0 12px 12px; padding: 6px 20px;
-    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
-    color: #fb7185; letter-spacing: 0.12em; pointer-events: none;
-  `;
-  banner.textContent = '👻 GHOST MODE · READ ONLY';
-  document.body.appendChild(banner);
-  const panel = document.getElementById('action-panel') || document.querySelector('.action-panel');
-  if(panel) panel.style.display = 'none';
-}
 
 function copyShareId() {
   navigator.clipboard.writeText(rId);
@@ -1421,7 +1383,7 @@ function initChat(playerName='') {
   });
 
   const name = playerName || getMyName();
-  if(!isGhost) pushSysMsg(`${name} が入室しました`);
+  pushSysMsg(`${name} が入室しました`);
 }
 
 function toggleChat() {
@@ -1470,7 +1432,6 @@ function renderChatMsg(msg) {
 }
 
 async function sendChatMsg() {
-  if(isGhost) return;
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
   if(!text || !rId) return;
@@ -1482,7 +1443,7 @@ async function sendChatMsg() {
 }
 
 async function sendStamp(emoji) {
-  if(isGhost || !rId) return;
+  if(!rId) return;
   await db.ref(`rooms/${rId}/chat`).push({
     type: 'msg', playerId: myId, playerName: getMyName(),
     text: emoji, stamp: true, ts: firebase.database.ServerValue.TIMESTAMP
