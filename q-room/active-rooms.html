@@ -137,7 +137,14 @@ html, body {
 }
 .join-btn:hover { box-shadow: 0 6px 18px rgba(6,182,212,0.45); transform: translateY(-1px); }
 
-.peek-btn {
+.ghost-btn {
+  background: rgba(225,29,72,0.08); border: 1px solid rgba(225,29,72,0.25);
+  border-radius: 10px; padding: 7px 14px;
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+  color: rgba(251,113,133,0.8); cursor: pointer; transition: 0.25s;
+  letter-spacing: 0.08em; white-space: nowrap; flex-shrink: 0;
+}
+.ghost-btn:hover { background: rgba(225,29,72,0.18); border-color: rgba(225,29,72,0.5); transform: translateY(-1px); }
   background: rgba(225,29,72,0.1); border: 1px solid rgba(225,29,72,0.3);
   border-radius: 10px; padding: 7px 14px;
   font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
@@ -605,6 +612,7 @@ function buildRoomCard(rid, room, idx) {
       <div class="rule-badge">${ruleName}</div>
       <button class="copy-btn" onclick="copyRoomId('${rid}', this)">COPY ID</button>
       <button class="peek-btn" onclick="openPeek('${rid}')">👁 PEEK</button>
+      <button class="ghost-btn" onclick="window.open('${QROOM_BASE}?r=${rid}&ghost=1','_blank')">👻 GHOST</button>
       <button class="join-btn" onclick="window.open('${QROOM_BASE}?r=${rid}','_blank')">→ 参加</button>
     </div>
     <div class="room-meta">
