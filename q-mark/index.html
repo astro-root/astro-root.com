@@ -339,21 +339,26 @@ canvas { display: block; width: 100%; height: auto; }
 .bar-fill { width: 100%; background: var(--primary-gradient); border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.3s; }
 .bar-label { font-size: 0.62rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40px; text-align: center; }
 
-/* ===== CURRENT FOLDER INDICATOR ===== */
-#folderIndicator {
+/* ===== SESSION BAR ===== */
+#sessionBar {
     display: none;
-    background: rgba(52,211,153,0.05);
-    border-bottom: 1px solid rgba(52,211,153,0.15);
-    padding: 5px 20px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
     font-size: 0.78rem;
-    color: var(--success);
+    color: var(--text-sub);
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 12px;
     flex-shrink: 0;
     height: 32px;
     box-sizing: border-box;
 }
-#folderIndicator.visible { display: flex; }
+#sessionBar.visible { display: flex; }
+#sessionBar .folder-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; color: var(--success); }
+#sessionBar .folder-row.hidden { display: none; }
+/* Keep old ID working too */
+#folderIndicator { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 </style>
 </head>
 <body>
@@ -439,6 +444,7 @@ canvas { display: block; width: 100%; height: auto; }
       <span id="scoreDisplay" style="font-size:1.5rem; color:var(--primary-hover);">0</span>
     </div>
     <button id="folderBtn" class="btn btn-success" style="display:none;" onclick="openFolderModal()">📁 フォルダ</button>
+    <button id="saveFolderHeaderBtn" class="btn" style="display:none;" onclick="openSaveFolderModal()" title="現在の採点セッションをフォルダに保存">💾 保存</button>
     <button id="statBtn" class="btn" onclick="openStatsModal()" title="統計を表示">📊 統計</button>
     <button class="btn" onclick="undo()" title="Ctrl+Z">↩ 戻る</button>
     <div class="divider"></div>
@@ -454,12 +460,22 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </header>
 
-<!-- ======= FOLDER INDICATOR ======= -->
-<div id="folderIndicator">
-  <span>📁</span>
-  <span id="folderIndicatorName">フォルダ名</span>
-  <span style="color:var(--text-muted);">に作業中</span>
-  <button class="btn btn-success" style="height:24px; padding:0 10px; font-size:0.72rem; margin-left:8px;" onclick="openSaveFolderModal()">保存</button>
+<!-- ======= SESSION BAR (folder status + URL indicator) ======= -->
+<div id="sessionBar">
+  <div id="folderIndicator" style="display:none; align-items:center; gap:8px; flex:1; min-width:0; color:var(--success);">
+    <span>📁</span>
+    <span id="folderIndicatorName" style="font-weight:700; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:200px;">フォルダ名</span>
+    <span style="color:var(--text-muted); flex-shrink:0; font-size:0.72rem;">に保存済み</span>
+    <button class="btn btn-success" style="height:22px; padding:0 8px; font-size:0.7rem; flex-shrink:0;" onclick="quickSaveFolder()">💾 上書き保存</button>
+    <button class="btn" style="height:22px; padding:0 8px; font-size:0.7rem; flex-shrink:0;" onclick="openSaveFolderModal()">別名で保存</button>
+  </div>
+  <div id="noFolderRow" style="display:flex; align-items:center; gap:6px; flex:1; color:var(--text-muted); font-size:0.72rem;">
+    <span id="sessionFileInfo"></span>
+  </div>
+  <div style="color:var(--text-muted); font-size:0.72rem; font-family:'JetBrains Mono'; flex-shrink:0; display:flex; align-items:center; gap:6px;">
+    <span id="urlHashDisplay" style="color:var(--primary); opacity:0.8;"></span>
+    <button class="btn" style="height:22px; padding:0 8px; font-size:0.7rem;" onclick="copyCurrentUrl()" title="URLをコピー">🔗 URLコピー</button>
+  </div>
 </div>
 
 <!-- ======= LAYOUT BAR ======= -->
@@ -796,6 +812,7 @@ function updateAuthUI() {
   const guestBtn = document.getElementById('authGuestBtn');
   const userBadge = document.getElementById('userBadge');
   const folderBtn = document.getElementById('folderBtn');
+  const saveFolderHeaderBtn = document.getElementById('saveFolderHeaderBtn');
   const overlayAuth = document.getElementById('overlayAuthSection');
   const overlayLoggedIn = document.getElementById('overlayLoggedInSection');
 
@@ -805,12 +822,14 @@ function updateAuthUI() {
     document.getElementById('userAvatarLetter').textContent = user.charAt(0).toUpperCase();
     document.getElementById('userNameDisplay').textContent = user;
     folderBtn.style.display = 'flex';
+    saveFolderHeaderBtn.style.display = 'flex';
     if (overlayAuth) overlayAuth.style.display = 'none';
     if (overlayLoggedIn) overlayLoggedIn.style.display = 'block';
   } else {
     guestBtn.style.display = 'flex';
     userBadge.style.display = 'none';
     folderBtn.style.display = 'none';
+    saveFolderHeaderBtn.style.display = 'none';
     if (overlayAuth) overlayAuth.style.display = 'block';
     if (overlayLoggedIn) overlayLoggedIn.style.display = 'none';
   }
@@ -865,9 +884,10 @@ async function openFolder(id) {
   const meta = getFolderMeta(user);
   const folder = meta.find(f => f.id === id);
   if (folder) {
-    const ind = document.getElementById('folderIndicator');
     document.getElementById('folderIndicatorName').textContent = folder.name;
-    ind.classList.add('visible');
+    document.getElementById('folderIndicator').style.display = 'flex';
+    document.getElementById('noFolderRow').style.display = 'none';
+    document.getElementById('sessionBar').classList.add('visible');
   }
 
   if (state.keyFile) {
@@ -961,7 +981,9 @@ async function executeSaveToFolder() {
     state.currentFolderId = targetId;
     const folderName = newName || meta.find(f => f.id === targetId)?.name || 'フォルダ';
     document.getElementById('folderIndicatorName').textContent = folderName;
-    document.getElementById('folderIndicator').classList.add('visible');
+    document.getElementById('folderIndicator').style.display = 'flex';
+    document.getElementById('noFolderRow').style.display = 'none';
+    document.getElementById('sessionBar').classList.add('visible');
 
     closeModal('saveFolderModal');
     showToast('フォルダに保存しました！');
@@ -1237,6 +1259,17 @@ function handleFiles(files, type) {
 btnStart.onclick = async () => {
   loadFromStorage();
   document.getElementById('overlay').style.display = 'none';
+  // Show session bar
+  const bar = document.getElementById('sessionBar');
+  bar.classList.add('visible');
+  // If no folder active, show file info in the left slot
+  if (!state.currentFolderId) {
+    document.getElementById('folderIndicator').style.display = 'none';
+    const info = document.getElementById('noFolderRow');
+    info.style.display = 'flex';
+    document.getElementById('sessionFileInfo').textContent =
+      `📄 ${state.keyFile.name}  |  👥 ${state.stuFiles.length}名の答案  ·  ログインして💾保存できます`;
+  }
   showToast('画像を読み込んでいます...');
   await drawImage(state.keyFile, 'cvLeft', 'wrapLeft', 'scrollLeft', 'left');
   await loadStudent(0);
@@ -1279,8 +1312,68 @@ async function loadStudent(idx) {
   updateUI();
   await drawImage(f, 'cvRight', 'wrapRight', 'scrollRight', 'right');
   renderMarks();
+  // URL hash update
+  updateUrlHash(idx);
 }
 function navStudent(d) { loadStudent(state.currIdx + d); }
+
+// =============================================
+// URL HASH ROUTING
+// =============================================
+function updateUrlHash(idx) {
+  if (state.stuFiles.length === 0) return;
+  const name = encodeURIComponent(state.stuFiles[idx].name.replace(/\.[^.]+$/, ''));
+  const hash = `#student-${idx + 1}-${name}`;
+  history.replaceState(null, '', hash);
+  document.getElementById('urlHashDisplay').textContent = hash;
+}
+
+function getIdxFromHash() {
+  const hash = location.hash;
+  const m = hash.match(/^#student-(\d+)/);
+  if (m) {
+    const idx = parseInt(m[1]) - 1;
+    if (!isNaN(idx) && idx >= 0 && idx < state.stuFiles.length) return idx;
+  }
+  return null;
+}
+
+window.addEventListener('hashchange', () => {
+  if (document.getElementById('overlay').style.display !== 'none') return;
+  const idx = getIdxFromHash();
+  if (idx !== null && idx !== state.currIdx) loadStudent(idx);
+});
+
+function copyCurrentUrl() {
+  const url = location.href;
+  navigator.clipboard.writeText(url).then(() => showToast('URLをコピーしました'));
+}
+
+// =============================================
+// QUICK SAVE (overwrite current folder)
+// =============================================
+async function quickSaveFolder() {
+  const user = getCurrentUser();
+  if (!user || !state.currentFolderId) { openSaveFolderModal(); return; }
+  if (!state.keyFile || state.stuFiles.length === 0) { showToast('先にファイルをアップロードしてください'); return; }
+  try {
+    showToast('上書き保存中...');
+    const keyBuffer = await readFileAsBuffer(state.keyFile);
+    const stuBuffers = await Promise.all(state.stuFiles.map(readFileAsBuffer));
+    const meta = getFolderMeta(user);
+    const idx = meta.findIndex(f => f.id === state.currentFolderId);
+    if (idx >= 0) { meta[idx].stuCount = state.stuFiles.length; meta[idx].updatedAt = Date.now(); }
+    const folderData = {
+      id: state.currentFolderId,
+      keyFile: { name: state.keyFile.name, type: state.keyFile.type, buffer: keyBuffer },
+      stuFiles: state.stuFiles.map((f, i) => ({ name: f.name, type: f.type, buffer: stuBuffers[i] })),
+      marks: state.marks, zones: state.zones, markSize: state.globalMarkSize
+    };
+    await idbPut('folders', folderData);
+    saveFolderMeta(user, meta);
+    showToast('💾 上書き保存しました！');
+  } catch(e) { showToast('保存に失敗しました'); console.error(e); }
+}
 
 function addZoom(side, d) {
   let newVal = Math.max(10, Math.min(500, state.zoom[side] + d));
@@ -1641,8 +1734,10 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // =============================================
 function backToTop() {
   if (!confirm('トップに戻りますか？\n（現在の採点データはブラウザに保存されています）')) return;
-  // Re-show the overlay
   document.getElementById('overlay').style.display = 'flex';
+  // Clear URL hash
+  history.replaceState(null, '', location.pathname + location.search);
+  document.getElementById('urlHashDisplay').textContent = '';
   // Re-init file status
   document.getElementById('statKey').textContent = state.keyFile ? `OK: ${state.keyFile.name}` : '選択してください';
   document.getElementById('statKey').className = 'upload-status' + (state.keyFile ? ' ok' : '');
