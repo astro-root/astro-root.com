@@ -33,6 +33,14 @@
   --font-mono: 'JetBrains Mono', monospace;
   --glass-blur: blur(24px);
 }
+:root[data-theme="light"] {
+  --bg-color: #eef2f7;
+  --surface-color: rgba(255, 255, 255, 0.80);
+  --surface-highlight: rgba(0, 0, 0, 0.06);
+  --border-color: rgba(0, 0, 0, 0.10);
+  --text-main: #18181b;
+  --text-muted: #52525b;
+}
 html, body { min-height: 100vh; }
 body {
   background-color: var(--bg-color);
@@ -46,6 +54,104 @@ body {
   justify-content: center;
   align-items: flex-start;
   overflow-x: hidden;
+}
+[data-theme="light"] body,
+[data-theme="light"].body {
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 90% 90%, rgba(225, 29, 72, 0.10) 0%, transparent 50%);
+}
+[data-theme="light"] .screen {
+  background: var(--bg-color);
+  box-shadow: 0 0 60px rgba(0,0,0,0.12), 0 0 2px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .header {
+  background: rgba(238, 242, 247, 0.92);
+}
+[data-theme="light"] .action-panel {
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.10);
+}
+[data-theme="light"] .m-content {
+  background: rgba(245, 248, 252, 0.99);
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.18);
+}
+[data-theme="light"] .chat-drawer {
+  background: rgba(242, 246, 251, 0.99);
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.15);
+}
+[data-theme="light"] .timer-panel {
+  background: rgba(238, 242, 247, 0.99);
+}
+[data-theme="light"] .chat-handle {
+  background: rgba(0,0,0,0.18);
+}
+[data-theme="light"] .chat-msg.other .chat-msg-bubble {
+  background: rgba(0,0,0,0.06);
+  color: var(--text-main);
+}
+[data-theme="light"] .chat-sys {
+  background: rgba(0,0,0,0.05);
+}
+[data-theme="light"] .chat-input {
+  background: rgba(0,0,0,0.05);
+}
+[data-theme="light"] .chat-input:focus {
+  background: rgba(6,182,212,0.08);
+}
+[data-theme="light"] .stamp-btn {
+  background: rgba(0,0,0,0.05);
+}
+[data-theme="light"] .stamp-btn:hover {
+  background: rgba(0,0,0,0.10);
+}
+[data-theme="light"] .countdown-overlay {
+  background: rgba(238,242,247,0.93);
+}
+[data-theme="light"] .modal {
+  background: rgba(200,210,225,0.75);
+}
+[data-theme="light"] .pcard.lose {
+  background: rgba(240,243,248,0.7);
+}
+[data-theme="light"] .m-content::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.18);
+}
+[data-theme="light"] select option {
+  background-color: #eef2f7;
+  color: #18181b;
+}
+[data-theme="light"] .toast {
+  background: rgba(245,248,252,0.98);
+  box-shadow: 0 16px 40px rgba(6,182,212,0.2);
+}
+
+.theme-toggle-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  backdrop-filter: var(--glass-blur);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.theme-toggle-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(6,182,212,0.12);
+  transform: translateY(-2px) rotate(15deg);
+  box-shadow: 0 8px 24px rgba(6,182,212,0.25);
 }
 .screen {
   display: none; 
@@ -447,6 +553,10 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 </style>
 </head>
 <body>
+
+<button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
+  <span id="theme-icon">☀️</span>
+</button>
 
 <div id="screen-top" class="screen active">
   <div class="hero">
@@ -1520,6 +1630,27 @@ async function timerAction(action) {
     });
   }
 }
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') !== 'light';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  document.getElementById('theme-icon').textContent = newTheme === 'light' ? '🌙' : '☀️';
+  try { localStorage.setItem('q-room-theme', newTheme); } catch(e) {}
+}
+(function() {
+  try {
+    const saved = localStorage.getItem('q-room-theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.addEventListener('DOMContentLoaded', () => {
+        const icon = document.getElementById('theme-icon');
+        if (icon) icon.textContent = '🌙';
+      });
+    }
+  } catch(e) {}
+})();
 
 async function finishTimeRace() {
   if(!roomData || !roomData.players) return;
