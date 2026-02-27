@@ -22,6 +22,7 @@
   <span id="theme-icon">☀️</span>
 </button>
 
+<!-- TOP SCREEN -->
 <div id="screen-top" class="screen active">
   <div class="hero">
     <div class="logo">Q-Room</div>
@@ -71,6 +72,7 @@
   </div>
 </div>
 
+<!-- ROOM SCREEN -->
 <div id="screen-room" class="screen">
   <div class="header">
     <div class="room-info">ROOM<span id="game-rid">—</span></div>
@@ -117,6 +119,7 @@
   </div>
 </div>
 
+<!-- RESULT SCREEN -->
 <div id="screen-result" class="screen">
   <div class="r-header">
     <div class="r-title">RESULT</div>
@@ -130,6 +133,7 @@
   <div class="scroll-area"><div id="rlist" class="plist"></div></div>
 </div>
 
+<!-- SETTINGS MODAL -->
 <div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeModal()">✕</button>
@@ -175,6 +179,7 @@
   </div>
 </div>
 
+<!-- ROOM INFO MODAL -->
 <div id="modal-room-info" class="modal room-share-modal" onclick="if(event.target===this)closeRoomInfo()">
   <div class="m-content">
     <button class="m-close" onclick="closeRoomInfo()">✕</button>
@@ -199,6 +204,7 @@
   </div>
 </div>
 
+<!-- FEEDBACK MODAL -->
 <div id="modal-feedback" class="modal" onclick="if(event.target===this)closeFeedback()">
   <div class="m-content">
     <button class="m-close" onclick="closeFeedback()">✕</button>
@@ -234,6 +240,7 @@
   </div>
 </div>
 
+<!-- CHAT -->
 <div class="chat-overlay" id="chat-overlay" onclick="toggleChat()"></div>
 <div class="chat-drawer" id="chat-drawer">
   <div class="chat-handle"></div>
@@ -251,6 +258,7 @@
   </div>
 </div>
 
+<!-- COUNTDOWN -->
 <div class="countdown-overlay" id="countdown-overlay">
   <div class="countdown-num" id="countdown-num">5</div>
   <div class="countdown-label">GET READY</div>
