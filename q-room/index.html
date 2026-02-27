@@ -22,6 +22,7 @@
   <span id="theme-icon">☀️</span>
 </button>
 
+<!-- TOP SCREEN -->
 <div id="screen-top" class="screen active">
   <div class="hero">
     <div class="logo">Q-Room</div>
@@ -50,7 +51,8 @@
       <a href="https://twitter.com/astro_root" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='#1d9bf0'" onmouseout="this.style.color='var(--text-muted)'">
         <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">TWITTER</span>
-      </a>      <a href="https://astro-root.com/" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
+      </a>
+      <a href="https://astro-root.com/" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
         <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">WEBSITE</span>
       </a>
@@ -70,6 +72,7 @@
   </div>
 </div>
 
+<!-- ROOM SCREEN -->
 <div id="screen-room" class="screen">
   <div class="header">
     <div class="room-info">ROOM<span id="game-rid">—</span></div>
@@ -110,11 +113,13 @@
     <div class="sub-actions">
       <button class="sub-btn" id="btn-undo" onclick="reqUndo()" disabled>↩ UNDO</button>
       <button class="sub-btn" onclick="toggleRole()" id="btn-role">👀 WATCH</button>
+      <button class="sub-btn" id="btn-board-host" onclick="boardSetHost()" style="display:none;">🎙 HOST</button>
       <button class="sub-btn" onclick="leaveRoom()">🚪 LEAVE</button>
     </div>
   </div>
 </div>
 
+<!-- RESULT SCREEN -->
 <div id="screen-result" class="screen">
   <div class="r-header">
     <div class="r-title">RESULT</div>
@@ -128,6 +133,7 @@
   <div class="scroll-area"><div id="rlist" class="plist"></div></div>
 </div>
 
+<!-- SETTINGS MODAL -->
 <div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeModal()">✕</button>
@@ -136,31 +142,29 @@
     <div id="admin-gate"></div>
 
     <div id="admin-section">
-    <div class="field">
-      <label>RULE</label>
-      <select id="sel-rule" onchange="changeRuleUI()">
-        <option value="survival">m◯n×</option>
-        <option value="free">Free</option>
-        <option value="newyork">NewYork</option>
-        <option value="rentou">連答付き</option>
-        <option value="updown">up-down</option>
-        <option value="by">by</option>
-        <option value="freeze">Freeze</option>
-        <option value="m_n_rest">m◯n休</option>
-        <option value="swedish">Swedish</option>
-        <option value="ren_wrong">連誤答付き</option>
-        <option value="divide">divide</option>
-        <option value="combo">m hits Combo</option>
-        <option value="attack_surv">アタック風サバイバル</option>
-        <option value="lucky">LuckyShot</option>
-        <option value="spiral">螺旋階段</option>
-        <option value="time_race">Time Race</option>
-        <option value="board_quiz">Board Quiz</option>
-      </select>
-    </div>
-
-    <div id="config-area"></div>
-
+      <div class="field">
+        <label>RULE</label>
+        <select id="sel-rule" onchange="changeRuleUI()">
+          <option value="survival">m◯n×</option>
+          <option value="free">Free</option>
+          <option value="newyork">NewYork</option>
+          <option value="rentou">連答付き</option>
+          <option value="updown">up-down</option>
+          <option value="by">by</option>
+          <option value="freeze">Freeze</option>
+          <option value="m_n_rest">m◯n休</option>
+          <option value="swedish">Swedish</option>
+          <option value="ren_wrong">連誤答付き</option>
+          <option value="divide">divide</option>
+          <option value="combo">m hits Combo</option>
+          <option value="attack_surv">アタック風サバイバル</option>
+          <option value="lucky">LuckyShot</option>
+          <option value="spiral">螺旋階段</option>
+          <option value="time_race">Time Race</option>
+          <option value="board_quiz">Board Quiz</option>
+        </select>
+      </div>
+      <div id="config-area"></div>
     </div>
 
     <hr>
@@ -169,12 +173,13 @@
       <button class="sub-btn" onclick="copyId()">📋 Copy ID</button>
     </div>
     <div id="admin-section-btns">
-    <button class="btn btn-sec" onclick="resetPoints()" style="margin-bottom:16px;">🔄 RESET SCORES</button>
-    <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
+      <button class="btn btn-sec" onclick="resetPoints()" style="margin-bottom:16px;">🔄 RESET SCORES</button>
+      <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
     </div>
   </div>
 </div>
 
+<!-- ROOM INFO MODAL -->
 <div id="modal-room-info" class="modal room-share-modal" onclick="if(event.target===this)closeRoomInfo()">
   <div class="m-content">
     <button class="m-close" onclick="closeRoomInfo()">✕</button>
@@ -199,6 +204,7 @@
   </div>
 </div>
 
+<!-- FEEDBACK MODAL -->
 <div id="modal-feedback" class="modal" onclick="if(event.target===this)closeFeedback()">
   <div class="m-content">
     <button class="m-close" onclick="closeFeedback()">✕</button>
@@ -234,6 +240,7 @@
   </div>
 </div>
 
+<!-- CHAT -->
 <div class="chat-overlay" id="chat-overlay" onclick="toggleChat()"></div>
 <div class="chat-drawer" id="chat-drawer">
   <div class="chat-handle"></div>
@@ -251,6 +258,7 @@
   </div>
 </div>
 
+<!-- COUNTDOWN -->
 <div class="countdown-overlay" id="countdown-overlay">
   <div class="countdown-num" id="countdown-num">5</div>
   <div class="countdown-label">GET READY</div>
