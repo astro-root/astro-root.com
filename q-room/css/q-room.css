@@ -567,9 +567,14 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   animation: cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes cdPop { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-#screen-room.active ~ * .theme-toggle-btn,
-body:has(#screen-room.active) .theme-toggle-btn {
-  display: none;
+#theme-toggle-btn-room {
+  display: flex;
+}
+
+@media (max-width: 540px) {
+  .theme-toggle-btn {
+    display: none !important;
+  }
 }
 
 .board-row {
