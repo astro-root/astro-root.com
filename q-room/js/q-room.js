@@ -66,8 +66,6 @@ function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.cl
 function show(id){ 
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
   document.getElementById('screen-'+id).classList.add('active');
-  const floatBtn = document.getElementById('theme-toggle-btn');
-  if(floatBtn) floatBtn.style.display = (id === 'room') ? 'none' : '';
 }
 
 async function handleCreate() {
