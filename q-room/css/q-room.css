@@ -780,3 +780,100 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   background: rgba(239,68,68,0.25);
   border-color: var(--red);
 }
+
+/* =============================================
+   レスポンシブ修正パッチ
+   ============================================= */
+
+/* ヘッダー：小画面で詰まるのを防ぐ */
+.header {
+  padding: 10px 12px;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+/* ROOM番号を小さく抑える */
+.room-info {
+  min-width: 0;
+  flex-shrink: 1;
+}
+.room-info span {
+  font-size: 0.95rem;
+}
+
+/* ルールバッジはスマホで隠す */
+@media (max-width: 480px) {
+  .rule-badge {
+    display: none;
+  }
+}
+
+/* ヘッダーボタン群：小画面でサイズ縮小 */
+@media (max-width: 480px) {
+  .h-btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+  .h-btn-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .header > div:last-child {
+    gap: 6px;
+  }
+}
+
+/* さらに小さい端末（320px）でボタンを更に縮める */
+@media (max-width: 360px) {
+  .h-btn-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .h-btn-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+  .header > div:last-child {
+    gap: 4px;
+  }
+  .room-info span {
+    font-size: 0.82rem;
+  }
+}
+
+/* タイマーパネル：小画面で文字縮小 */
+@media (max-width: 400px) {
+  .timer-display {
+    font-size: 2.2rem;
+  }
+  .timer-btn {
+    font-size: 0.72rem;
+    padding: 8px 6px;
+  }
+}
+
+/* アクションパネル：OXボタンが小さくなりすぎないよう保護 */
+@media (max-width: 360px) {
+  .ox-btn {
+    font-size: 2rem;
+    padding: 18px 0;
+  }
+  .sub-btn {
+    font-size: 0.75rem;
+    padding: 10px 6px;
+  }
+}
+
+/* TOPスクリーン：ロゴが画面外にはみ出さないよう */
+@media (max-width: 360px) {
+  .hero {
+    padding: 48px 16px 28px;
+  }
+  .logo {
+    font-size: 2.6rem;
+  }
+  .form-wrap {
+    padding: 0 16px;
+  }
+}
