@@ -23,7 +23,7 @@ const DEF_CONF = {
   attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
   lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3},
   time_race: {limit:5, correct_pt:1, wrong_pt:1},
-  board_quiz: {m:1, n:0, x:1, y:2, z:3, a:3}
+  board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
 };
 
 window.onload = () => {
@@ -63,7 +63,12 @@ function getMyId() {
 
 function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
 function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
-function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+function show(id){ 
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
+  document.getElementById('screen-'+id).classList.add('active');
+  const floatBtn = document.getElementById('theme-toggle-btn');
+  if(floatBtn) floatBtn.style.display = (id === 'room') ? 'none' : '';
+}
 
 async function handleCreate() {
   try {
@@ -262,9 +267,9 @@ function changeRuleUI(skipRender=false) {
   else if(r==='spiral') h = `<div class="s-grid">${mkn('up','正解上昇',c.up)}${mkn('down','誤答下降',c.down)}${mkn('top_req','最上位要正解',c.top_req)}${mkn('btm_req','最下位要誤答',c.btm_req)}</div>`;
   else if(r==='time_race') h = `<div class="s-grid">${mkn('limit','制限時間(分)',c.limit)}${mkn('correct_pt','正解 +pt',c.correct_pt)}${mkn('wrong_pt','誤答 -pt',c.wrong_pt)}</div>`;
   else if(r==='board_quiz') h = `
-    <div class="s-grid">${mkn('m','正解',c.m)}${mkn('n','誤答',c.n)}</div>
-    <div class="s-grid">${mkn('x','少数正解閾値(人以下)',c.x)}${mkn('y','少数ボーナス',c.y)}</div>
-    <div class="s-grid">${mkn('a','ボタン押し正解',c.a)}${mkn('z','ボタン押し誤答',c.z)}</div>
+    <div class="s-grid">${mkn('m','正解 +pt',c.m)}${mkn('n','誤答 -pt',c.n)}</div>
+    <div class="s-grid">${mkn('x','少数正解閾値(人以下)',c.x)}${mkn('y','少数ボーナス +pt',c.y)}</div>
+    <div class="s-grid">${mkn('a','ボタン押し正解 +pt',c.a)}${mkn('z','ボタン押し誤答 -pt',c.z)}</div>
     <div style="margin-top:4px;padding:12px 16px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);border-radius:12px;font-size:0.82rem;color:var(--text-muted);line-height:1.6;">
       ① 司会者は「🎙 HOST」ボタンで担当を設定<br>
       ② プレイヤーは回答を入力 → 「📝 提出」<br>
@@ -1092,7 +1097,10 @@ function toggleTheme() {
   const isDark = html.getAttribute('data-theme') !== 'light';
   const newTheme = isDark ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme);
-  document.getElementById('theme-icon').textContent = newTheme === 'light' ? '🌙' : '☀️';
+  const icon = newTheme === 'light' ? '🌙' : '☀️';
+  document.getElementById('theme-icon').textContent = icon;
+  const roomIcon = document.getElementById('theme-icon-room');
+  if(roomIcon) roomIcon.textContent = icon;
   try { localStorage.setItem('q-room-theme', newTheme); } catch(e) {}
 }
 (function() {
@@ -1103,6 +1111,8 @@ function toggleTheme() {
       document.addEventListener('DOMContentLoaded', () => {
         const icon = document.getElementById('theme-icon');
         if (icon) icon.textContent = '🌙';
+        const roomIcon = document.getElementById('theme-icon-room');
+        if (roomIcon) roomIcon.textContent = '🌙';
       });
     }
   } catch(e) {}
