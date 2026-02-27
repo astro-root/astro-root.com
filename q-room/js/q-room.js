@@ -8,6 +8,26 @@ const firebaseConfig = {
   appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
 };
 
+let _adminVerified = false;
+
+function isAdmin() {
+  return _adminVerified;
+}
+
+async function checkAdmin() {
+  const id = getMyId();
+  try {
+    const snap = await db.ref(`admins/${id}`).once('value');
+    _adminVerified = snap.val() === true;
+  } catch(e) {
+    _adminVerified = false;
+  }
+}
+
+function adminLogout() {
+  _adminVerified = false;
+}
+
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
@@ -135,7 +155,7 @@ function newPlayer(name) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
 }
 
-function enterRoom(isCreate=false, playerName='') {
+async function enterRoom(isCreate=false, playerName='') {
   try {
     if (window.location.protocol !== 'file:') {
       const base = window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
@@ -146,6 +166,8 @@ function enterRoom(isCreate=false, playerName='') {
   }
 
   db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+
+  await checkAdmin();
 
   const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
   db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
@@ -208,8 +230,30 @@ async function backToRoom() {
   await db.ref(`rooms/${rId}/status`).set('playing');
 }
 
-function openModal(){ document.getElementById('modal').classList.add('active'); }
+function openModal(){
+  document.getElementById('modal').classList.add('active');
+  renderAdminUI();
+}
 function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
+
+function renderAdminUI() {
+  const adminSection = document.getElementById('admin-section');
+  const adminSectionBtns = document.getElementById('admin-section-btns');
+  const adminGate = document.getElementById('admin-gate');
+  if(!adminSection || !adminGate) return;
+  if(isAdmin()) {
+    adminSection.style.display = '';
+    if(adminSectionBtns) adminSectionBtns.style.display = '';
+    adminGate.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px 14px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.3);border-radius:12px;">
+        <span style="font-size:0.8rem;color:var(--cyan);font-family:var(--font-en);font-weight:700;letter-spacing:0.1em;">✓ ADMIN</span>
+      </div>`;
+  } else {
+    adminSection.style.display = 'none';
+    if(adminSectionBtns) adminSectionBtns.style.display = 'none';
+    adminGate.innerHTML = '';
+  }
+}
 
 function openFeedback(){ document.getElementById('modal-feedback').classList.add('active'); }
 function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
@@ -288,6 +332,7 @@ function changeRuleUI(skipRender=false) {
   
   document.getElementById('config-area').innerHTML = h;
   if(!skipRender && roomData && r !== roomData.rule) {
+    if(!isAdmin()) { toast('⚠️ 管理者のみルールを変更できます'); document.getElementById('sel-rule').value = roomData.rule; changeRuleUI(true); return; }
     db.ref('rooms/'+rId).update({rule: r, conf: DEF_CONF[r]});
     if(r === 'time_race') {
       const lm = (DEF_CONF.time_race.limit) * 60 * 1000;
@@ -302,6 +347,7 @@ function changeRuleUI(skipRender=false) {
 
 function updateConf() {
   if(!roomData) return;
+  if(!isAdmin()) return;
   let nc = {};
   document.querySelectorAll('#config-area input').forEach(el => nc[el.id.replace('c_','')] = parseInt(el.value)||0);
   document.querySelectorAll('#config-area select').forEach(el => nc[el.id.replace('c_','')] = el.value);
@@ -440,7 +486,8 @@ function renderPlayers() {
     <div class="pcard ${cls}">
       <div class="rank-num">${ranks[idx]}</div>
       <div class="p-main">
-        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}</div>
+        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}
+        </div>
         <div class="p-stats">
           <span class="c">◯ ${p.c}</span>
           <span class="w">✕ ${wtxt}</span>
@@ -544,6 +591,7 @@ async function boardToggleBuzz() {
 }
 
 async function boardSetHost() {
+  if(!isAdmin()) { toast('⚠️ 管理者のみHOSTを設定できます'); return; }
   const isCurrentHost = roomData.board_host === myId;
   if(isCurrentHost) {
     await db.ref(`rooms/${rId}/board_host`).remove();
@@ -618,6 +666,15 @@ async function boardNextQuestion() {
   });
   await db.ref(`rooms/${rId}/players`).update(pData);
   await db.ref(`rooms/${rId}/board_phase`).set('input');
+}
+
+async function kickPlayer(pid) {
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
+  const p = roomData.players[pid];
+  if(!p) return;
+  if(!confirm(`${p.name} を退室させますか？`)) return;
+  await db.ref(`rooms/${rId}/players/${pid}`).remove();
+  toast(`${p.name} を退室させました`);
 }
 
 async function sendAction(type) {
@@ -760,6 +817,7 @@ async function toggleRole() {
 }
 
 async function resetPoints() {
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
   if(!confirm('全員のスコアをリセットしますか？')) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
   
@@ -785,6 +843,7 @@ async function resetPoints() {
 }
 
 async function endGame() {
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
   if(confirm('ゲームを終了しますか？')) {
     await db.ref(`rooms/${rId}/status`).set('finished');
     closeModal();
@@ -1069,6 +1128,7 @@ function updateTimerDisplay() {
 
 async function timerAction(action) {
   if(!rId || !db) return;
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
   
   let confirmMsg = '';
   if(action === 'start') confirmMsg = 'タイマーをスタート（再開）しますか？';
