@@ -879,6 +879,8 @@ function renderResult() {
   document.getElementById('rlist').innerHTML = h;
 }
 
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function tweetApp() {
   const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
   const url = 'https://astro-root.com/q-room/';
