@@ -77,10 +77,10 @@ function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.r
 async function handleCreate() {
   try {
     initFB();
-    const n = document.getElementById('in-name').value.trim();
-    const raw = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
-    const r = raw.replace(/admin$/i, '');
+    const raw = document.getElementById('in-name').value.trim();
+    const n = raw.replace(/admin$/i, '') || raw;
     _isAdmin = raw.toLowerCase().endsWith('admin');
+    const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
     if(!n) return err('名前を入力してください');
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
 
@@ -114,10 +114,10 @@ async function handleCreate() {
 async function handleJoin() {
   try {
     initFB();
-    const n = document.getElementById('in-name').value.trim();
-    const raw = document.getElementById('in-room').value.trim();
-    const r = raw.replace(/admin$/i, '');
+    const raw = document.getElementById('in-name').value.trim();
+    const n = raw.replace(/admin$/i, '') || raw;
     _isAdmin = raw.toLowerCase().endsWith('admin');
+    const r = document.getElementById('in-room').value.trim();
     if(!n) return err('名前を入力してください');
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
 
