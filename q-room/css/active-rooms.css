@@ -414,3 +414,57 @@ html, body {
   .room-card-header { flex-wrap: wrap; }
   .room-id-val { font-size: 1.2rem; }
 }
+
+/* ── PEEK TABS ── */
+.peek-tabs {
+  display: flex; gap: 6px; margin-bottom: 16px;
+}
+.peek-tab {
+  flex: 1; padding: 8px 0;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: var(--muted);
+  font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+  cursor: pointer; transition: 0.2s; letter-spacing: 0.06em;
+}
+.peek-tab:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.peek-tab.peek-tab-active {
+  background: rgba(6,182,212,0.12); border-color: rgba(6,182,212,0.4);
+  color: var(--cyan);
+}
+
+/* ── PEEK CHAT ── */
+.peek-chat-log {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: calc(100vh - 240px); overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.peek-chat-log::-webkit-scrollbar { width: 4px; }
+.peek-chat-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+.peek-chat-sys {
+  text-align: center;
+  font-family: var(--mono); font-size: 0.72rem;
+  color: rgba(161,161,170,0.5); padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.peek-chat-msg {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+}
+.peek-chat-name {
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+  color: var(--cyan); white-space: nowrap; flex-shrink: 0;
+}
+.peek-chat-bubble {
+  font-size: 0.85rem; color: var(--text); flex: 1; word-break: break-word;
+}
+.peek-chat-stamp {
+  font-size: 1.2rem; flex: 1;
+}
+.peek-chat-time {
+  font-family: var(--mono); font-size: 0.65rem; color: rgba(161,161,170,0.4);
+  margin-left: auto; white-space: nowrap; flex-shrink: 0;
+}
