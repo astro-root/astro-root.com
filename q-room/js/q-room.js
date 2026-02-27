@@ -674,6 +674,7 @@ async function sendAction(type) {
   if(r === 'time_race') {
     if(!timerData || timerData.state !== 'running') {
       toast('タイマーが動いている間のみ回答できます');
+      _sendActionLock = false;
       return;
     }
   }
