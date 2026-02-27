@@ -504,10 +504,19 @@ function renderPlayers() {
   const me = pl[myId];
   if(me) {
     document.getElementById('btn-role').innerText = me.st==='spec'?'🎮 JOIN':'👀 WATCH';
+    const hostBtn = document.getElementById('btn-board-host');
+    if(r === 'board_quiz') {
+      hostBtn.style.display = '';
+      const isCurrentHost = roomData.board_host === myId;
+      hostBtn.innerText = isCurrentHost ? '🎙 HOST解除' : '🎙 HOST';
+    } else {
+      hostBtn.style.display = 'none';
+    }
     const ox = document.getElementById('ox-grid');
     if(r === 'board_quiz') {
       renderBoardQuizPanel(me, boardPhase, isHostMe);
     } else {
+      ox.style.gridTemplateColumns = '';
       if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
       else {
         ox.style.display = 'grid';
@@ -541,9 +550,10 @@ function renderBoardQuizPanel(me, boardPhase, isHostMe) {
     const judged = me.board_judged;
     if(me.st === 'spec' || me.st === 'win' || me.st === 'lose') {
       ox.style.display = 'none';
+      ox.style.gridTemplateColumns = '';
     } else if(boardPhase === 'input') {
       ox.style.display = 'grid';
-      ox.style.gridTemplateColumns = '1fr auto auto';
+      ox.style.gridTemplateColumns = '1fr 1fr';
       ox.innerHTML = `
         <div class="board-input-wrap" style="grid-column:1/-1;">
           <input type="text" id="board-ans-input" class="board-ans-field" placeholder="回答を入力…" value="${esc(currentAns)}" maxlength="80" autocomplete="off"
@@ -649,11 +659,15 @@ async function kickPlayer(pid) {
 }
 
 // ── Actions ────────────────────────────────────────────────────────────────
+let _sendActionLock = false;
 async function sendAction(type) {
-  if(!roomData || !roomData.players || !roomData.players[myId]) return;
+  if(_sendActionLock) return;
+  _sendActionLock = true;
+  try {
+  if(!roomData || !roomData.players || !roomData.players[myId]) { _sendActionLock = false; return; }
   const pData = JSON.parse(JSON.stringify(roomData.players));
   const me = pData[myId];
-  if(me.st !== 'active') return;
+  if(me.st !== 'active') { _sendActionLock = false; return; }
 
   const r = roomData.rule;
   
@@ -760,6 +774,9 @@ async function sendAction(type) {
   if(r==='attack_surv') {
     const act = Object.values(pData).filter(p=>p.st==='active').length;
     if(act <= c.surv) await db.ref(`rooms/${rId}/status`).set('finished');
+  }
+  } finally {
+    _sendActionLock = false;
   }
 }
 
