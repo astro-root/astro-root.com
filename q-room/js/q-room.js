@@ -167,8 +167,6 @@ async function enterRoom(isCreate=false, playerName='') {
 
   db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
 
-  await checkAdmin();
-
   const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
   db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
 
@@ -201,6 +199,8 @@ async function enterRoom(isCreate=false, playerName='') {
     const me = roomData.players && roomData.players[myId];
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
   });
+
+  checkAdmin().then(() => { if(roomData) renderPlayers(); });
 }
 
 async function leaveRoom() {
