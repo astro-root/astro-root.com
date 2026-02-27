@@ -132,7 +132,10 @@
   <div class="m-content">
     <button class="m-close" onclick="closeModal()">✕</button>
     <div class="m-title">ROOM SETTINGS</div>
-    
+
+    <div id="admin-gate"></div>
+
+    <div id="admin-section">
     <div class="field">
       <label>RULE</label>
       <select id="sel-rule" onchange="changeRuleUI()">
@@ -158,13 +161,17 @@
 
     <div id="config-area"></div>
 
+    </div>
+
     <hr>
     <div class="s-grid">
       <button class="sub-btn" onclick="copyUrl()">🔗 Copy URL</button>
       <button class="sub-btn" onclick="copyId()">📋 Copy ID</button>
     </div>
+    <div id="admin-section-btns">
     <button class="btn btn-sec" onclick="resetPoints()" style="margin-bottom:16px;">🔄 RESET SCORES</button>
     <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
+    </div>
   </div>
 </div>
 
