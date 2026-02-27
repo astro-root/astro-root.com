@@ -118,7 +118,7 @@ async function handleJoin() {
     const hasPlayers = Object.keys(players).length > 0;
     if(!hasPlayers) {
       const lastActive = d.lastActiveAt || d.createdAt || 0;
-      if(Date.now() - lastActive >= 5*60*1000) return err('このIDは期限切れです');
+      if(Date.now() - lastActive >= 5*60*1000) return err('このIDは期限切れです（5分以上誰もいませんでした）');
     }
 
     localStorage.setItem('qr_name', n);
@@ -184,14 +184,24 @@ function enterRoom(isCreate=false, playerName='') {
 async function leaveRoom() {
   if(rRef) { rRef.off('value', rCb); rRef = null; }
   if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
-  if(db && rId && myId) {
-    const myName = getMyName();
-    await pushSysMsg(`${myName} が退室しました`);
-    const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
-    await playerRef.remove();
-    await db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+  try {
+    if(db && rId && myId) {
+      const myName = getMyName();
+      const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
+      await Promise.race([
+        (async () => {
+          await pushSysMsg(`${myName} が退室しました`);
+          await db.ref(`rooms/${rId}/players/${myId}`).remove();
+          await db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+        })(),
+        timeout(4000)
+      ]);
+    }
+  } catch(e) {
+    console.warn('leaveRoom cleanup failed:', e);
+  } finally {
+    window.location.href = 'https://astro-root.com/q-room/';
   }
-  window.location.href = 'https://astro-root.com/q-room/';
 }
 
 async function backToRoom() {
@@ -587,7 +597,7 @@ async function boardJudge(pid, isCorrect) {
 
 async function boardNextQuestion() {
   if(roomData.board_host !== myId) return;
-  if(!confirm('次の問題へ進みますか？）')) return;
+  if(!confirm('次の問題へ進みますか？（少数正解ボーナスを適用し、回答をリセットします）')) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
   const c = roomData.conf || DEF_CONF.board_quiz;
   
@@ -811,7 +821,7 @@ function renderResult() {
 }
 
 function tweetApp() {
-  const text = `🎮 「Q-Room」オンラインでリアルタイムにクイズ対戦できるサービス！\nタイムレース、アタサバ、螺旋階段など豊富なルール対応✨\n#クイズQRoom #クイズ`;
+  const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
   const url = 'https://astro-root.com/q-room/';
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
@@ -819,7 +829,7 @@ function tweetApp() {
 function tweetInvite() {
   if(!rId) return;
   const url = getRoomUrl();
-  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#クイズQRoom`;
+  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#QRoom`;
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
 
@@ -832,7 +842,7 @@ function tweetResult() {
     const sc = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r) ? p.c : (p.sc || 0);
     return `${medal} ${p.name}（${sc}pt）`;
   }).join('\n');
-  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#クイズQRoom`;
+  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#QRoom`;
   const url = 'https://astro-root.com/q-room/';
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
