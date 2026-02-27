@@ -1,782 +1,1135 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg-color: #09090b;
-  --surface-color: rgba(24, 24, 27, 0.75);
-  --surface-highlight: rgba(255, 255, 255, 0.12);
-  --border-color: rgba(255, 255, 255, 0.1);
-  --cyan: #06b6d4;
-  --magenta: #e11d48;
-  --green: #10b981;
-  --red: #ef4444;
-  --yellow: #f59e0b;
-  --text-main: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --font-en: 'Inter', sans-serif;
-  --font-ja: 'Noto Sans JP', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --glass-blur: blur(24px);
-}
-:root[data-theme="light"] {
-  --bg-color: #eef2f7;
-  --surface-color: rgba(255, 255, 255, 0.80);
-  --surface-highlight: rgba(0, 0, 0, 0.06);
-  --border-color: rgba(0, 0, 0, 0.10);
-  --cyan: #0369a1;
-  --green: #059669;
-  --red: #dc2626;
-  --yellow: #d97706;
-  --text-main: #18181b;
-  --text-muted: #52525b;
-}
-[data-theme="light"] .logo {
-  background: linear-gradient(135deg, #0f172a, var(--cyan));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: none;
-}
-[data-theme="light"] .pcard.me .score-val { text-shadow: none; }
-[data-theme="light"] .pcard.me .rank-num { text-shadow: none; }
-[data-theme="light"] .pcard.win .rank-num { text-shadow: none; }
-[data-theme="light"] .st-win { text-shadow: none; }
-[data-theme="light"] .btn-o { text-shadow: none; }
-[data-theme="light"] .btn-x { text-shadow: none; }
-[data-theme="light"] .btn-rest { text-shadow: none; }
-[data-theme="light"] .timer-display { text-shadow: none; }
-[data-theme="light"] .timer-display.warning { text-shadow: none; }
-[data-theme="light"] .timer-display.danger { text-shadow: none; }
-[data-theme="light"] .b-you { box-shadow: none; }
-[data-theme="light"] .pcard.me { box-shadow: 0 4px 16px rgba(3,105,161,0.12); }
-[data-theme="light"] .pcard.win { box-shadow: 0 4px 16px rgba(5,150,105,0.12); }
-[data-theme="light"] .btn-pri { box-shadow: 0 6px 20px rgba(3,105,161,0.2); }
-[data-theme="light"] .btn-pri:hover { box-shadow: 0 10px 28px rgba(3,105,161,0.3); }
-[data-theme="light"] label { color: var(--cyan); }
-[data-theme="light"] .room-info span { color: var(--cyan); }
-[data-theme="light"] .chat-title { color: var(--cyan); }
-[data-theme="light"] .m-title { color: var(--cyan); }
-[data-theme="light"] .countdown-num {
-  background: linear-gradient(135deg, #0f172a, var(--cyan));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: none;
-}
-html, body { min-height: 100vh; }
-body {
-  background-color: var(--bg-color);
-  background-image: 
-    radial-gradient(circle at 10% 10%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 90% 90%, rgba(225, 29, 72, 0.08) 0%, transparent 50%);
-  background-attachment: fixed;
-  color: var(--text-main);
-  font-family: var(--font-ja);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  overflow-x: hidden;
-}
-[data-theme="light"] body,
-[data-theme="light"].body {
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 90% 90%, rgba(225, 29, 72, 0.10) 0%, transparent 50%);
-}
-[data-theme="light"] .screen {
-  background: var(--bg-color);
-  box-shadow: 0 0 60px rgba(0,0,0,0.12), 0 0 2px rgba(0,0,0,0.08);
-}
-[data-theme="light"] .header {
-  background: rgba(238, 242, 247, 0.92);
-}
-[data-theme="light"] .action-panel {
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.10);
-}
-[data-theme="light"] .m-content {
-  background: rgba(245, 248, 252, 0.99);
-  border-color: rgba(0,0,0,0.12);
-  box-shadow: 0 32px 80px rgba(0,0,0,0.18);
-}
-[data-theme="light"] .chat-drawer {
-  background: rgba(242, 246, 251, 0.99);
-  box-shadow: 0 -20px 60px rgba(0,0,0,0.15);
-}
-[data-theme="light"] .timer-panel {
-  background: rgba(238, 242, 247, 0.99);
-}
-[data-theme="light"] .chat-handle {
-  background: rgba(0,0,0,0.18);
-}
-[data-theme="light"] .chat-msg.other .chat-msg-bubble {
-  background: rgba(0,0,0,0.06);
-  color: var(--text-main);
-}
-[data-theme="light"] .chat-sys {
-  background: rgba(0,0,0,0.05);
-}
-[data-theme="light"] .chat-input {
-  background: rgba(0,0,0,0.05);
-}
-[data-theme="light"] .chat-input:focus {
-  background: rgba(6,182,212,0.08);
-}
-[data-theme="light"] .stamp-btn {
-  background: rgba(0,0,0,0.05);
-}
-[data-theme="light"] .stamp-btn:hover {
-  background: rgba(0,0,0,0.10);
-}
-[data-theme="light"] .countdown-overlay {
-  background: rgba(238,242,247,0.93);
-}
-[data-theme="light"] .modal {
-  background: rgba(200,210,225,0.75);
-}
-[data-theme="light"] .pcard.lose {
-  background: rgba(240,243,248,0.7);
-}
-[data-theme="light"] .m-content::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.18);
-}
-[data-theme="light"] select option {
-  background-color: #eef2f7;
-  color: #18181b;
-}
-[data-theme="light"] .toast {
-  background: rgba(245,248,252,0.98);
-  box-shadow: 0 16px 40px rgba(6,182,212,0.2);
+const firebaseConfig = {
+  apiKey: "AIzaSyA3xtGLVJwij2BTiiOk7DsNeF9hIOuZCyI",
+  authDomain: "q-room-fe8a6.firebaseapp.com",
+  databaseURL: "https://q-room-fe8a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "q-room-fe8a6",
+  storageBucket: "q-room-fe8a6.firebasestorage.app",
+  messagingSenderId: "151049149394",
+  appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
+};
+
+let _adminVerified = false;
+function isAdmin() { return _adminVerified; }
+async function checkAdmin() {
+  const id = getMyId();
+  try {
+    const snap = await db.ref(`admins/${id}`).once('value');
+    _adminVerified = snap.val() === true;
+  } catch(e) { _adminVerified = false; }
 }
 
-.theme-toggle-btn {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 9999;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background: var(--surface-color);
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  backdrop-filter: var(--glass-blur);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-}
-.theme-toggle-btn:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-  background: rgba(6,182,212,0.12);
-  transform: translateY(-2px) rotate(15deg);
-  box-shadow: 0 8px 24px rgba(6,182,212,0.25);
-}
-.screen {
-  display: none; 
-  flex-direction: column;
-  width: 100%; 
-  max-width: 540px;
-  min-height: 100vh;
-  position: relative; 
-  z-index: 1; 
-  background: var(--bg-color);
-  box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 2px rgba(255,255,255,0.05);
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.screen.active { display: flex; }
-#screen-top, #screen-result { padding: 0 0 80px; }
-#screen-room { height: 100vh; padding: 0; overflow: hidden; }
-@media (max-width: 540px) {
-  .screen { box-shadow: none; }
-}
-.scroll-area {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 24px;
-}
-.hero { padding: 72px 20px 40px; text-align: center; }
-.logo {
-  font-family: var(--font-en); font-size: 3.2rem; font-weight: 900;
-  background: linear-gradient(135deg, #ffffff, var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  letter-spacing: 0.08em; margin-bottom: 12px;
-  filter: drop-shadow(0 6px 18px rgba(6,182,212,0.4));
-}
-.logo-sub { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.25em; }
-.form-wrap { padding: 0 24px; }
-.field { margin-bottom: 20px; }
-label {
-  display: block; font-family: var(--font-en); font-size: 0.85rem; color: var(--cyan); font-weight: 700;
-  margin-bottom: 12px; letter-spacing: 0.15em; text-transform: uppercase;
-}
-input[type="text"], input[type="number"], select, textarea {
-  width: 100%; padding: 14px 16px;
-  background: var(--surface-color); backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--border-color); border-radius: 14px;
-  color: var(--text-main); font-family: var(--font-ja); font-size: 0.95rem;
-  outline: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); appearance: none;
-}
-textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
-input:focus, select:focus, textarea:focus {
-  border-color: var(--cyan);
-  background: rgba(6, 182, 212, 0.08);
-  box-shadow: 0 0 0 4px rgba(6,182,212,0.15);
-  transform: translateY(-2px);
-}
-select { cursor: pointer; }
-select option { background-color: var(--bg-color); color: var(--text-main); }
-.row { display: flex; gap: 16px; }
-.btn-gen {
-  padding: 0 24px; background: var(--surface-color); border: 1px solid var(--border-color);
-  border-radius: 16px; cursor: pointer; color: var(--text-main); font-size: 1.4rem; transition: 0.3s;
-  backdrop-filter: var(--glass-blur);
-}
-.btn-gen:hover { border-color: var(--cyan); background: rgba(6,182,212,0.1); transform: translateY(-2px); }
-.btn {
-  width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer;
-  font-family: var(--font-en); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.15em;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
-}
-.btn:active { transform: scale(0.97); }
-.btn-pri {
-  background: linear-gradient(135deg, var(--cyan), #0284c7); color: #fff;
-  box-shadow: 0 10px 30px rgba(6,182,212,0.3); border: 1px solid rgba(255,255,255,0.15);
-}
-.btn-pri:hover { box-shadow: 0 16px 40px rgba(6,182,212,0.45); transform: translateY(-3px); }
-.btn-sec { background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-main); backdrop-filter: var(--glass-blur); }
-.btn-sec:hover { border-color: rgba(255,255,255,0.3); background: var(--surface-highlight); transform: translateY(-3px); }
-.btn-warn { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: var(--red); }
-.btn-warn:hover { background: rgba(239,68,68,0.25); border-color: var(--red); transform: translateY(-2px); }
-.btn-ghost { background: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 400; text-decoration: underline; margin-top: 20px; border: none; transition: 0.3s; }
-.btn-ghost:hover { color: var(--cyan); }
-.err {
-  color: #fca5a5; font-size: 0.9rem; padding: 16px; background: rgba(239,68,68,0.2);
-  border: 1px solid rgba(239,68,68,0.4); border-radius: 14px; margin-bottom: 28px; display: none; text-align: center;
-  backdrop-filter: blur(10px);
-}
-.header {
-  background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(24px);
-  padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 10; gap: 10px;
-}
-.room-info { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted); flex: 1; display: flex; align-items: center; }
-.room-info span { color: var(--cyan); font-size: 1.1rem; font-weight: 700; margin-left: 8px; letter-spacing: 0.1em; }
-.rule-badge {
-  font-size: 0.8rem; padding: 8px 14px; background: rgba(225,29,72,0.15);
-  border: 1px solid rgba(225,29,72,0.4); border-radius: 10px; color: #fb7185; font-weight: 700;
-  margin-right: auto; letter-spacing: 0.05em;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90px;
-}
-@media (max-width: 380px) {
-  .rule-badge { display: none; }
-  .room-info span { font-size: 1.1rem; }
-  .h-btn-icon { width: 36px; height: 36px; }
-  .h-btn-icon svg { width: 17px; height: 17px; }
-}
-.h-btn {
-  background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-main);
-  padding: 10px 16px; border-radius: 12px; font-size: 0.8rem; cursor: pointer; transition: 0.3s;
-  font-family: var(--font-en); font-weight: 700; letter-spacing: 0.05em; white-space: nowrap;
-}
-.h-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); transform: translateY(-2px); }
-.h-btn-icon {
-  background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-muted);
-  width: 42px; height: 42px; border-radius: 12px; cursor: pointer; transition: 0.3s;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.h-btn-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.h-btn-icon:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); transform: translateY(-2px); }
-.room-share-modal .share-row {
-  display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px;
-}
-.share-label { font-family: var(--font-en); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; flex-shrink: 0; }
-.share-val { font-family: var(--font-mono); font-size: 1rem; color: var(--text-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.share-copy-btn {
-  background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-muted);
-  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-family: var(--font-en);
-  font-weight: 700; transition: 0.3s; white-space: nowrap; flex-shrink: 0;
-}
-.share-copy-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); }
-.share-copy-btn.copied { border-color: var(--green); color: var(--green); background: rgba(16,185,129,0.1); }
-.share-native-btn {
-  width: 100%; padding: 18px; border: 1px solid rgba(6,182,212,0.5); border-radius: 14px;
-  background: rgba(6,182,212,0.1); color: var(--cyan); font-family: var(--font-en); font-weight: 700;
-  font-size: 0.95rem; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; margin-top: 8px;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.share-native-btn:hover { background: rgba(6,182,212,0.2); border-color: var(--cyan); transform: translateY(-2px); }
-.share-native-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.room-info-dismiss {
-  width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 14px;
-  background: transparent; color: var(--text-muted); font-family: var(--font-en); font-weight: 700;
-  font-size: 0.85rem; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; margin-top: 12px;
-}
-.room-info-dismiss:hover { border-color: rgba(255,255,255,0.3); color: var(--text-main); }
-.plist { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
-.pcard {
-  background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 16px;
-  padding: 16px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative; overflow: hidden; backdrop-filter: var(--glass-blur);
-}
-.pcard::before {
-  content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
-  transform: translateX(-100%); transition: 0.6s; pointer-events: none;
-}
-.pcard:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.2); }
-.pcard:hover::before { transform: translateX(100%); }
-.pcard.me { border-color: rgba(6,182,212,0.6); background: rgba(6, 182, 212, 0.08); box-shadow: 0 8px 30px rgba(6,182,212,0.15); }
-.pcard.win { border-color: rgba(16,185,129,0.6); background: rgba(16, 185, 129, 0.08); box-shadow: 0 8px 30px rgba(16,185,129,0.15); }
-.pcard.lose { opacity: 0.5; filter: grayscale(100%); background: rgba(24,24,27,0.5); border-color: rgba(255,255,255,0.05); }
-.pcard.spec { opacity: 0.4; border-style: dashed; }
-.rank-num {
-  font-family: var(--font-en); font-size: 1.4rem; font-weight: 900; color: var(--text-muted);
-  width: 32px; text-align: center; opacity: 0.6; letter-spacing: -0.05em;
-}
-.pcard.win .rank-num { color: var(--green); opacity: 1; text-shadow: 0 0 12px rgba(16,185,129,0.4); }
-.pcard.me .rank-num { color: var(--cyan); opacity: 1; text-shadow: 0 0 12px rgba(6,182,212,0.4); }
-.p-main { flex: 1; min-width: 0; }
-.p-name { font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; letter-spacing: 0.02em; }
-.badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-family: var(--font-en); font-weight: 700; letter-spacing: 0.1em; }
-.b-you { background: var(--cyan); color: #fff; box-shadow: 0 0 12px rgba(6,182,212,0.4); }
-.p-stats { display: flex; gap: 14px; margin-top: 6px; font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted); }
-.p-stats span.c { color: var(--green); font-weight: 700; }
-.p-stats span.w { color: var(--red); font-weight: 700; }
-.score-box { text-align: right; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; }
-.score-val { font-family: var(--font-en); font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em; }
-.pcard.me .score-val { color: var(--cyan); text-shadow: 0 0 16px rgba(6,182,212,0.35); }
-.score-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; font-weight: 700; font-family: var(--font-en); }
-.st-win { color: var(--green); font-size: 0.82rem; letter-spacing: 0.15em; text-shadow: 0 0 10px rgba(16,185,129,0.4); }
-.st-lose { color: var(--red); font-size: 0.82rem; letter-spacing: 0.15em; }
-.action-panel {
-  background: var(--bg-color); border-top: 1px solid var(--border-color); padding: 18px 20px;
-  flex-shrink: 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); z-index: 10;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-  position: relative;
-}
-.ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
-.ox-btn {
-  padding: 24px 0; border: none; border-radius: 18px; font-family: var(--font-ja);
-  font-size: 2.4rem; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4); line-height: 1;
-}
-.ox-btn:active { transform: scale(0.95) translateY(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-.btn-o { background: linear-gradient(145deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05)); border: 1px solid rgba(16,185,129,0.6); color: var(--green); text-shadow: 0 0 16px rgba(16,185,129,0.5); }
-.btn-o:hover { background: linear-gradient(145deg, rgba(16,185,129,0.3), rgba(16,185,129,0.1)); box-shadow: 0 12px 32px rgba(16,185,129,0.25); transform: translateY(-3px); }
-.btn-x { background: linear-gradient(145deg, rgba(239,68,68,0.2), rgba(239,68,68,0.05)); border: 1px solid rgba(239,68,68,0.6); color: var(--red); text-shadow: 0 0 16px rgba(239,68,68,0.5); }
-.btn-x:hover { background: linear-gradient(145deg, rgba(239,68,68,0.3), rgba(239,68,68,0.1)); box-shadow: 0 12px 32px rgba(239,68,68,0.25); transform: translateY(-3px); }
-.btn-rest { grid-column: 1 / -1; background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.6); font-size: 1.3rem; letter-spacing: 0.1em; text-shadow: 0 0 12px rgba(245,158,11,0.4); }
-.btn-rest:hover { background: rgba(245,158,11,0.25); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(245,158,11,0.15); }
-.sub-actions { display: flex; gap: 10px; }
-.sub-btn {
-  flex: 1; padding: 12px 8px; background: var(--surface-color); border: 1px solid var(--border-color);
-  border-radius: 12px; color: var(--text-muted); font-size: 0.82rem; cursor: pointer; text-align: center;
-  font-weight: 700; transition: 0.3s; backdrop-filter: var(--glass-blur); letter-spacing: 0.04em;
-}
-.sub-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); transform: translateY(-2px); }
-.sub-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
-.modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(16px);
-  z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px;
-}
-.modal.active { display: flex; animation: fadeInModal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-.m-content {
-  background: rgba(24, 24, 27, 0.98); border: 1px solid rgba(255,255,255,0.15); border-radius: 28px;
-  width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 40px; position: relative;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.8);
-}
-.m-content::-webkit-scrollbar { width: 8px; }
-.m-content::-webkit-scrollbar-track { background: transparent; }
-.m-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-.m-close {
-  position: absolute; top: 28px; right: 28px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
-  color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: 0.3s; line-height: 1; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-}
-.m-close:hover { color: var(--cyan); border-color: var(--cyan); transform: rotate(90deg); background: rgba(6,182,212,0.1); }
-.s-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
-.m-title { font-family: var(--font-en); font-size: 1.4rem; color: var(--cyan); margin-bottom: 32px; font-weight: 900; letter-spacing: 0.15em; }
-hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
-.toast {
-  position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: rgba(24, 24, 27, 0.98); border: 1px solid var(--cyan); color: var(--text-main);
-  padding: 16px 32px; border-radius: 40px; font-size: 1.05rem; pointer-events: none;
-  opacity: 0; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); z-index: 999;
-  box-shadow: 0 16px 40px rgba(6,182,212,0.3); backdrop-filter: blur(16px); font-weight: 700; letter-spacing: 0.05em;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.r-header { padding: 60px 24px 40px; text-align: center; border-bottom: 1px solid var(--border-color); }
-.r-title { font-family: var(--font-en); font-size: 3rem; color: var(--yellow); font-weight: 900; text-shadow: 0 0 24px rgba(245,158,11,0.3); letter-spacing: 0.08em; margin-bottom: 20px;}
+let db = null, myId = null, rId = null, rRef = null, rCb = null;
+let roomData = null;
+let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
+let serverTimeOffset = 0;
 
-.h-btn-icon.chat-btn { position: relative; }
-.chat-badge {
-  position: absolute; top: -5px; right: -5px; background: var(--magenta);
-  color: #fff; font-size: 0.6rem; font-weight: 700; font-family: var(--font-en);
-  min-width: 18px; height: 18px; border-radius: 9px; display: none;
-  align-items: center; justify-content: center; padding: 0 4px;
-  box-shadow: 0 0 8px rgba(225,29,72,0.6);
-}
-.chat-badge.show { display: flex; }
-.chat-drawer {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
-  width: 100%; max-width: 540px; height: 70vh; max-height: 600px;
-  background: rgba(14,14,16,0.98); backdrop-filter: blur(24px);
-  border-top: 1px solid var(--border-color); border-radius: 24px 24px 0 0;
-  z-index: 200; display: flex; flex-direction: column;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
-}
-.chat-drawer.open { transform: translateX(-50%) translateY(0); }
-.chat-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
-}
-.chat-overlay.show { opacity: 1; pointer-events: auto; }
-.chat-handle {
-  width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px;
-  margin: 14px auto 0;
-}
-.chat-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;
-}
-.chat-title { font-family: var(--font-en); font-weight: 900; font-size: 0.9rem; letter-spacing: 0.15em; color: var(--cyan); }
-.chat-close {
-  background: none; border: none; color: var(--text-muted); cursor: pointer;
-  font-size: 1.2rem; line-height: 1; padding: 4px; transition: 0.2s;
-}
-.chat-close:hover { color: var(--text-main); }
-.chat-messages {
-  flex: 1; overflow-y: auto; padding: 16px 16px 8px;
-  display: flex; flex-direction: column; gap: 10px;
-  -webkit-overflow-scrolling: touch;
-}
-.chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-.chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 80%; }
-.chat-msg.me { align-self: flex-end; align-items: flex-end; }
-.chat-msg.other { align-self: flex-start; align-items: flex-start; }
-.chat-msg-name {
-  font-size: 0.72rem; font-weight: 700; font-family: var(--font-en);
-  letter-spacing: 0.08em; padding: 0 4px;
-}
-.chat-msg.me .chat-msg-name { color: var(--cyan); }
-.chat-msg.other .chat-msg-name { color: var(--text-muted); }
-.chat-msg-bubble {
-  padding: 10px 14px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5;
-  word-break: break-word; max-width: 100%;
-}
-.chat-msg.me .chat-msg-bubble {
-  background: linear-gradient(135deg, var(--cyan), #0284c7); color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.chat-msg.other .chat-msg-bubble {
-  background: rgba(255,255,255,0.08); color: var(--text-main); border: 1px solid var(--border-color);
-  border-bottom-left-radius: 4px;
-}
-.chat-msg-stamp { font-size: 2rem; line-height: 1; background: none; border: none; padding: 0; }
-.chat-sys {
-  align-self: center; font-size: 0.75rem; color: var(--text-muted);
-  font-family: var(--font-en); letter-spacing: 0.08em;
-  background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px;
-}
-.chat-stamps {
-  display: flex; gap: 6px; padding: 10px 16px; flex-shrink: 0;
-  border-top: 1px solid var(--border-color); overflow-x: auto;
-  -webkit-overflow-scrolling: touch; scrollbar-width: none;
-}
-.chat-stamps::-webkit-scrollbar { display: none; }
-.stamp-btn {
-  background: rgba(255,255,255,0.06); border: 1px solid var(--border-color);
-  border-radius: 10px; padding: 6px 10px; font-size: 1.3rem; cursor: pointer;
-  transition: 0.2s; flex-shrink: 0; line-height: 1;
-}
-.stamp-btn:hover { background: rgba(255,255,255,0.14); transform: scale(1.15); border-color: rgba(255,255,255,0.3); }
-.stamp-btn:active { transform: scale(0.95); }
-.chat-input-row {
-  display: flex; gap: 10px; padding: 10px 16px 16px; flex-shrink: 0;
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
-}
-.chat-input {
-  flex: 1; background: rgba(255,255,255,0.07); border: 1px solid var(--border-color);
-  border-radius: 14px; padding: 12px 16px; color: var(--text-main);
-  font-family: var(--font-ja); font-size: 0.95rem; outline: none; transition: 0.3s;
-}
-.chat-input:focus { border-color: var(--cyan); background: rgba(6,182,212,0.08); }
-.chat-send {
-  background: linear-gradient(135deg, var(--cyan), #0284c7); border: none;
-  border-radius: 14px; width: 48px; height: 48px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  transition: 0.3s; box-shadow: 0 4px 16px rgba(6,182,212,0.3);
-}
-.chat-send:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6,182,212,0.4); }
-.chat-send:active { transform: scale(0.95); }
-.chat-send svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+const STAMPS = ['👍','🎉','😂','🔥','😮','💪','🤔','👏','❤️','😭','✨','🙏'];
 
-.timer-panel {
-  display: none;
-  background: rgba(9,9,11,0.97);
-  border-bottom: 1px solid var(--border-color);
-  padding: 10px 20px 12px;
-  flex-shrink: 0;
-  z-index: 9;
-  flex-direction: column;
-  gap: 10px;
-}
-.timer-panel.visible { display: flex; }
-.timer-display {
-  font-family: var(--font-mono);
-  font-size: 3rem;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 0.06em;
-  color: var(--text-main);
-  text-shadow: 0 0 20px rgba(6,182,212,0.25);
-  transition: color 0.3s, text-shadow 0.3s;
-  line-height: 1;
-}
-.timer-display.warning { color: var(--yellow); text-shadow: 0 0 24px rgba(245,158,11,0.5); }
-.timer-display.danger { color: var(--red); text-shadow: 0 0 24px rgba(239,68,68,0.6); animation: timerPulse 0.6s infinite alternate; }
-@keyframes timerPulse { from { opacity: 1; } to { opacity: 0.6; } }
-.timer-controls { display: flex; gap: 10px; }
-.timer-btn {
-  flex: 1; padding: 12px 8px; border-radius: 12px;
-  font-family: var(--font-en); font-size: 0.8rem; font-weight: 700;
-  letter-spacing: 0.08em; cursor: pointer; transition: all 0.25s; border: 1px solid;
-}
-.timer-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
-.timer-btn-start { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.5); color: var(--green); }
-.timer-btn-start:not(:disabled):hover { background: rgba(16,185,129,0.25); border-color: var(--green); transform: translateY(-2px); }
-.timer-btn-stop { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.5); color: var(--yellow); }
-.timer-btn-stop:not(:disabled):hover { background: rgba(245,158,11,0.25); border-color: var(--yellow); transform: translateY(-2px); }
-.timer-btn-reset { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); color: var(--red); }
-.timer-btn-reset:not(:disabled):hover { background: rgba(239,68,68,0.25); border-color: var(--red); transform: translateY(-2px); }
+const DEF_CONF = {
+  survival: {m:5, n:2}, free: {}, newyork: {m:1, n:1, win:10, lose:-10}, rentou: {m:5, n:2, mode:'fast'}, updown: {m:5, n:2},
+  by: {m:5, n:3}, freeze: {m:5, n:0}, m_n_rest: {m:5, n:3},
+  swedish: {m:10, n:10}, ren_wrong: {m:5, n:3},
+  divide: {init:10, add:10, win:100}, combo: {win:10, lose:3},
+  attack_surv: {life:20, dmg_to_oth:1, heal:0, dmg_to_me:2, surv:1},
+  lucky: {win:50, lose:-20, max:10}, spiral: {up:1, down:1, top_req:3, btm_req:3},
+  time_race: {limit:5, correct_pt:1, wrong_pt:1},
+  board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
+};
 
-.countdown-overlay {
-  position: fixed; inset: 0; z-index: 500;
-  background: rgba(0,0,0,0.88); backdrop-filter: blur(20px);
-  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 20px;
-}
-.countdown-overlay.show { display: flex; }
-.countdown-num {
-  font-family: var(--font-en); font-size: 9rem; font-weight: 900; line-height: 1;
-  background: linear-gradient(135deg, #ffffff, var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 40px rgba(6,182,212,0.6));
-  animation: cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes cdPop { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-#theme-toggle-btn-room {
-  display: flex;
-}
+window.onload = () => {
+  const params = new URLSearchParams(window.location.search);
+  const qRoom = params.get('r');
+  const pathRoom = window.location.pathname.match(/\/q-room\/(\d{5})/);
+  const roomId = qRoom || (pathRoom && pathRoom[1]);
+  if(roomId) document.getElementById('in-room').value = roomId;
+  const savedName = localStorage.getItem('qr_name');
+  if(savedName) document.getElementById('in-name').value = savedName;
+};
 
-@media (max-width: 540px) {
-  .theme-toggle-btn {
-    display: none !important;
+function initFB() {
+  if(!db){ 
+    try {
+      firebase.initializeApp(firebaseConfig); 
+      db = firebase.database(); 
+      db.ref('.info/serverTimeOffset').on('value', snap => {
+        serverTimeOffset = snap.val() || 0;
+      });
+    } catch(e) {
+      console.error(e);
+      throw new Error("データベース接続に失敗しました。");
+    }
   }
 }
 
-.board-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+function getServerTime() { return Date.now() + serverTimeOffset; }
+
+function getMyId() {
+  let id = localStorage.getItem('qr_id');
+  if(!id){ id = 'p_'+Date.now().toString(36); localStorage.setItem('qr_id',id); }
+  return id;
 }
-.board-my-row {
-  font-size: 0.88rem;
-  color: var(--text-muted);
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
+function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+
+async function handleCreate() {
+  try {
+    initFB();
+    const n = document.getElementById('in-name').value.trim();
+    const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
+    if(!n) return err('名前を入力してください');
+    if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
+
+    const s = await db.ref('rooms/'+r).once('value');
+    if(s.exists()) {
+      const d = s.val();
+      const players = d.players || {};
+      const hasPlayers = Object.keys(players).length > 0;
+      if(hasPlayers) return err('そのIDは使用中です');
+      const lastActive = d.lastActiveAt || d.createdAt || 0;
+      if(Date.now() - lastActive < 5*60*1000) return err('そのIDは使用中です');
+      await db.ref('rooms/'+r).remove();
+    }
+
+    localStorage.setItem('qr_name', n);
+    myId = getMyId(); rId = r;
+    await db.ref('rooms/'+r).set({
+      status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+      lastActiveAt: firebase.database.ServerValue.TIMESTAMP,
+      players: { [myId]: newPlayer(n) }
+    });
+    enterRoom(true, n);
+  } catch(e) {
+    console.error(e);
+    err('エラーが発生しました。通信状態を確認してください。');
+  }
 }
-.board-my-ans {
-  font-family: var(--font-ja);
-  font-size: 0.78rem;
-  color: var(--cyan);
-  font-weight: 700;
+
+async function handleJoin() {
+  try {
+    initFB();
+    const n = document.getElementById('in-name').value.trim();
+    const r = document.getElementById('in-room').value.trim();
+    if(!n) return err('名前を入力してください');
+    if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
+
+    const s = await db.ref('rooms/'+r).once('value');
+    if(!s.exists()) return err('部屋が見つかりません');
+
+    const d = s.val();
+    const players = d.players || {};
+    const hasPlayers = Object.keys(players).length > 0;
+    if(!hasPlayers) {
+      const lastActive = d.lastActiveAt || d.createdAt || 0;
+      if(Date.now() - lastActive >= 5*60*1000) return err('このIDは期限切れです（5分以上誰もいませんでした）');
+    }
+
+    localStorage.setItem('qr_name', n);
+    myId = getMyId(); rId = r;
+    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
+    enterRoom(false, n);
+  } catch(e) {
+    console.error(e);
+    err('エラーが発生しました。通信状態を確認してください。');
+  }
 }
-.board-ans-host {
-  font-family: var(--font-ja);
-  font-size: 0.78rem;
-  color: var(--text-main);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 3px 8px;
-  flex: 1;
+
+function newPlayer(name) {
+  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
 }
-.board-ans-open {
-  font-family: var(--font-ja);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  background: rgba(255,255,255,0.04);
-  border: 1px dashed var(--border-color);
-  border-radius: 8px;
-  padding: 3px 8px;
-  flex: 1;
+
+function enterRoom(isCreate=false, playerName='') {
+  try {
+    if (window.location.protocol !== 'file:') {
+      const base = window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
+      window.history.replaceState({}, '', `${base}?r=${rId}`);
+    }
+  } catch(e) { console.warn("History API replaced failed."); }
+
+  db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+  db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+
+  document.getElementById('game-rid').innerText = rId;
+  show('room');
+  showRoomInfo(isCreate);
+  initChat(playerName);
+  initTimerListener();
+
+  if(rRef) rRef.off('value', rCb);
+  rRef = db.ref('rooms/'+rId);
+  rCb = rRef.on('value', snap => {
+    roomData = snap.val();
+    if(!roomData) return leaveRoom();
+    if(roomData.status === 'finished') return renderResult();
+    show('room');
+    const r = roomData.rule;
+    document.getElementById('sel-rule').value = r;
+    document.getElementById('game-rule').innerText = document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text;
+    changeRuleUI(true);
+    renderPlayers();
+    const me = roomData.players && roomData.players[myId];
+    document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
+  });
+
+  checkAdmin().then(() => { if(roomData) renderPlayers(); });
 }
-.board-judged-correct {
-  background: rgba(16,185,129,0.12) !important;
-  border-color: rgba(16,185,129,0.4) !important;
-  color: var(--green) !important;
+
+async function leaveRoom() {
+  if(rRef) { rRef.off('value', rCb); rRef = null; }
+  if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
+  try {
+    if(db && rId && myId) {
+      const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
+      await Promise.race([
+        (async () => {
+          const myName = getMyName();
+          await pushSysMsg(`${myName} が退室しました`);
+          await db.ref(`rooms/${rId}/players/${myId}`).remove();
+          await db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
+        })(),
+        timeout(4000)
+      ]);
+    }
+  } catch(e) {
+    console.warn('leaveRoom cleanup failed:', e);
+  } finally {
+    window.location.href = 'https://astro-root.com/q-room/';
+  }
 }
-.board-judged-wrong {
-  background: rgba(239,68,68,0.08) !important;
-  border-color: rgba(239,68,68,0.3) !important;
-  color: var(--red) !important;
-  opacity: 0.7;
+
+async function backToRoom() {
+  await db.ref(`rooms/${rId}/status`).set('playing');
 }
-.board-judge-btns {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
+
+function openModal(){
+  document.getElementById('modal').classList.add('active');
+  renderAdminUI();
 }
-.board-judge-o, .board-judge-x {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  border: none;
-  font-size: 0.85rem;
-  cursor: pointer;
-  font-weight: 700;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
+
+function renderAdminUI() {
+  const adminSectionBtns = document.getElementById('admin-section-btns');
+  const adminGate = document.getElementById('admin-gate');
+  if(!adminGate) return;
+  if(isAdmin()) {
+    if(adminSectionBtns) adminSectionBtns.style.display = '';
+    adminGate.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px 14px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.3);border-radius:12px;">
+        <span style="font-size:0.8rem;color:var(--cyan);font-family:var(--font-en);font-weight:700;letter-spacing:0.1em;">✓ ADMIN</span>
+      </div>`;
+  } else {
+    if(adminSectionBtns) adminSectionBtns.style.display = 'none';
+    adminGate.innerHTML = '';
+  }
 }
-.board-judge-o {
-  background: rgba(16,185,129,0.15);
-  color: var(--green);
-  border: 1px solid rgba(16,185,129,0.4);
+
+function openFeedback(){ document.getElementById('modal-feedback').classList.add('active'); }
+function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
+
+function getRoomUrl() {
+  if(window.location.protocol === 'file:') return `https://astro-root.com/q-room/?r=${rId}`;
+  const base = window.location.origin + window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
+  return `${base}?r=${rId}`;
 }
-.board-judge-o:hover {
-  background: rgba(16,185,129,0.3);
-  transform: scale(1.1);
+
+function showRoomInfo(isCreate) {
+  document.getElementById('room-info-title').innerText = isCreate ? 'ROOM CREATED' : 'ROOM JOINED';
+  document.getElementById('share-room-id').innerText = rId;
+  const url = getRoomUrl();
+  document.getElementById('share-room-url').innerText = url;
+  document.getElementById('btn-native-share').style.display = (navigator.share ? 'flex' : 'none');
+  document.getElementById('modal-room-info').classList.add('active');
 }
-.board-judge-x {
-  background: rgba(239,68,68,0.12);
-  color: var(--red);
-  border: 1px solid rgba(239,68,68,0.35);
+
+function closeRoomInfo() { document.getElementById('modal-room-info').classList.remove('active'); }
+
+function copyShareId() {
+  navigator.clipboard.writeText(rId);
+  const btn = document.getElementById('btn-copy-id');
+  btn.innerText = 'COPIED!'; btn.classList.add('copied');
+  setTimeout(() => { btn.innerText = 'COPY'; btn.classList.remove('copied'); }, 2000);
 }
-.board-judge-x:hover {
-  background: rgba(239,68,68,0.28);
-  transform: scale(1.1);
+
+function copyShareUrl() {
+  navigator.clipboard.writeText(getRoomUrl());
+  const btn = document.getElementById('btn-copy-url');
+  btn.innerText = 'COPIED!'; btn.classList.add('copied');
+  setTimeout(() => { btn.innerText = 'COPY'; btn.classList.remove('copied'); }, 2000);
 }
-.board-buzz-mark {
-  font-size: 0.68rem;
-  background: rgba(245,158,11,0.18);
-  color: var(--yellow);
-  border-radius: 6px;
-  padding: 1px 5px;
-  margin-left: 4px;
+
+function nativeShare() {
+  if(!navigator.share) return;
+  navigator.share({
+    title: 'Q-Room クイズ対戦しよう！',
+    text: `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n名前を入力して参加してね👇`,
+    url: getRoomUrl()
+  }).catch(() => {});
 }
-.board-buzz-on {
-  font-size: 0.7rem;
-  background: rgba(245,158,11,0.18);
-  color: var(--yellow);
-  border-radius: 6px;
-  padding: 2px 7px;
-  font-weight: 700;
+
+function copyUrl(){ navigator.clipboard.writeText(getRoomUrl()); toast('URL copied'); }
+function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
+
+function tweetApp() {
+  const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
+  const url = 'https://astro-root.com/q-room/';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
-.board-result-o {
-  font-size: 0.88rem;
-  color: var(--green);
-  font-weight: 900;
+
+function tweetInvite() {
+  if(!rId) return;
+  const url = getRoomUrl();
+  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#QRoom`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
-.board-result-x {
-  font-size: 0.88rem;
-  color: var(--red);
-  font-weight: 900;
+
+function tweetResult() {
+  if(!roomData || !roomData.players) return;
+  const r = roomData.rule;
+  const sorted = sortPlayers(roomData.players, r).filter(x => x[1].st !== 'spec');
+  const top3 = sorted.slice(0, 3).map(([, p], i) => {
+    const medal = ['🥇','🥈','🥉'][i];
+    const sc = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r) ? p.c : (p.sc || 0);
+    return `${medal} ${p.name}（${sc}pt）`;
+  }).join('\n');
+  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#QRoom`;
+  const url = 'https://astro-root.com/q-room/';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
-.board-phase-hint {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-family: var(--font-en);
-  letter-spacing: 0.06em;
+
+function changeRuleUI(skipRender=false) {
+  const r = document.getElementById('sel-rule').value;
+  const c = (roomData && roomData.rule === r && roomData.conf) ? roomData.conf : DEF_CONF[r];
+  let h = '';
+  const mkn = (id,lbl,v) => `<div class="field"><label>${lbl}</label><input type="number" id="c_${id}" value="${v !== undefined ? v : ''}"></div>`;
+  const mks = (id,lbl,v,opts) => `<div class="field"><label>${lbl}</label><select id="c_${id}">${opts.map(o=>`<option value="${o.v}" ${v===o.v?'selected':''}>${o.l}</option>`).join('')}</select></div>`;
+  
+  if(r==='survival'||r==='updown'||r==='ren_wrong') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>`;
+  else if(r==='rentou') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格',c.n)}</div>${mks('mode','連答モード',c.mode||'fast',[{v:'fast',l:'加速'},{v:'const',l:'等速'}])}`;
+  else if(r==='free') h = '';
+  else if(r==='newyork') h = `<div class="s-grid">${mkn('m','正解加点',c.m)}${mkn('n','誤答減点',c.n)}</div><div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div>`;
+  else if(r==='by') h = `<div class="s-grid">${mkn('m','初期誤答pt/定数',c.m)}${mkn('n','失格回数',c.n)}</div>`;
+  else if(r==='freeze'||r==='m_n_rest') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n',r==='freeze'?'失格':'休み数',c.n)}</div>`;
+  else if(r==='swedish') h = `<div class="s-grid">${mkn('m','勝ち抜け',c.m)}${mkn('n','失格×数',c.n)}</div>`;
+  else if(r==='divide') h = `<div class="s-grid">${mkn('init','初期値',c.init)}${mkn('add','正解加点',c.add)}</div><div class="field">${mkn('win','勝ち抜け',c.win)}</div>`;
+  else if(r==='combo') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div>`;
+  else if(r==='attack_surv') h = `<div class="s-grid">${mkn('life','初期ライフ',c.life)}${mkn('dmg_to_oth','自正解時他減',c.dmg_to_oth)}${mkn('heal','自正解時自加',c.heal)}${mkn('dmg_to_me','自誤時自減',c.dmg_to_me)}</div><div class="field">${mkn('surv','終了人数',c.surv)}</div>`;
+  else if(r==='lucky') h = `<div class="s-grid">${mkn('win','勝ち抜け',c.win)}${mkn('lose','失格',c.lose)}</div><div class="field">${mkn('max','乱数最大',c.max)}</div>`;
+  else if(r==='spiral') h = `<div class="s-grid">${mkn('up','正解上昇',c.up)}${mkn('down','誤答下降',c.down)}${mkn('top_req','最上位要正解',c.top_req)}${mkn('btm_req','最下位要誤答',c.btm_req)}</div>`;
+  else if(r==='time_race') h = `<div class="s-grid">${mkn('limit','制限時間(分)',c.limit)}${mkn('correct_pt','正解 +pt',c.correct_pt)}${mkn('wrong_pt','誤答 -pt',c.wrong_pt)}</div>`;
+  else if(r==='board_quiz') h = `
+    <div class="s-grid">${mkn('m','正解 +pt',c.m)}${mkn('n','誤答 -pt',c.n)}</div>
+    <div class="s-grid">${mkn('x','少数正解閾値(人以下)',c.x)}${mkn('y','少数ボーナス +pt',c.y)}</div>
+    <div class="s-grid">${mkn('a','ボタン押し正解 +pt',c.a)}${mkn('z','ボタン押し誤答 -pt',c.z)}</div>
+    <div style="margin-top:4px;padding:12px 16px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);border-radius:12px;font-size:0.82rem;color:var(--text-muted);line-height:1.6;">
+      ① 司会者は「🎙 HOST」ボタンで担当を設定<br>
+      ② プレイヤーは回答を入力 → 「📝 提出」<br>
+      ③ 司会者が「解答オープン」→ 各プレイヤーを◯/✕判定<br>
+      ④「次の問題」で回答をリセット・少数正解ボーナスを適用
+    </div>`;
+
+  document.getElementById('config-area').innerHTML = h;
+
+  if(!skipRender && roomData && r !== roomData.rule) {
+    if(!isAdmin()) {
+      toast('⚠️ 管理者のみルールを変更できます');
+      document.getElementById('sel-rule').value = roomData.rule;
+      changeRuleUI(true);
+      return;
+    }
+    db.ref('rooms/'+rId).update({rule: r, conf: DEF_CONF[r]});
+    if(r === 'time_race') {
+      const lm = (DEF_CONF.time_race.limit) * 60 * 1000;
+      db.ref(`rooms/${rId}/timer`).set({state:'idle', limitMs:lm, remaining:lm, startAt:null, cdStartAt:null});
+    }
+    if(r === 'board_quiz') {
+      db.ref(`rooms/${rId}/board_phase`).set('input');
+      db.ref(`rooms/${rId}/board_host`).remove();
+    }
+  }
 }
-.board-input-wrap {
-  width: 100%;
+
+function updateConf() {
+  if(!roomData) return;
+  if(!isAdmin()) return;
+  let nc = {};
+  document.querySelectorAll('#config-area input').forEach(el => nc[el.id.replace('c_','')] = parseInt(el.value)||0);
+  document.querySelectorAll('#config-area select').forEach(el => nc[el.id.replace('c_','')] = el.value);
+  if(Object.keys(nc).length > 0) {
+    db.ref(`rooms/${rId}/conf`).update(nc);
+    if(roomData.rule === 'time_race' && nc.limit !== undefined) {
+      const limitMs = nc.limit * 60 * 1000;
+      db.ref(`rooms/${rId}/timer`).transaction(cur => {
+        if(!cur) return cur;
+        if(cur.limitMs !== limitMs) {
+          const oldLimit = cur.limitMs || limitMs;
+          cur.limitMs = limitMs;
+          if(cur.state === 'idle') {
+            cur.remaining = limitMs;
+          } else if(cur.state === 'paused') {
+            const elapsed = oldLimit - (cur.remaining || oldLimit);
+            cur.remaining = Math.max(0, limitMs - Math.max(0, elapsed));
+          }
+        }
+        return cur;
+      });
+    }
+  }
 }
-.board-ans-field {
-  width: 100%;
-  padding: 11px 14px;
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: var(--text-main);
-  font-family: var(--font-ja);
-  font-size: 0.92rem;
-  outline: none;
-  transition: all 0.3s;
-  appearance: none;
+
+function sortPlayers(pl, rule) {
+  return Object.entries(pl).sort((a,b) => {
+    const p1=a[1], p2=b[1];
+    const rs = v=>v==='win'?0:v==='active'?1:v==='lose'?2:3;
+    if(rs(p1.st) !== rs(p2.st)) return rs(p1.st) - rs(p2.st);
+    if(p1.st === 'win' && p2.st === 'win') return (p1.winAt||0) - (p2.winAt||0);
+    let m1=p1.sc||0, m2=p2.sc||0;
+    if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(rule)){ m1=p1.c; m2=p2.c; }
+    else if(rule==='by') { m1=p1.sc; m2=p2.sc; }
+    else if(rule==='board_quiz') { m1=p1.sc||0; m2=p2.sc||0; }
+    if(m1 !== m2) return m2 - m1;
+    if(p1.w !== p2.w) return p1.w - p2.w;
+    return (p1.statsAt||p1.joined||0) - (p2.statsAt||p2.joined||0);
+  });
 }
-.board-ans-field:focus {
-  border-color: var(--cyan);
-  background: rgba(6,182,212,0.08);
-  box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+
+function calcRanks(sorted) {
+  const ranks = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i === 0) {
+      ranks.push(1);
+    } else {
+      const prev = sorted[i-1][1];
+      const cur  = sorted[i][1];
+      if (prev.st === cur.st && prev.c === cur.c && prev.w === cur.w) {
+        ranks.push(ranks[i-1]);
+      } else {
+        ranks.push(i + 1);
+      }
+    }
+  }
+  return ranks;
 }
-.btn-board-submit,
-.btn-board-buzz,
-.btn-board-buzz-on,
-.btn-board-open,
-.btn-board-next {
-  padding: 12px 8px;
-  font-size: 0.82rem;
-  font-family: var(--font-en);
-  letter-spacing: 0.06em;
-  border-radius: 12px;
-  box-shadow: none;
-  font-weight: 700;
+
+function renderPlayers() {
+  const pl = roomData.players || {};
+  const r = roomData.rule;
+  const sorted = sortPlayers(pl, r);
+  
+  document.getElementById('timer-panel').classList.toggle('visible', r === 'time_race');
+  
+  const isHostMe = r === 'board_quiz' && roomData.board_host === myId;
+  const boardPhase = roomData.board_phase || 'input';
+  
+  let h = '';
+  const ranks = calcRanks(sorted);
+  sorted.forEach(([id, p], idx) => {
+    const isMe = id===myId;
+    let cls = p.st==='win'?'win':p.st==='lose'?'lose':p.st==='spec'?'spec':'';
+    if(isMe && !cls) cls = 'me';
+    let sv = p.sc||0;
+    if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
+    else if(r==='by') sv = p.sc||0;
+    else if(r==='time_race') sv = p.sc||0;
+    else if(r==='board_quiz') sv = p.sc||0;
+    
+    let wtxt = p.w;
+    if(r==='swedish'||r==='ren_wrong') wtxt = p.w + '×';
+    
+    let sub = '';
+    if(p.rst > 0) sub += `<span style="color:var(--yellow)">休:${p.rst}</span> `;
+    if(p.str > 0) sub += `<span style="color:var(--cyan)">連:${p.str}</span> `;
+    if(p.adv > 0) sub += `<span style="color:var(--red)">DAdv!</span> `;
+    if(r==='board_quiz' && roomData.board_host===id) sub += `<span style="color:var(--magenta)">🎙HOST</span> `;
+    
+    let boardSection = '';
+    if(r === 'board_quiz') {
+      if(isHostMe && id !== myId && p.st === 'active') {
+        if(boardPhase === 'open') {
+          const ans = p.board_ans || '';
+          const buzzMark = p.board_btn ? ' <span class="board-buzz-mark">🔔BUZZ</span>' : '';
+          const judged = p.board_judged;
+          if(!judged) {
+            boardSection = `
+              <div class="board-row">
+                <div class="board-ans-host">${esc(ans) || '<em style="opacity:.4">（未回答）</em>'}${buzzMark}</div>
+                <div class="board-judge-btns">
+                  <button class="board-judge-o" onclick="boardJudge('${id}',true)">◯</button>
+                  <button class="board-judge-x" onclick="boardJudge('${id}',false)">✕</button>
+                </div>
+              </div>`;
+          } else {
+            boardSection = `
+              <div class="board-row">
+                <div class="board-ans-host ${judged==='correct'?'board-judged-correct':'board-judged-wrong'}">${esc(ans) || '（未回答）'}${buzzMark} → ${judged==='correct'?'◯':'✕'}</div>
+              </div>`;
+          }
+        } else {
+          const submitted = !!(p.board_ans);
+          boardSection = `<div class="board-row"><div class="board-phase-hint">${submitted ? '✅ 回答済み' : '⏳ 未回答'}</div></div>`;
+        }
+      } else if(!isHostMe && isMe && p.st === 'active') {
+        const myAns = p.board_ans || '';
+        const buzOn = !!p.board_btn;
+        boardSection = `<div class="board-row board-my-row">
+          <span class="board-my-ans">${myAns ? esc(myAns) : '<em style="opacity:.4">未提出</em>'}</span>
+          ${buzOn ? '<span class="board-buzz-on">🔔 BUZZ中</span>' : ''}
+          ${p.board_judged==='correct'?'<span class="board-result-o">◯</span>':p.board_judged==='wrong'?'<span class="board-result-x">✕</span>':''}
+        </div>`;
+      } else if(!isHostMe && !isMe && boardPhase === 'open') {
+        const ans = p.board_ans || '';
+        const judged = p.board_judged;
+        boardSection = `<div class="board-row">
+          <div class="board-ans-open">${esc(ans) || '<em style="opacity:.4">（未回答）</em>'}</div>
+          ${judged==='correct'?'<span class="board-result-o">◯</span>':judged==='wrong'?'<span class="board-result-x">✕</span>':''}
+        </div>`;
+      }
+    }
+    
+    h += `
+    <div class="pcard ${cls}">
+      <div class="rank-num">${ranks[idx]}</div>
+      <div class="p-main">
+        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}</div>
+        <div class="p-stats">
+          <span class="c">◯ ${p.c}</span>
+          <span class="w">✕ ${wtxt}</span>
+        </div>
+        ${boardSection}
+      </div>
+      <div class="score-box">
+        <div class="score-val">${sv}</div>
+        <div class="score-sub">${p.st==='win'?'<span class="st-win">WIN</span>':p.st==='lose'?'<span class="st-lose">LOSE</span>':sub}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('plist').innerHTML = h;
+  
+  const me = pl[myId];
+  if(me) {
+    document.getElementById('btn-role').innerText = me.st==='spec'?'🎮 JOIN':'👀 WATCH';
+    const ox = document.getElementById('ox-grid');
+    if(r === 'board_quiz') {
+      renderBoardQuizPanel(me, boardPhase, isHostMe);
+    } else {
+      ox.style.gridTemplateColumns = '';
+      if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
+      else {
+        ox.style.display = 'grid';
+        if(me.rst > 0) ox.innerHTML = `<button class="ox-btn btn-rest" onclick="sendAction('rest')">休み消化 (${me.rst})</button>`;
+        else ox.innerHTML = `<button class="ox-btn btn-o" onclick="sendAction('correct')">◯</button><button class="ox-btn btn-x" onclick="sendAction('wrong')">✕</button>`;
+      }
+    }
+  }
 }
-.btn-board-submit {
-  background: rgba(6,182,212,0.12);
-  border: 1px solid rgba(6,182,212,0.4);
-  color: var(--cyan);
+
+let boardAnsDebounce = null;
+
+function renderBoardQuizPanel(me, boardPhase, isHostMe) {
+  const ox = document.getElementById('ox-grid');
+  if(isHostMe) {
+    ox.style.display = 'grid';
+    ox.style.gridTemplateColumns = '1fr';
+    if(boardPhase === 'input') {
+      ox.innerHTML = `<button class="ox-btn btn-board-open" onclick="boardOpenPhase()">📋 解答オープン</button>`;
+    } else {
+      const allJudged = Object.values(roomData.players || {}).filter(p => p.st === 'active').every(p => p.board_judged);
+      ox.innerHTML = allJudged
+        ? `<button class="ox-btn btn-board-next" onclick="boardNextQuestion()">▶ 次の問題</button>`
+        : `<div class="board-judged-msg" style="color:var(--text-muted);font-size:0.9rem;">全員を判定してください</div>
+           <button class="ox-btn btn-board-next" onclick="boardNextQuestion()">▶ 次の問題（強制）</button>`;
+    }
+  } else {
+    const currentAns = me.board_ans || '';
+    const buzOn = !!me.board_btn;
+    const judged = me.board_judged;
+    if(me.st === 'spec' || me.st === 'win' || me.st === 'lose') {
+      ox.style.display = 'none';
+    } else if(boardPhase === 'input') {
+      ox.style.display = 'grid';
+      ox.style.gridTemplateColumns = '1fr auto auto';
+      ox.innerHTML = `
+        <div class="board-input-wrap" style="grid-column:1/-1;">
+          <input type="text" id="board-ans-input" class="board-ans-field" placeholder="回答を入力…" value="${esc(currentAns)}" maxlength="80" autocomplete="off"
+            oninput="boardDebouncedUpdate(this.value)"
+            onkeydown="if(event.key==='Enter'){boardSubmitAns();event.preventDefault();}">
+        </div>
+        <button class="ox-btn btn-board-submit" onclick="boardSubmitAns()">📝 提出</button>
+        <button class="ox-btn ${buzOn?'btn-board-buzz-on':'btn-board-buzz'}" onclick="boardToggleBuzz()" id="board-buzz-btn">
+          ${buzOn?'🔔 BUZZ中':'🔔 BUZZ'}
+        </button>`;
+    } else {
+      ox.style.display = 'grid';
+      ox.style.gridTemplateColumns = '1fr';
+      const resultIcon = judged==='correct'?'<span class="board-result-o" style="font-size:2rem;">◯</span>':judged==='wrong'?'<span class="board-result-x" style="font-size:2rem;">✕</span>':'<span style="color:var(--text-muted);font-size:0.9rem;">判定待ち…</span>';
+      ox.innerHTML = `<div class="board-judged-msg">${resultIcon}</div>`;
+    }
+  }
 }
-.btn-board-buzz {
-  background: rgba(245,158,11,0.08);
-  border: 1px solid rgba(245,158,11,0.3);
-  color: var(--yellow);
+
+function boardDebouncedUpdate(val) {
+  clearTimeout(boardAnsDebounce);
+  boardAnsDebounce = setTimeout(() => {
+    if(db && rId && myId) db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
+  }, 400);
 }
-.btn-board-buzz-on {
-  background: rgba(245,158,11,0.22);
-  border: 1px solid var(--yellow);
-  color: var(--yellow);
-  box-shadow: 0 0 10px rgba(245,158,11,0.2);
+
+async function boardSubmitAns() {
+  const input = document.getElementById('board-ans-input');
+  if(!input) return;
+  const val = input.value.trim();
+  await db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
+  toast('✅ 提出しました');
 }
-.btn-board-open {
-  grid-column: 1 / -1;
-  background: rgba(16,185,129,0.12);
-  border: 1px solid rgba(16,185,129,0.4);
-  color: var(--green);
+
+async function boardToggleBuzz() {
+  const me = roomData.players && roomData.players[myId];
+  const cur = !!(me && me.board_btn);
+  await db.ref(`rooms/${rId}/players/${myId}/board_btn`).set(!cur);
 }
-.btn-board-next {
-  grid-column: 1 / -1;
-  background: rgba(6,182,212,0.12);
-  border: 1px solid rgba(6,182,212,0.4);
-  color: var(--cyan);
+
+async function boardSetHost() {
+  if(!isAdmin()) { toast('⚠️ 管理者のみHOSTを設定できます'); return; }
+  const isCurrentHost = roomData.board_host === myId;
+  if(isCurrentHost) {
+    await db.ref(`rooms/${rId}/board_host`).remove();
+    await db.ref(`rooms/${rId}/players/${myId}/st`).set('active');
+    toast('ホストを解除しました');
+  } else {
+    await db.ref(`rooms/${rId}/board_host`).set(myId);
+    await db.ref(`rooms/${rId}/players/${myId}/st`).set('spec');
+    await db.ref(`rooms/${rId}/board_phase`).set('input');
+    toast('🎙 HOSTになりました');
+  }
 }
-.board-judged-msg {
-  text-align: center;
-  font-family: var(--font-en);
-  font-size: 1.1rem;
-  font-weight: 900;
-  padding: 8px;
-  letter-spacing: 0.1em;
+
+async function boardOpenPhase() {
+  await db.ref(`rooms/${rId}/board_phase`).set('open');
 }
-.kick-btn {
-  background: rgba(239,68,68,0.1);
-  border: 1px solid rgba(239,68,68,0.35);
-  color: var(--red);
-  font-size: 0.7rem;
-  padding: 2px 7px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: 0.2s;
-  line-height: 1.4;
-  flex-shrink: 0;
+
+async function boardJudge(pid, isCorrect) {
+  if(!roomData || !roomData.players || !roomData.players[pid]) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const p = pData[pid];
+  const c = roomData.conf || DEF_CONF.board_quiz;
+  if(isCorrect) {
+    p.c++;
+    p.sc = (p.sc||0) + (p.board_btn ? (c.a||15) : (c.m||10));
+  } else {
+    p.w++;
+    p.sc = (p.sc||0) - (p.board_btn ? (c.z||5) : (c.n||3));
+  }
+  p.board_judged = isCorrect ? 'correct' : 'wrong';
+  p.statsAt = Date.now();
+  await db.ref(`rooms/${rId}/players/${pid}`).update({
+    c: p.c, w: p.w, sc: p.sc, board_judged: p.board_judged, statsAt: p.statsAt
+  });
 }
-.kick-btn:hover {
-  background: rgba(239,68,68,0.25);
-  border-color: var(--red);
+
+async function boardNextQuestion() {
+  if(!roomData || !roomData.players) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const c = roomData.conf || DEF_CONF.board_quiz;
+  const correctPlayers = Object.keys(pData).filter(pid => pData[pid].board_judged === 'correct');
+  if(correctPlayers.length > 0 && correctPlayers.length <= (c.x||1)) {
+    correctPlayers.forEach(pid => { pData[pid].sc = (pData[pid].sc||0) + (c.y||10); });
+    toast(`🎯 少数正解ボーナス +${c.y||10}pt`);
+  }
+  Object.keys(pData).forEach(k => {
+    pData[k].board_ans = '';
+    pData[k].board_btn = false;
+    pData[k].board_judged = null;
+  });
+  await db.ref(`rooms/${rId}/players`).set(pData);
+  await db.ref(`rooms/${rId}/board_phase`).set('input');
 }
+
+async function kickPlayer(pid) {
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
+  const p = roomData.players[pid];
+  if(!p) return;
+  if(!confirm(`${p.name} を退室させますか？`)) return;
+  await db.ref(`rooms/${rId}/players/${pid}`).remove();
+  toast(`${p.name} を退室させました`);
+}
+
+async function sendAction(type) {
+  if(!roomData || !roomData.players || !roomData.players[myId]) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const me = pData[myId];
+  if(me.st !== 'active') return;
+
+  const r = roomData.rule;
+  
+  if(r === 'time_race') {
+    if(!timerData || timerData.state !== 'running') {
+      toast('タイマーが動いている間のみ回答できます');
+      return;
+    }
+  }
+  
+  const mePrev = JSON.stringify({c:me.c, w:me.w, sc:me.sc, rst:me.rst, str:me.str, adv:me.adv, st:me.st});
+  const c = roomData.conf || DEF_CONF[r];
+  
+  if(type === 'rest') {
+    me.rst--;
+  } else if(type === 'correct') {
+    me.c++;
+    if(r==='survival') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='newyork') { me.sc = (me.sc||0) + c.m; if(me.sc >= c.win) me.st='win'; }
+    else if(r==='rentou') {
+      if (c.mode === 'const') {
+        me.sc = (me.sc||0) + (me.str>0?2:1);
+        const pStr = me.str;
+        me.str = pStr > 0 ? 0 : 1;
+        Object.keys(pData).forEach(id => { if(id !== myId) pData[id].str = 0; });
+      } else {
+        me.sc = (me.sc||0) + (me.str>0?2:1);
+        me.str++;
+      }
+      if(me.sc>=c.m) me.st='win';
+    }
+    else if(r==='updown') { me.sc = (me.sc||0) + 1; if(me.sc>=c.m) me.st='win'; }
+    else if(r==='by') { me.sc = me.c * (c.m - me.w); if(me.sc >= c.m*c.m) me.st='win'; }
+    else if(r==='freeze') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='m_n_rest') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='swedish') { if(me.c >= c.m) me.st='win'; }
+    else if(r==='ren_wrong') { me.adv = 0; if(me.c >= c.m) me.st='win'; }
+    else if(r==='divide') { me.sc = (me.sc||c.init)+c.add; if(me.sc>=c.win) me.st='win'; }
+    else if(r==='combo') { me.str++; me.sc = (me.sc||0) + me.str; if(me.sc>=c.win) me.st='win'; }
+    else if(r==='attack_surv') {
+      me.sc = (me.sc||c.life)+c.heal;
+      Object.keys(pData).forEach(id => {
+        if(id!==myId && pData[id].st==='active') {
+          pData[id].sc = (pData[id].sc||c.life)-c.dmg_to_oth;
+          if(pData[id].sc<=0) pData[id].st='lose';
+        }
+      });
+    }
+    else if(r==='lucky') { me.sc = (me.sc||0) + Math.floor(Math.random()*c.max)+1; if(me.sc>=c.win) me.st='win'; }
+    else if(r==='spiral') {
+      let maxStep = Math.max(...Object.values(pData).filter(p=>p.st==='active').map(p=>p.sc||0));
+      if((me.sc||0) >= maxStep) me.str++; else me.str=0;
+      me.sc = (me.sc||0)+c.up;
+      if(me.str >= c.top_req) me.st='win';
+    }
+    else if(r==='time_race') { me.sc = (me.sc||0) + (c.correct_pt||1); }
+  } else if(type === 'wrong') {
+    me.w++;
+    if(r==='survival') { if(c.n > 0 && me.w >= c.n) me.st='lose'; }
+    else if(r==='newyork') { me.sc = (me.sc||0) - c.n; if(me.sc <= c.lose) me.st='lose'; }
+    else if(r==='rentou') { me.str=0; if(c.n > 0 && me.w >= c.n) me.st='lose'; }
+    else if(r==='updown') { me.sc=0; if(c.n > 0 && me.w >= c.n) me.st='lose'; }
+    else if(r==='by') { me.sc = me.c * (c.m - me.w); if(c.n > 0 && me.w >= c.n) me.st='lose'; }
+    else if(r==='freeze') { me.rst += me.w; if(c.n > 0 && me.w >= c.n) me.st='lose'; }
+    else if(r==='m_n_rest') { me.rst += c.n; }
+    else if(r==='swedish') {
+      const batsu = Math.floor((Math.sqrt(8*me.c+1)-1)/2)+1;
+      me.w = (me.w-1)+batsu; 
+      if(c.n > 0 && me.w >= c.n) me.st='lose';
+    }
+    else if(r==='ren_wrong') {
+      me.w = (me.w-1) + (me.adv>0?2:1); me.adv=1;
+      if(c.n > 0 && me.w >= c.n) me.st='lose';
+    }
+    else if(r==='divide') {
+      me.sc = Math.floor((me.sc||c.init)/me.w);
+      if(me.sc < 1) me.st='lose';
+    }
+    else if(r==='combo') { me.str=0; if(c.lose > 0 && me.w >= c.lose) me.st='lose'; }
+    else if(r==='attack_surv') {
+      me.sc = (me.sc||c.life)-c.dmg_to_me;
+      if(me.sc<=0) me.st='lose';
+    }
+    else if(r==='lucky') { me.sc = (me.sc||0) - Math.floor(Math.random()*c.max)-1; if(me.sc<=c.lose) me.st='lose'; }
+    else if(r==='spiral') {
+      let minStep = Math.min(...Object.values(pData).filter(p=>p.st==='active').map(p=>p.sc||0));
+      if((me.sc||0) <= minStep) me.adv++; else me.adv=0;
+      me.sc = (me.sc||0)-c.down;
+      if(me.adv >= c.btm_req) me.st='lose';
+    }
+    else if(r==='time_race') { me.sc = (me.sc||0) - (c.wrong_pt||1); }
+  }
+
+  me.hist = me.hist || [];
+  me.hist.unshift(mePrev);
+  if(me.hist.length > 5) me.hist.length = 5;
+
+  const prevParsed = JSON.parse(mePrev);
+  if (me.c !== prevParsed.c || me.w !== prevParsed.w) me.statsAt = Date.now();
+  if (me.st === 'win' && prevParsed.st !== 'win') me.winAt = Date.now();
+
+  await db.ref(`rooms/${rId}/players`).update(pData);
+  
+  if(r==='attack_surv') {
+    const act = Object.values(pData).filter(p=>p.st==='active').length;
+    if(act <= c.surv) await db.ref(`rooms/${rId}/status`).set('finished');
+  }
+}
+
+async function reqUndo() {
+  if(!roomData || !roomData.players || !roomData.players[myId]) return;
+  const me = roomData.players[myId];
+  if(!me.hist || me.hist.length === 0) return;
+  const hist = [...me.hist];
+  const prevState = JSON.parse(hist.shift());
+  prevState.hist = hist;
+  await db.ref(`rooms/${rId}/players/${myId}`).update(prevState);
+  toast('↩ UNDO done!');
+}
+
+async function toggleRole() {
+  const me = roomData.players[myId];
+  await db.ref(`rooms/${rId}/players/${myId}/st`).set(me.st==='spec'?'active':'spec');
+}
+
+async function resetPoints() {
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
+  if(!confirm('全員のスコアをリセットしますか？')) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const c = roomData.conf || {};
+  const sc = roomData.rule==='divide' ? (c.init || 10) : roomData.rule==='attack_surv' ? (c.life || 20) : 0;
+  Object.keys(pData).forEach(k => {
+    pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[], winAt:0, statsAt:Date.now() };
+    if(pData[k].st !== 'spec') pData[k].st = 'active';
+    if(roomData.rule === 'board_quiz') {
+      pData[k].board_ans = '';
+      pData[k].board_btn = false;
+      pData[k].board_judged = null;
+    }
+  });
+  await db.ref(`rooms/${rId}/players`).set(pData);
+  if(roomData.rule === 'time_race') {
+    const lm = (c.limit||5) * 60 * 1000;
+    await db.ref(`rooms/${rId}/timer`).set({state:'idle', limitMs:lm, remaining:lm, startAt:null, cdStartAt:null});
+  }
+  closeModal(); toast('リセットしました');
+}
+
+async function endGame() {
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
+  if(confirm('ゲームを終了しますか？')) {
+    await db.ref(`rooms/${rId}/status`).set('finished');
+    closeModal();
+  }
+}
+
+function renderResult() {
+  show('result');
+  const pl = roomData.players || {};
+  const r = roomData.rule;
+  const sorted = sortPlayers(pl, r).filter(x => x[1].st !== 'spec');
+  const ranks = calcRanks(sorted);
+  let h = '';
+  sorted.forEach(([id, p], idx) => {
+    let sv = p.sc||0;
+    if(['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r)) sv = p.c;
+    else if(r==='by') sv = p.sc||0;
+    else if(r==='time_race') sv = p.sc||0;
+    let mst = p.st==='win'?'WIN':p.st==='lose'?'LOSE':'-';
+    h += `
+    <div class="pcard ${p.st==='win'?'win':p.st==='lose'?'lose':''}">
+      <div class="rank-num">${ranks[idx]}</div>
+      <div class="p-main">
+        <div class="p-name">${esc(p.name)}</div>
+        <div class="p-stats"><span class="c">◯ ${p.c}</span><span class="w">✕ ${p.w}</span></div>
+      </div>
+      <div class="score-box">
+        <div class="score-val">${sv}</div>
+        <div class="score-sub" style="color:${p.st==='win'?'var(--green)':p.st==='lose'?'var(--red)':''}">${mst}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('rlist').innerHTML = h;
+}
+
+function getMyName(fallback='') {
+  if(roomData && roomData.players && roomData.players[myId] && roomData.players[myId].name)
+    return roomData.players[myId].name;
+  return fallback || localStorage.getItem('qr_name') || 'Player';
+}
+
+function initChat(playerName='') {
+  const stampsEl = document.getElementById('chat-stamps');
+  stampsEl.innerHTML = STAMPS.map(s =>
+    `<button class="stamp-btn" onclick="sendStamp('${s}')">${s}</button>`
+  ).join('');
+
+  if(chatRef) chatRef.off('child_added', chatCb);
+  lastSeenMsgTs = Date.now();
+  chatRef = db.ref(`rooms/${rId}/chat`).limitToLast(100);
+  chatCb = chatRef.on('child_added', snap => {
+    const msg = snap.val();
+    renderChatMsg(msg);
+    if(!chatOpen && msg.ts > lastSeenMsgTs && msg.playerId !== myId) {
+      chatUnread++;
+      updateChatBadge();
+    }
+  });
+}
+
+function renderChatMsg(msg) {
+  const isMe = msg.playerId === myId;
+  const isSys = msg.type === 'system';
+  const isStamp = msg.type === 'stamp';
+  const el = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  if(isSys) {
+    div.className = 'chat-sys';
+    div.innerText = msg.text;
+  } else {
+    div.className = `chat-msg ${isMe?'me':'other'}`;
+    div.innerHTML = `
+      <div class="chat-msg-name">${esc(msg.playerName)}</div>
+      <div class="${isStamp ? 'chat-msg-stamp' : 'chat-msg-bubble'}">${esc(msg.text)}</div>`;
+  }
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function updateChatBadge() {
+  const badge = document.getElementById('chat-badge');
+  if(chatUnread > 0) { badge.textContent = chatUnread > 9 ? '9+' : chatUnread; badge.style.display = 'flex'; }
+  else badge.style.display = 'none';
+}
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-drawer').classList.toggle('open', chatOpen);
+  if(chatOpen) {
+    chatUnread = 0;
+    updateChatBadge();
+    lastSeenMsgTs = Date.now();
+    const el = document.getElementById('chat-messages');
+    el.scrollTop = el.scrollHeight;
+  }
+}
+
+async function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text || !db || !rId) return;
+  input.value = '';
+  await db.ref(`rooms/${rId}/chat`).push({
+    type: 'text', text,
+    playerId: myId, playerName: getMyName(),
+    ts: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+async function sendStamp(stamp) {
+  if(!db || !rId) return;
+  await db.ref(`rooms/${rId}/chat`).push({
+    type: 'stamp', text: stamp,
+    playerId: myId, playerName: getMyName(),
+    ts: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+async function pushSysMsg(text) {
+  if(!db || !rId) return;
+  await db.ref(`rooms/${rId}/chat`).push({
+    type: 'system', text, ts: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+let timerInterval = null;
+let timerData = null;
+let timerRef = null;
+let timerCb = null;
+let cdInterval = null;
+let cdStartTimeout = null;
+
+function initTimerListener() {
+  if(timerRef) { timerRef.off('value', timerCb); timerRef = null; }
+  timerRef = db.ref(`rooms/${rId}/timer`);
+  timerCb = timerRef.on('value', snap => {
+    timerData = snap.val();
+    updateTimerDisplay();
+  });
+}
+
+function formatMs(ms) {
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateTimerDisplay() {
+  if(!timerData) return;
+  const disp = document.getElementById('timer-display');
+  const btnStart = document.getElementById('timer-btn-start');
+  const btnStop = document.getElementById('timer-btn-stop');
+  const co = document.getElementById('countdown-overlay');
+  if(!disp) return;
+
+  const { state, startAt, remaining, limitMs, cdStartAt } = timerData;
+
+  clearInterval(timerInterval); timerInterval = null;
+  clearInterval(cdInterval); cdInterval = null;
+
+  if(state === 'countdown') {
+    co.classList.add('show');
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    disp.textContent = formatMs(remaining !== undefined ? remaining : limitMs);
+    disp.className = 'timer-display';
+    const tick = () => {
+      if(!cdStartAt) return;
+      const elapsed = getServerTime() - cdStartAt;
+      let left = Math.ceil((5000 - elapsed) / 1000);
+      if(left > 5) left = 5;
+      if(left <= 0) {
+        document.getElementById('countdown-num').textContent = 'GO!';
+        document.getElementById('countdown-num').style.animation = 'none';
+        void document.getElementById('countdown-num').offsetWidth;
+        document.getElementById('countdown-num').style.animation = 'cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+        setTimeout(() => { co.classList.remove('show'); }, 700);
+        clearInterval(cdInterval);
+        return;
+      }
+      const numEl = document.getElementById('countdown-num');
+      if(numEl.textContent !== String(left)) {
+        numEl.textContent = left;
+        numEl.style.animation = 'none';
+        void numEl.offsetWidth;
+        numEl.style.animation = 'cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+      }
+    };
+    tick();
+    cdInterval = setInterval(tick, 100);
+
+  } else if(state === 'running') {
+    if (document.getElementById('countdown-num').textContent !== 'GO!') co.classList.remove('show');
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    const tick = () => {
+      if(!startAt || remaining === undefined) return;
+      const elapsed = getServerTime() - startAt;
+      const left = Math.max(0, remaining - elapsed);
+      disp.textContent = formatMs(left);
+      if(left <= 30000) disp.className = 'timer-display danger';
+      else if(left <= 60000) disp.className = 'timer-display warning';
+      else disp.className = 'timer-display';
+      if(left <= 0) {
+        clearInterval(timerInterval); timerInterval = null;
+        db.ref(`rooms/${rId}/timer/state`).transaction(cur => {
+          if(cur === 'running') return 'finished';
+          return undefined;
+        }).then(res => { if(res && res.committed) finishTimeRace(); });
+      }
+    };
+    tick();
+    timerInterval = setInterval(tick, 100);
+
+  } else if(state === 'paused' || state === 'idle') {
+    co.classList.remove('show');
+    btnStart.disabled = false;
+    btnStop.disabled = true;
+    const rem = (state === 'paused') ? (remaining !== undefined ? remaining : 0) : (limitMs || 300000);
+    disp.textContent = formatMs(rem);
+    if(rem <= 30000) disp.className = 'timer-display danger';
+    else if(rem <= 60000) disp.className = 'timer-display warning';
+    else disp.className = 'timer-display';
+
+  } else if(state === 'finished') {
+    co.classList.remove('show');
+    disp.textContent = '00:00';
+    disp.className = 'timer-display danger';
+    btnStart.disabled = true;
+    btnStop.disabled = true;
+  }
+}
+
+async function timerAction(action) {
+  if(!rId || !db) return;
+  if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
+  
+  let confirmMsg = '';
+  if(action === 'start') confirmMsg = 'タイマーをスタート（再開）しますか？';
+  else if(action === 'stop') confirmMsg = 'タイマーをストップ（一時停止）しますか？';
+  else if(action === 'reset') confirmMsg = 'タイマーをリセットしますか？';
+  if(!confirm(confirmMsg)) return;
+
+  const conf = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
+  const limitMs = (conf.limit || 5) * 60 * 1000;
+  const td = timerData || {};
+
+  if(action === 'start') {
+    if(td.state === 'running' || td.state === 'countdown') return;
+    const currentRemaining = (td.state === 'paused') ? (td.remaining !== undefined ? td.remaining : limitMs) : limitMs;
+    await db.ref(`rooms/${rId}/timer`).set({
+      state: 'countdown', cdStartAt: firebase.database.ServerValue.TIMESTAMP,
+      remaining: currentRemaining, limitMs: td.limitMs || limitMs, startAt: null
+    });
+    clearTimeout(cdStartTimeout);
+    cdStartTimeout = setTimeout(async () => {
+      const snap = await db.ref(`rooms/${rId}/timer/state`).once('value');
+      if(snap.val() === 'countdown') {
+        const remSnap = await db.ref(`rooms/${rId}/timer/remaining`).once('value');
+        await db.ref(`rooms/${rId}/timer`).update({
+          state: 'running', startAt: firebase.database.ServerValue.TIMESTAMP,
+          remaining: remSnap.val() !== null ? remSnap.val() : currentRemaining
+        });
+      }
+    }, 5000);
+
+  } else if(action === 'stop') {
+    clearTimeout(cdStartTimeout);
+    if(td.state === 'countdown') { await db.ref(`rooms/${rId}/timer`).update({ state: 'paused' }); return; }
+    if(td.state !== 'running') return;
+    const elapsed = td.startAt ? getServerTime() - td.startAt : 0;
+    const currentRemaining = Math.max(0, (td.remaining !== undefined ? td.remaining : limitMs) - elapsed);
+    await db.ref(`rooms/${rId}/timer`).update({ state: 'paused', remaining: currentRemaining });
+
+  } else if(action === 'reset') {
+    clearTimeout(cdStartTimeout);
+    clearInterval(timerInterval); timerInterval = null;
+    clearInterval(cdInterval); cdInterval = null;
+    const conf2 = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
+    const lm = (conf2.limit || 5) * 60 * 1000;
+    await db.ref(`rooms/${rId}/timer`).set({ state: 'idle', limitMs: lm, remaining: lm, startAt: null, cdStartAt: null });
+  }
+}
+
+async function finishTimeRace() {
+  if(!roomData || !roomData.players) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const actives = Object.values(pData).filter(p => p.st === 'active');
+  if(actives.length === 0) return;
+  const maxSc = Math.max(...actives.map(p => p.sc || 0));
+  Object.keys(pData).forEach(k => {
+    if(pData[k].st === 'active') pData[k].st = (pData[k].sc || 0) >= maxSc ? 'win' : 'lose';
+  });
+  await db.ref(`rooms/${rId}/players`).update(pData);
+  await db.ref(`rooms/${rId}/status`).set('finished');
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') !== 'light';
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  const icon = newTheme === 'light' ? '🌙' : '☀️';
+  document.getElementById('theme-icon').textContent = icon;
+  const roomIcon = document.getElementById('theme-icon-room');
+  if(roomIcon) roomIcon.textContent = icon;
+  try { localStorage.setItem('q-room-theme', newTheme); } catch(e) {}
+}
+(function() {
+  try {
+    const saved = localStorage.getItem('q-room-theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.addEventListener('DOMContentLoaded', () => {
+        const icon = document.getElementById('theme-icon');
+        if (icon) icon.textContent = '🌙';
+        const roomIcon = document.getElementById('theme-icon-room');
+        if (roomIcon) roomIcon.textContent = '🌙';
+      });
+    }
+  } catch(e) {}
+})();
