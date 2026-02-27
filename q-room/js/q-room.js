@@ -810,7 +810,34 @@ function renderResult() {
   document.getElementById('rlist').innerHTML = h;
 }
 
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function tweetApp() {
+  const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
+  const url = 'https://astro-root.com/q-room/';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+}
+
+function tweetInvite() {
+  if(!rId) return;
+  const url = getRoomUrl();
+  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#QRoom`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+}
+
+function tweetResult() {
+  if(!roomData || !roomData.players) return;
+  const r = roomData.rule;
+  const sorted = sortPlayers(roomData.players, r).filter(x => x[1].st !== 'spec');
+  const top3 = sorted.slice(0, 3).map(([, p], i) => {
+    const medal = ['🥇','🥈','🥉'][i];
+    const sc = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r) ? p.c : (p.sc || 0);
+    return `${medal} ${p.name}（${sc}pt）`;
+  }).join('\n');
+  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#QRoom`;
+  const url = 'https://astro-root.com/q-room/';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+}
+
+
 function copyUrl(){ 
   navigator.clipboard.writeText(getRoomUrl()); 
   toast('URL copied'); 
