@@ -8,7 +8,6 @@ const firebaseConfig = {
   appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
 };
 
-// ── Admin ──────────────────────────────────────────────────────────────────
 let _adminVerified = false;
 function isAdmin() { return _adminVerified; }
 async function checkAdmin() {
@@ -19,7 +18,6 @@ async function checkAdmin() {
   } catch(e) { _adminVerified = false; }
 }
 
-// ── State ──────────────────────────────────────────────────────────────────
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
@@ -38,7 +36,6 @@ const DEF_CONF = {
   board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
 };
 
-// ── Init ───────────────────────────────────────────────────────────────────
 window.onload = () => {
   const params = new URLSearchParams(window.location.search);
   const qRoom = params.get('r');
@@ -77,7 +74,6 @@ function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.st
 function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
 
-// ── Room Create/Join ───────────────────────────────────────────────────────
 async function handleCreate() {
   try {
     initFB();
@@ -145,7 +141,6 @@ function newPlayer(name) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
 }
 
-// ── Enter Room ─────────────────────────────────────────────────────────────
 function enterRoom(isCreate=false, playerName='') {
   try {
     if (window.location.protocol !== 'file:') {
@@ -179,7 +174,6 @@ function enterRoom(isCreate=false, playerName='') {
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
   });
 
-  // Admin check runs in parallel — re-render after resolved
   checkAdmin().then(() => { if(roomData) renderPlayers(); });
 }
 
@@ -210,7 +204,6 @@ async function backToRoom() {
   await db.ref(`rooms/${rId}/status`).set('playing');
 }
 
-// ── Modal ──────────────────────────────────────────────────────────────────
 function openModal(){
   document.getElementById('modal').classList.add('active');
   renderAdminUI();
@@ -218,19 +211,16 @@ function openModal(){
 function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
 
 function renderAdminUI() {
-  const adminSection = document.getElementById('admin-section');
   const adminSectionBtns = document.getElementById('admin-section-btns');
   const adminGate = document.getElementById('admin-gate');
-  if(!adminSection || !adminGate) return;
+  if(!adminGate) return;
   if(isAdmin()) {
-    adminSection.style.display = '';
     if(adminSectionBtns) adminSectionBtns.style.display = '';
     adminGate.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px 14px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.3);border-radius:12px;">
         <span style="font-size:0.8rem;color:var(--cyan);font-family:var(--font-en);font-weight:700;letter-spacing:0.1em;">✓ ADMIN</span>
       </div>`;
   } else {
-    adminSection.style.display = 'none';
     if(adminSectionBtns) adminSectionBtns.style.display = 'none';
     adminGate.innerHTML = '';
   }
@@ -239,7 +229,6 @@ function renderAdminUI() {
 function openFeedback(){ document.getElementById('modal-feedback').classList.add('active'); }
 function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
 
-// ── URL / Share ────────────────────────────────────────────────────────────
 function getRoomUrl() {
   if(window.location.protocol === 'file:') return `https://astro-root.com/q-room/?r=${rId}`;
   const base = window.location.origin + window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
@@ -283,9 +272,8 @@ function nativeShare() {
 function copyUrl(){ navigator.clipboard.writeText(getRoomUrl()); toast('URL copied'); }
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
 
-// ── Tweet ──────────────────────────────────────────────────────────────────
 function tweetApp() {
-  const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
+  const text = `🎮 オンラインクイズルーム「Q-Score」を今すぐチェック！\nタイムレース、アタサバ、螺旋階段など豊富なルール対応✨\n#クイズQRoom #クイズ`;
   const url = 'https://astro-root.com/q-room/';
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
@@ -293,7 +281,7 @@ function tweetApp() {
 function tweetInvite() {
   if(!rId) return;
   const url = getRoomUrl();
-  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#QRoom`;
+  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#クイズQRoom`;
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
 
@@ -306,12 +294,11 @@ function tweetResult() {
     const sc = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r) ? p.c : (p.sc || 0);
     return `${medal} ${p.name}（${sc}pt）`;
   }).join('\n');
-  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#QRoom`;
+  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#クイズQRoom`;
   const url = 'https://astro-root.com/q-room/';
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
 
-// ── Rule UI ────────────────────────────────────────────────────────────────
 function changeRuleUI(skipRender=false) {
   const r = document.getElementById('sel-rule').value;
   const c = (roomData && roomData.rule === r && roomData.conf) ? roomData.conf : DEF_CONF[r];
@@ -392,7 +379,6 @@ function updateConf() {
   }
 }
 
-// ── Sort / Rank ────────────────────────────────────────────────────────────
 function sortPlayers(pl, rule) {
   return Object.entries(pl).sort((a,b) => {
     const p1=a[1], p2=b[1];
@@ -427,7 +413,6 @@ function calcRanks(sorted) {
   return ranks;
 }
 
-// ── Render Players ─────────────────────────────────────────────────────────
 function renderPlayers() {
   const pl = roomData.players || {};
   const r = roomData.rule;
@@ -529,6 +514,7 @@ function renderPlayers() {
     if(r === 'board_quiz') {
       renderBoardQuizPanel(me, boardPhase, isHostMe);
     } else {
+      ox.style.gridTemplateColumns = '';
       if(me.st==='spec' || me.st==='win' || me.st==='lose') ox.style.display = 'none';
       else {
         ox.style.display = 'grid';
@@ -539,7 +525,6 @@ function renderPlayers() {
   }
 }
 
-// ── Board Quiz Panel ───────────────────────────────────────────────────────
 let boardAnsDebounce = null;
 
 function renderBoardQuizPanel(me, boardPhase, isHostMe) {
@@ -661,7 +646,6 @@ async function boardNextQuestion() {
   await db.ref(`rooms/${rId}/board_phase`).set('input');
 }
 
-// ── Kick ───────────────────────────────────────────────────────────────────
 async function kickPlayer(pid) {
   if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
   const p = roomData.players[pid];
@@ -671,7 +655,6 @@ async function kickPlayer(pid) {
   toast(`${p.name} を退室させました`);
 }
 
-// ── Actions ────────────────────────────────────────────────────────────────
 async function sendAction(type) {
   if(!roomData || !roomData.players || !roomData.players[myId]) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
@@ -833,7 +816,6 @@ async function endGame() {
   }
 }
 
-// ── Result ─────────────────────────────────────────────────────────────────
 function renderResult() {
   show('result');
   const pl = roomData.players || {};
@@ -863,7 +845,6 @@ function renderResult() {
   document.getElementById('rlist').innerHTML = h;
 }
 
-// ── Name / Chat helpers ────────────────────────────────────────────────────
 function getMyName(fallback='') {
   if(roomData && roomData.players && roomData.players[myId] && roomData.players[myId].name)
     return roomData.players[myId].name;
@@ -887,9 +868,6 @@ function initChat(playerName='') {
       updateChatBadge();
     }
   });
-
-  const name = playerName || getMyName();
-  document.getElementById('chat-player-name').innerText = name;
 }
 
 function renderChatMsg(msg) {
@@ -957,7 +935,6 @@ async function pushSysMsg(text) {
   });
 }
 
-// ── Timer ──────────────────────────────────────────────────────────────────
 let timerInterval = null;
 let timerData = null;
 let timerRef = null;
@@ -1131,7 +1108,6 @@ async function finishTimeRace() {
   await db.ref(`rooms/${rId}/status`).set('finished');
 }
 
-// ── Theme ──────────────────────────────────────────────────────────────────
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') !== 'light';
