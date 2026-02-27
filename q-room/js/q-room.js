@@ -171,6 +171,7 @@ function enterRoom(isCreate=false, playerName='') {
     roomData = snap.val();
     if(!roomData) return leaveRoom();
     if(roomData.status === 'finished') return renderResult();
+    if(roomData.players && !roomData.players[myId]) return leaveRoom(true);
     show('room');
     const r = roomData.rule;
     document.getElementById('sel-rule').value = r;
@@ -184,11 +185,11 @@ function enterRoom(isCreate=false, playerName='') {
   checkAdmin().then(() => { if(roomData) renderPlayers(); });
 }
 
-async function leaveRoom() {
+async function leaveRoom(kicked=false) {
   if(rRef) { rRef.off('value', rCb); rRef = null; }
   if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
   try {
-    if(db && rId && myId) {
+    if(!kicked && db && rId && myId) {
       const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
       await Promise.race([
         (async () => {
