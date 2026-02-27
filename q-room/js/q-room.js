@@ -8,26 +8,18 @@ const firebaseConfig = {
   appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
 };
 
+// ── Admin ──────────────────────────────────────────────────────────────────
 let _adminVerified = false;
-
-function isAdmin() {
-  return _adminVerified;
-}
-
+function isAdmin() { return _adminVerified; }
 async function checkAdmin() {
   const id = getMyId();
   try {
     const snap = await db.ref(`admins/${id}`).once('value');
     _adminVerified = snap.val() === true;
-  } catch(e) {
-    _adminVerified = false;
-  }
+  } catch(e) { _adminVerified = false; }
 }
 
-function adminLogout() {
-  _adminVerified = false;
-}
-
+// ── State ──────────────────────────────────────────────────────────────────
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
@@ -46,6 +38,7 @@ const DEF_CONF = {
   board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
 };
 
+// ── Init ───────────────────────────────────────────────────────────────────
 window.onload = () => {
   const params = new URLSearchParams(window.location.search);
   const qRoom = params.get('r');
@@ -71,9 +64,7 @@ function initFB() {
   }
 }
 
-function getServerTime() {
-  return Date.now() + serverTimeOffset;
-}
+function getServerTime() { return Date.now() + serverTimeOffset; }
 
 function getMyId() {
   let id = localStorage.getItem('qr_id');
@@ -81,13 +72,12 @@ function getMyId() {
   return id;
 }
 
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
 function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
-function show(id){ 
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
-  document.getElementById('screen-'+id).classList.add('active');
-}
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
 
+// ── Room Create/Join ───────────────────────────────────────────────────────
 async function handleCreate() {
   try {
     initFB();
@@ -155,19 +145,16 @@ function newPlayer(name) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
 }
 
-async function enterRoom(isCreate=false, playerName='') {
+// ── Enter Room ─────────────────────────────────────────────────────────────
+function enterRoom(isCreate=false, playerName='') {
   try {
     if (window.location.protocol !== 'file:') {
       const base = window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
       window.history.replaceState({}, '', `${base}?r=${rId}`);
     }
-  } catch(e) {
-    console.warn("History API replaced failed.");
-  }
+  } catch(e) { console.warn("History API replaced failed."); }
 
   db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
-
-  const playerRef = db.ref(`rooms/${rId}/players/${myId}`);
   db.ref(`rooms/${rId}/lastActiveAt`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
 
   document.getElementById('game-rid').innerText = rId;
@@ -182,24 +169,17 @@ async function enterRoom(isCreate=false, playerName='') {
     roomData = snap.val();
     if(!roomData) return leaveRoom();
     if(roomData.status === 'finished') return renderResult();
-    
     show('room');
-    
     const r = roomData.rule;
     document.getElementById('sel-rule').value = r;
     document.getElementById('game-rule').innerText = document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text;
     changeRuleUI(true);
     renderPlayers();
-    
-    if(r !== 'board_quiz') {
-      const hostBtn = document.getElementById('btn-board-host');
-      if(hostBtn) hostBtn.remove();
-    }
-    
     const me = roomData.players && roomData.players[myId];
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
   });
 
+  // Admin check runs in parallel — re-render after resolved
   checkAdmin().then(() => { if(roomData) renderPlayers(); });
 }
 
@@ -208,10 +188,10 @@ async function leaveRoom() {
   if(chatRef) { chatRef.off('child_added', chatCb); chatRef = null; }
   try {
     if(db && rId && myId) {
-      const myName = getMyName();
       const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
       await Promise.race([
         (async () => {
+          const myName = getMyName();
           await pushSysMsg(`${myName} が退室しました`);
           await db.ref(`rooms/${rId}/players/${myId}`).remove();
           await db.ref(`rooms/${rId}/lastActiveAt`).set(firebase.database.ServerValue.TIMESTAMP);
@@ -230,6 +210,7 @@ async function backToRoom() {
   await db.ref(`rooms/${rId}/status`).set('playing');
 }
 
+// ── Modal ──────────────────────────────────────────────────────────────────
 function openModal(){
   document.getElementById('modal').classList.add('active');
   renderAdminUI();
@@ -258,6 +239,7 @@ function renderAdminUI() {
 function openFeedback(){ document.getElementById('modal-feedback').classList.add('active'); }
 function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
 
+// ── URL / Share ────────────────────────────────────────────────────────────
 function getRoomUrl() {
   if(window.location.protocol === 'file:') return `https://astro-root.com/q-room/?r=${rId}`;
   const base = window.location.origin + window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
@@ -298,6 +280,38 @@ function nativeShare() {
   }).catch(() => {});
 }
 
+function copyUrl(){ navigator.clipboard.writeText(getRoomUrl()); toast('URL copied'); }
+function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
+
+// ── Tweet ──────────────────────────────────────────────────────────────────
+function tweetApp() {
+  const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
+  const url = 'https://astro-root.com/q-room/';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+}
+
+function tweetInvite() {
+  if(!rId) return;
+  const url = getRoomUrl();
+  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#QRoom`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+}
+
+function tweetResult() {
+  if(!roomData || !roomData.players) return;
+  const r = roomData.rule;
+  const sorted = sortPlayers(roomData.players, r).filter(x => x[1].st !== 'spec');
+  const top3 = sorted.slice(0, 3).map(([, p], i) => {
+    const medal = ['🥇','🥈','🥉'][i];
+    const sc = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r) ? p.c : (p.sc || 0);
+    return `${medal} ${p.name}（${sc}pt）`;
+  }).join('\n');
+  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#QRoom`;
+  const url = 'https://astro-root.com/q-room/';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+}
+
+// ── Rule UI ────────────────────────────────────────────────────────────────
 function changeRuleUI(skipRender=false) {
   const r = document.getElementById('sel-rule').value;
   const c = (roomData && roomData.rule === r && roomData.conf) ? roomData.conf : DEF_CONF[r];
@@ -329,10 +343,15 @@ function changeRuleUI(skipRender=false) {
       ④「次の問題」で回答をリセット・少数正解ボーナスを適用
     </div>`;
 
-  
   document.getElementById('config-area').innerHTML = h;
+
   if(!skipRender && roomData && r !== roomData.rule) {
-    if(!isAdmin()) { toast('⚠️ 管理者のみルールを変更できます'); document.getElementById('sel-rule').value = roomData.rule; changeRuleUI(true); return; }
+    if(!isAdmin()) {
+      toast('⚠️ 管理者のみルールを変更できます');
+      document.getElementById('sel-rule').value = roomData.rule;
+      changeRuleUI(true);
+      return;
+    }
     db.ref('rooms/'+rId).update({rule: r, conf: DEF_CONF[r]});
     if(r === 'time_race') {
       const lm = (DEF_CONF.time_race.limit) * 60 * 1000;
@@ -373,6 +392,7 @@ function updateConf() {
   }
 }
 
+// ── Sort / Rank ────────────────────────────────────────────────────────────
 function sortPlayers(pl, rule) {
   return Object.entries(pl).sort((a,b) => {
     const p1=a[1], p2=b[1];
@@ -407,6 +427,7 @@ function calcRanks(sorted) {
   return ranks;
 }
 
+// ── Render Players ─────────────────────────────────────────────────────────
 function renderPlayers() {
   const pl = roomData.players || {};
   const r = roomData.rule;
@@ -486,8 +507,7 @@ function renderPlayers() {
     <div class="pcard ${cls}">
       <div class="rank-num">${ranks[idx]}</div>
       <div class="p-main">
-        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}
-        </div>
+        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}</div>
         <div class="p-stats">
           <span class="c">◯ ${p.c}</span>
           <span class="w">✕ ${wtxt}</span>
@@ -519,6 +539,7 @@ function renderPlayers() {
   }
 }
 
+// ── Board Quiz Panel ───────────────────────────────────────────────────────
 let boardAnsDebounce = null;
 
 function renderBoardQuizPanel(me, boardPhase, isHostMe) {
@@ -529,50 +550,44 @@ function renderBoardQuizPanel(me, boardPhase, isHostMe) {
     if(boardPhase === 'input') {
       ox.innerHTML = `<button class="ox-btn btn-board-open" onclick="boardOpenPhase()">📋 解答オープン</button>`;
     } else {
-      ox.innerHTML = `<button class="ox-btn btn-board-next" onclick="boardNextQuestion()">▶ 次の問題</button>`;
+      const allJudged = Object.values(roomData.players || {}).filter(p => p.st === 'active').every(p => p.board_judged);
+      ox.innerHTML = allJudged
+        ? `<button class="ox-btn btn-board-next" onclick="boardNextQuestion()">▶ 次の問題</button>`
+        : `<div class="board-judged-msg" style="color:var(--text-muted);font-size:0.9rem;">全員を判定してください</div>
+           <button class="ox-btn btn-board-next" onclick="boardNextQuestion()">▶ 次の問題（強制）</button>`;
     }
-  } else if(me.st === 'spec' || me.st === 'win' || me.st === 'lose') {
-    ox.style.display = 'none';
-    ox.style.gridTemplateColumns = '';
   } else {
-    ox.style.display = 'grid';
-    ox.style.gridTemplateColumns = '1fr 1fr';
+    const currentAns = me.board_ans || '';
     const buzOn = !!me.board_btn;
     const judged = me.board_judged;
-    const currentAns = me.board_ans || '';
-    if(judged) {
-      ox.innerHTML = `<div class="board-judged-msg" style="grid-column:1/-1">${judged==='correct'?'◯ 正解！':'✕ 不正解'}</div>`;
-    } else {
+    if(me.st === 'spec' || me.st === 'win' || me.st === 'lose') {
+      ox.style.display = 'none';
+    } else if(boardPhase === 'input') {
+      ox.style.display = 'grid';
+      ox.style.gridTemplateColumns = '1fr auto auto';
       ox.innerHTML = `
-        <div class="board-input-wrap" style="grid-column:1/-1">
+        <div class="board-input-wrap" style="grid-column:1/-1;">
           <input type="text" id="board-ans-input" class="board-ans-field" placeholder="回答を入力…" value="${esc(currentAns)}" maxlength="80" autocomplete="off"
             oninput="boardDebouncedUpdate(this.value)"
-            onkeydown="if(event.key==='Enter')boardSubmitAns()">
+            onkeydown="if(event.key==='Enter'){boardSubmitAns();event.preventDefault();}">
         </div>
         <button class="ox-btn btn-board-submit" onclick="boardSubmitAns()">📝 提出</button>
-        <button class="ox-btn ${buzOn?'btn-board-buzz-on':'btn-board-buzz'}" onclick="boardToggleBuzz()">${buzOn?'🔔 BUZZ中':'🔔 BUZZ'}</button>`;
+        <button class="ox-btn ${buzOn?'btn-board-buzz-on':'btn-board-buzz'}" onclick="boardToggleBuzz()" id="board-buzz-btn">
+          ${buzOn?'🔔 BUZZ中':'🔔 BUZZ'}
+        </button>`;
+    } else {
+      ox.style.display = 'grid';
+      ox.style.gridTemplateColumns = '1fr';
+      const resultIcon = judged==='correct'?'<span class="board-result-o" style="font-size:2rem;">◯</span>':judged==='wrong'?'<span class="board-result-x" style="font-size:2rem;">✕</span>':'<span style="color:var(--text-muted);font-size:0.9rem;">判定待ち…</span>';
+      ox.innerHTML = `<div class="board-judged-msg">${resultIcon}</div>`;
     }
-  }
-  const subActions = document.querySelector('.sub-actions');
-  if(subActions) {
-    const hostBtn = subActions.querySelector('#btn-board-host');
-    if(!hostBtn) {
-      const btn = document.createElement('button');
-      btn.className = 'sub-btn';
-      btn.id = 'btn-board-host';
-      btn.onclick = boardSetHost;
-      subActions.insertBefore(btn, subActions.firstChild);
-    }
-    const bh = subActions.querySelector('#btn-board-host');
-    const isCurrentHost = roomData.board_host === myId;
-    bh.innerText = isCurrentHost ? '🎙 HOST解除' : '🎙 HOSTになる';
   }
 }
 
 function boardDebouncedUpdate(val) {
   clearTimeout(boardAnsDebounce);
   boardAnsDebounce = setTimeout(() => {
-    if(rId && db) db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
+    if(db && rId && myId) db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
   }, 400);
 }
 
@@ -581,12 +596,12 @@ async function boardSubmitAns() {
   if(!input) return;
   const val = input.value.trim();
   await db.ref(`rooms/${rId}/players/${myId}/board_ans`).set(val);
-  toast('📝 提出しました');
+  toast('✅ 提出しました');
 }
 
 async function boardToggleBuzz() {
-  const me = roomData.players[myId];
-  const cur = me.board_btn || false;
+  const me = roomData.players && roomData.players[myId];
+  const cur = !!(me && me.board_btn);
   await db.ref(`rooms/${rId}/players/${myId}/board_btn`).set(!cur);
 }
 
@@ -598,76 +613,55 @@ async function boardSetHost() {
     await db.ref(`rooms/${rId}/players/${myId}/st`).set('active');
     toast('ホストを解除しました');
   } else {
-    const prevHost = roomData.board_host;
-    if(prevHost && roomData.players[prevHost]) {
-      await db.ref(`rooms/${rId}/players/${prevHost}/st`).set('active');
-    }
     await db.ref(`rooms/${rId}/board_host`).set(myId);
     await db.ref(`rooms/${rId}/players/${myId}/st`).set('spec');
-    toast('🎙 ホストになりました');
+    await db.ref(`rooms/${rId}/board_phase`).set('input');
+    toast('🎙 HOSTになりました');
   }
 }
 
 async function boardOpenPhase() {
-  if(roomData.board_host !== myId) return;
   await db.ref(`rooms/${rId}/board_phase`).set('open');
-  toast('📋 解答オープン！');
 }
 
 async function boardJudge(pid, isCorrect) {
-  if(roomData.board_host !== myId) return;
+  if(!roomData || !roomData.players || !roomData.players[pid]) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
   const p = pData[pid];
-  if(!p || p.st === 'spec') return;
   const c = roomData.conf || DEF_CONF.board_quiz;
-  const mePrev = JSON.stringify({c:p.c, w:p.w, sc:p.sc, st:p.st});
-  
   if(isCorrect) {
     p.c++;
-    const pts = p.board_btn ? (c.a || 15) : (c.m || 10);
-    p.sc = (p.sc || 0) + pts;
-    p.board_judged = 'correct';
-    p.statsAt = Date.now();
-    toast(`◯ ${p.name} +${pts}pt`);
+    p.sc = (p.sc||0) + (p.board_btn ? (c.a||15) : (c.m||10));
   } else {
     p.w++;
-    const pts = p.board_btn ? (c.z || 5) : (c.n || 3);
-    p.sc = (p.sc || 0) - pts;
-    p.board_judged = 'wrong';
-    p.statsAt = Date.now();
-    toast(`✕ ${p.name} -${pts}pt`);
+    p.sc = (p.sc||0) - (p.board_btn ? (c.z||5) : (c.n||3));
   }
-  p.hist = p.hist || [];
-  p.hist.unshift(mePrev);
-  if(p.hist.length > 5) p.hist.length = 5;
-  await db.ref(`rooms/${rId}/players`).update(pData);
+  p.board_judged = isCorrect ? 'correct' : 'wrong';
+  p.statsAt = Date.now();
+  await db.ref(`rooms/${rId}/players/${pid}`).update({
+    c: p.c, w: p.w, sc: p.sc, board_judged: p.board_judged, statsAt: p.statsAt
+  });
 }
 
 async function boardNextQuestion() {
-  if(roomData.board_host !== myId) return;
-  if(!confirm('次の問題へ進みますか？（少数正解ボーナスを適用し、回答をリセットします）')) return;
+  if(!roomData || !roomData.players) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
   const c = roomData.conf || DEF_CONF.board_quiz;
-  
   const correctPlayers = Object.keys(pData).filter(pid => pData[pid].board_judged === 'correct');
-  const threshold = c.x !== undefined ? c.x : 1;
-  const bonus = c.y !== undefined ? c.y : 10;
-  if(correctPlayers.length > 0 && correctPlayers.length <= threshold) {
-    correctPlayers.forEach(pid => {
-      pData[pid].sc = (pData[pid].sc || 0) + bonus;
-    });
-    toast(`🌟 少数正解ボーナス +${bonus}pt（${correctPlayers.length}人）`);
+  if(correctPlayers.length > 0 && correctPlayers.length <= (c.x||1)) {
+    correctPlayers.forEach(pid => { pData[pid].sc = (pData[pid].sc||0) + (c.y||10); });
+    toast(`🎯 少数正解ボーナス +${c.y||10}pt`);
   }
-  
-  Object.keys(pData).forEach(pid => {
-    pData[pid].board_ans = '';
-    pData[pid].board_btn = false;
-    pData[pid].board_judged = null;
+  Object.keys(pData).forEach(k => {
+    pData[k].board_ans = '';
+    pData[k].board_btn = false;
+    pData[k].board_judged = null;
   });
-  await db.ref(`rooms/${rId}/players`).update(pData);
+  await db.ref(`rooms/${rId}/players`).set(pData);
   await db.ref(`rooms/${rId}/board_phase`).set('input');
 }
 
+// ── Kick ───────────────────────────────────────────────────────────────────
 async function kickPlayer(pid) {
   if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
   const p = roomData.players[pid];
@@ -677,6 +671,7 @@ async function kickPlayer(pid) {
   toast(`${p.name} を退室させました`);
 }
 
+// ── Actions ────────────────────────────────────────────────────────────────
 async function sendAction(type) {
   if(!roomData || !roomData.players || !roomData.players[myId]) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
@@ -693,7 +688,6 @@ async function sendAction(type) {
   }
   
   const mePrev = JSON.stringify({c:me.c, w:me.w, sc:me.sc, rst:me.rst, str:me.str, adv:me.adv, st:me.st});
-  
   const c = roomData.conf || DEF_CONF[r];
   
   if(type === 'rest') {
@@ -707,9 +701,7 @@ async function sendAction(type) {
         me.sc = (me.sc||0) + (me.str>0?2:1);
         const pStr = me.str;
         me.str = pStr > 0 ? 0 : 1;
-        Object.keys(pData).forEach(id => {
-          if(id !== myId) pData[id].str = 0;
-        });
+        Object.keys(pData).forEach(id => { if(id !== myId) pData[id].str = 0; });
       } else {
         me.sc = (me.sc||0) + (me.str>0?2:1);
         me.str++;
@@ -783,12 +775,8 @@ async function sendAction(type) {
   if(me.hist.length > 5) me.hist.length = 5;
 
   const prevParsed = JSON.parse(mePrev);
-  if (me.c !== prevParsed.c || me.w !== prevParsed.w) {
-    me.statsAt = Date.now();
-  }
-  if (me.st === 'win' && prevParsed.st !== 'win') {
-    me.winAt = Date.now();
-  }
+  if (me.c !== prevParsed.c || me.w !== prevParsed.w) me.statsAt = Date.now();
+  if (me.st === 'win' && prevParsed.st !== 'win') me.winAt = Date.now();
 
   await db.ref(`rooms/${rId}/players`).update(pData);
   
@@ -802,11 +790,9 @@ async function reqUndo() {
   if(!roomData || !roomData.players || !roomData.players[myId]) return;
   const me = roomData.players[myId];
   if(!me.hist || me.hist.length === 0) return;
-  
   const hist = [...me.hist];
   const prevState = JSON.parse(hist.shift());
   prevState.hist = hist;
-  
   await db.ref(`rooms/${rId}/players/${myId}`).update(prevState);
   toast('↩ UNDO done!');
 }
@@ -820,10 +806,8 @@ async function resetPoints() {
   if(!isAdmin()) { toast('⚠️ 管理者のみ操作できます'); return; }
   if(!confirm('全員のスコアをリセットしますか？')) return;
   const pData = JSON.parse(JSON.stringify(roomData.players));
-  
   const c = roomData.conf || {};
   const sc = roomData.rule==='divide' ? (c.init || 10) : roomData.rule==='attack_surv' ? (c.life || 20) : 0;
-  
   Object.keys(pData).forEach(k => {
     pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[], winAt:0, statsAt:Date.now() };
     if(pData[k].st !== 'spec') pData[k].st = 'active';
@@ -835,7 +819,6 @@ async function resetPoints() {
   });
   await db.ref(`rooms/${rId}/players`).set(pData);
   if(roomData.rule === 'time_race') {
-    const c = roomData.conf || DEF_CONF.time_race;
     const lm = (c.limit||5) * 60 * 1000;
     await db.ref(`rooms/${rId}/timer`).set({state:'idle', limitMs:lm, remaining:lm, startAt:null, cdStartAt:null});
   }
@@ -850,6 +833,7 @@ async function endGame() {
   }
 }
 
+// ── Result ─────────────────────────────────────────────────────────────────
 function renderResult() {
   show('result');
   const pl = roomData.players || {};
@@ -879,42 +863,7 @@ function renderResult() {
   document.getElementById('rlist').innerHTML = h;
 }
 
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function tweetApp() {
-  const text = `🎮 Q-Room — オンラインでリアルタイムにクイズ対戦できるサービス！\nm◯n×, NewYork, Board Quizなど豊富なルール対応✨\n#QRoom #クイズ`;
-  const url = 'https://astro-root.com/q-room/';
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
-}
-
-function tweetInvite() {
-  if(!rId) return;
-  const url = getRoomUrl();
-  const text = `🎮 Q-Roomでクイズ対戦しよう！\nRoom ID: ${rId}\n下のURLから参加してね👇\n#QRoom`;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
-}
-
-function tweetResult() {
-  if(!roomData || !roomData.players) return;
-  const r = roomData.rule;
-  const sorted = sortPlayers(roomData.players, r).filter(x => x[1].st !== 'spec');
-  const top3 = sorted.slice(0, 3).map(([, p], i) => {
-    const medal = ['🥇','🥈','🥉'][i];
-    const sc = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(r) ? p.c : (p.sc || 0);
-    return `${medal} ${p.name}（${sc}pt）`;
-  }).join('\n');
-  const text = `Q-Roomクイズ結果🏆\n【${document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text}】\n\n${top3}\n\n#QRoom`;
-  const url = 'https://astro-root.com/q-room/';
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
-}
-
-
-function copyUrl(){ 
-  navigator.clipboard.writeText(getRoomUrl()); 
-  toast('URL copied'); 
-}
-function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
-
+// ── Name / Chat helpers ────────────────────────────────────────────────────
 function getMyName(fallback='') {
   if(roomData && roomData.players && roomData.players[myId] && roomData.players[myId].name)
     return roomData.players[myId].name;
@@ -940,80 +889,75 @@ function initChat(playerName='') {
   });
 
   const name = playerName || getMyName();
-  pushSysMsg(`${name} が入室しました`);
+  document.getElementById('chat-player-name').innerText = name;
+}
+
+function renderChatMsg(msg) {
+  const isMe = msg.playerId === myId;
+  const isSys = msg.type === 'system';
+  const isStamp = msg.type === 'stamp';
+  const el = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  if(isSys) {
+    div.className = 'chat-sys';
+    div.innerText = msg.text;
+  } else {
+    div.className = `chat-msg ${isMe?'me':'other'}`;
+    div.innerHTML = `
+      <div class="chat-msg-name">${esc(msg.playerName)}</div>
+      <div class="${isStamp ? 'chat-msg-stamp' : 'chat-msg-bubble'}">${esc(msg.text)}</div>`;
+  }
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function updateChatBadge() {
+  const badge = document.getElementById('chat-badge');
+  if(chatUnread > 0) { badge.textContent = chatUnread > 9 ? '9+' : chatUnread; badge.style.display = 'flex'; }
+  else badge.style.display = 'none';
 }
 
 function toggleChat() {
   chatOpen = !chatOpen;
   document.getElementById('chat-drawer').classList.toggle('open', chatOpen);
-  document.getElementById('chat-overlay').classList.toggle('show', chatOpen);
   if(chatOpen) {
     chatUnread = 0;
-    lastSeenMsgTs = Date.now();
     updateChatBadge();
-    setTimeout(() => {
-      const el = document.getElementById('chat-messages');
-      el.scrollTop = el.scrollHeight;
-      document.getElementById('chat-input').focus();
-    }, 50);
+    lastSeenMsgTs = Date.now();
+    const el = document.getElementById('chat-messages');
+    el.scrollTop = el.scrollHeight;
   }
-}
-
-function updateChatBadge() {
-  const badge = document.getElementById('chat-badge');
-  if(chatUnread > 0) {
-    badge.textContent = chatUnread > 99 ? '99+' : chatUnread;
-    badge.classList.add('show');
-  } else {
-    badge.classList.remove('show');
-  }
-}
-
-function renderChatMsg(msg) {
-  const el = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  if(msg.type === 'system') {
-    div.className = 'chat-sys';
-    div.textContent = msg.text;
-  } else {
-    const isMe = msg.playerId === myId;
-    const isStamp = msg.stamp;
-    div.className = `chat-msg ${isMe ? 'me' : 'other'}`;
-    div.innerHTML = `
-      <div class="chat-msg-name">${esc(msg.playerName)}</div>
-      <div class="${isStamp ? 'chat-msg-stamp' : 'chat-msg-bubble'}">${esc(msg.text)}</div>
-    `;
-  }
-  el.appendChild(div);
-  if(chatOpen || msg.playerId === myId) el.scrollTop = el.scrollHeight;
 }
 
 async function sendChatMsg() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
-  if(!text || !rId) return;
+  if(!text || !db || !rId) return;
   input.value = '';
   await db.ref(`rooms/${rId}/chat`).push({
-    type: 'msg', playerId: myId, playerName: getMyName(),
-    text, stamp: false, ts: firebase.database.ServerValue.TIMESTAMP
+    type: 'text', text,
+    playerId: myId, playerName: getMyName(),
+    ts: firebase.database.ServerValue.TIMESTAMP
   });
 }
 
-async function sendStamp(emoji) {
-  if(!rId) return;
+async function sendStamp(stamp) {
+  if(!db || !rId) return;
   await db.ref(`rooms/${rId}/chat`).push({
-    type: 'msg', playerId: myId, playerName: getMyName(),
-    text: emoji, stamp: true, ts: firebase.database.ServerValue.TIMESTAMP
+    type: 'stamp', text: stamp,
+    playerId: myId, playerName: getMyName(),
+    ts: firebase.database.ServerValue.TIMESTAMP
   });
 }
 
 async function pushSysMsg(text) {
-  if(!rId || !db) return;
+  if(!db || !rId) return;
   await db.ref(`rooms/${rId}/chat`).push({
     type: 'system', text, ts: firebase.database.ServerValue.TIMESTAMP
   });
 }
 
+// ── Timer ──────────────────────────────────────────────────────────────────
 let timerInterval = null;
 let timerData = null;
 let timerRef = null;
@@ -1082,9 +1026,7 @@ function updateTimerDisplay() {
     cdInterval = setInterval(tick, 100);
 
   } else if(state === 'running') {
-    if (document.getElementById('countdown-num').textContent !== 'GO!') {
-      co.classList.remove('show');
-    }
+    if (document.getElementById('countdown-num').textContent !== 'GO!') co.classList.remove('show');
     btnStart.disabled = true;
     btnStop.disabled = false;
     const tick = () => {
@@ -1096,14 +1038,11 @@ function updateTimerDisplay() {
       else if(left <= 60000) disp.className = 'timer-display warning';
       else disp.className = 'timer-display';
       if(left <= 0) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+        clearInterval(timerInterval); timerInterval = null;
         db.ref(`rooms/${rId}/timer/state`).transaction(cur => {
           if(cur === 'running') return 'finished';
           return undefined;
-        }).then(res => {
-          if(res && res.committed) finishTimeRace();
-        });
+        }).then(res => { if(res && res.committed) finishTimeRace(); });
       }
     };
     tick();
@@ -1136,7 +1075,6 @@ async function timerAction(action) {
   if(action === 'start') confirmMsg = 'タイマーをスタート（再開）しますか？';
   else if(action === 'stop') confirmMsg = 'タイマーをストップ（一時停止）しますか？';
   else if(action === 'reset') confirmMsg = 'タイマーをリセットしますか？';
-  
   if(!confirm(confirmMsg)) return;
 
   const conf = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
@@ -1147,11 +1085,8 @@ async function timerAction(action) {
     if(td.state === 'running' || td.state === 'countdown') return;
     const currentRemaining = (td.state === 'paused') ? (td.remaining !== undefined ? td.remaining : limitMs) : limitMs;
     await db.ref(`rooms/${rId}/timer`).set({
-      state: 'countdown',
-      cdStartAt: firebase.database.ServerValue.TIMESTAMP,
-      remaining: currentRemaining,
-      limitMs: td.limitMs || limitMs,
-      startAt: null
+      state: 'countdown', cdStartAt: firebase.database.ServerValue.TIMESTAMP,
+      remaining: currentRemaining, limitMs: td.limitMs || limitMs, startAt: null
     });
     clearTimeout(cdStartTimeout);
     cdStartTimeout = setTimeout(async () => {
@@ -1159,8 +1094,7 @@ async function timerAction(action) {
       if(snap.val() === 'countdown') {
         const remSnap = await db.ref(`rooms/${rId}/timer/remaining`).once('value');
         await db.ref(`rooms/${rId}/timer`).update({
-          state: 'running',
-          startAt: firebase.database.ServerValue.TIMESTAMP,
+          state: 'running', startAt: firebase.database.ServerValue.TIMESTAMP,
           remaining: remSnap.val() !== null ? remSnap.val() : currentRemaining
         });
       }
@@ -1168,10 +1102,7 @@ async function timerAction(action) {
 
   } else if(action === 'stop') {
     clearTimeout(cdStartTimeout);
-    if(td.state === 'countdown') {
-      await db.ref(`rooms/${rId}/timer`).update({ state: 'paused' });
-      return;
-    }
+    if(td.state === 'countdown') { await db.ref(`rooms/${rId}/timer`).update({ state: 'paused' }); return; }
     if(td.state !== 'running') return;
     const elapsed = td.startAt ? getServerTime() - td.startAt : 0;
     const currentRemaining = Math.max(0, (td.remaining !== undefined ? td.remaining : limitMs) - elapsed);
@@ -1183,12 +1114,24 @@ async function timerAction(action) {
     clearInterval(cdInterval); cdInterval = null;
     const conf2 = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
     const lm = (conf2.limit || 5) * 60 * 1000;
-    await db.ref(`rooms/${rId}/timer`).set({
-      state: 'idle', limitMs: lm, remaining: lm, startAt: null, cdStartAt: null
-    });
+    await db.ref(`rooms/${rId}/timer`).set({ state: 'idle', limitMs: lm, remaining: lm, startAt: null, cdStartAt: null });
   }
 }
 
+async function finishTimeRace() {
+  if(!roomData || !roomData.players) return;
+  const pData = JSON.parse(JSON.stringify(roomData.players));
+  const actives = Object.values(pData).filter(p => p.st === 'active');
+  if(actives.length === 0) return;
+  const maxSc = Math.max(...actives.map(p => p.sc || 0));
+  Object.keys(pData).forEach(k => {
+    if(pData[k].st === 'active') pData[k].st = (pData[k].sc || 0) >= maxSc ? 'win' : 'lose';
+  });
+  await db.ref(`rooms/${rId}/players`).update(pData);
+  await db.ref(`rooms/${rId}/status`).set('finished');
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') !== 'light';
@@ -1214,18 +1157,3 @@ function toggleTheme() {
     }
   } catch(e) {}
 })();
-
-async function finishTimeRace() {
-  if(!roomData || !roomData.players) return;
-  const pData = JSON.parse(JSON.stringify(roomData.players));
-  const actives = Object.values(pData).filter(p => p.st === 'active');
-  if(actives.length === 0) return;
-  const maxSc = Math.max(...actives.map(p => p.sc || 0));
-  Object.keys(pData).forEach(k => {
-    if(pData[k].st === 'active') {
-      pData[k].st = (pData[k].sc || 0) >= maxSc ? 'win' : 'lose';
-    }
-  });
-  await db.ref(`rooms/${rId}/players`).update(pData);
-  await db.ref(`rooms/${rId}/status`).set('finished');
-}
