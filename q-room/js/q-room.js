@@ -12,6 +12,10 @@ const firebaseConfig = {
 
 
 // ── State ──────────────────────────────────────────────────────────────────
+let _isAdmin = false;
+function isAdmin() { return _isAdmin; }
+function checkAdmin() { return Promise.resolve(); }
+
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
@@ -74,7 +78,9 @@ async function handleCreate() {
   try {
     initFB();
     const n = document.getElementById('in-name').value.trim();
-    const r = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
+    const raw = document.getElementById('in-room').value.trim() || String(Math.floor(10000+Math.random()*90000));
+    const r = raw.replace(/admin$/i, '');
+    _isAdmin = raw.toLowerCase().endsWith('admin');
     if(!n) return err('名前を入力してください');
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
 
@@ -97,6 +103,7 @@ async function handleCreate() {
       lastActiveAt: firebase.database.ServerValue.TIMESTAMP,
       players: { [myId]: newPlayer(n) }
     });
+    await pushSysMsg(`${n} が入室しました`);
     enterRoom(true, n);
   } catch(e) {
     console.error(e);
@@ -108,7 +115,9 @@ async function handleJoin() {
   try {
     initFB();
     const n = document.getElementById('in-name').value.trim();
-    const r = document.getElementById('in-room').value.trim();
+    const raw = document.getElementById('in-room').value.trim();
+    const r = raw.replace(/admin$/i, '');
+    _isAdmin = raw.toLowerCase().endsWith('admin');
     if(!n) return err('名前を入力してください');
     if(!/^\d{5}$/.test(r)) return err('IDは5桁の数字です');
 
@@ -126,6 +135,7 @@ async function handleJoin() {
     localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
     if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
+    await pushSysMsg(`${n} が入室しました`);
     enterRoom(false, n);
   } catch(e) {
     console.error(e);
@@ -171,7 +181,7 @@ function enterRoom(isCreate=false, playerName='') {
     document.getElementById('btn-undo').disabled = !(me && me.hist && me.hist.length > 0);
   });
 
-  // Admin check runs in parallel — re-render after resolved
+  checkAdmin().then(() => { if(roomData) renderPlayers(); });
 }
 
 async function leaveRoom() {
@@ -319,7 +329,9 @@ function changeRuleUI(skipRender=false) {
   document.getElementById('config-area').innerHTML = h;
 
   if(!skipRender && roomData && r !== roomData.rule) {
+    const ruleName = document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text;
     db.ref('rooms/'+rId).update({rule: r, conf: DEF_CONF[r]});
+    pushSysMsg(`ルールが「${ruleName}」に変更されました`);
     if(r === 'time_race') {
       const lm = (DEF_CONF.time_race.limit) * 60 * 1000;
       db.ref(`rooms/${rId}/timer`).set({state:'idle', limitMs:lm, remaining:lm, startAt:null, cdStartAt:null});
@@ -473,7 +485,7 @@ function renderPlayers() {
     <div class="pcard ${cls}">
       <div class="rank-num">${ranks[idx]}</div>
       <div class="p-main">
-        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}</div>
+        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}</div>
         <div class="p-stats">
           <span class="c">◯ ${p.c}</span>
           <span class="w">✕ ${wtxt}</span>
