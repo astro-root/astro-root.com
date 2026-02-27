@@ -10,12 +10,25 @@ const firebaseConfig = {
 
 const ADMIN_HASH = '1f05d74edef006760f3b1f964820887e991f266be0015dcef0dd41b85eb7e8e9';
 
+// q-room.jsのsettings画面に表示される実際のテキストと一致させる
 const RULE_LABELS = {
-  survival:'サバイバル', free:'フリー', newyork:'New York', rentou:'連答',
-  updown:'UpDown', by:'BY', freeze:'フリーズ', m_n_rest:'MN休憩',
-  swedish:'スウェーデン', ren_wrong:'連続不正解', divide:'分配',
-  combo:'コンボ', attack_surv:'攻撃サバイバル', lucky:'ラッキー',
-  spiral:'スパイラル', time_race:'タイムレース'
+  survival:    'm◯n×',
+  free:        'Free',
+  newyork:     'NewYork',
+  rentou:      '連答付き',
+  updown:      'up-down',
+  by:          'by',
+  freeze:      'Freeze',
+  m_n_rest:    'm◯n休',
+  swedish:     'Swedish',
+  ren_wrong:   '連誤答付き',
+  divide:      'divide',
+  combo:       'm hits Combo',
+  attack_surv: 'アタック風サバイバル',
+  lucky:       'LuckyShot',
+  spiral:      '螺旋階段',
+  time_race:   'Time Race',
+  board_quiz:  'Board Quiz'
 };
 
 const QROOM_BASE = 'https://astro-root.com/q-room/';
@@ -26,7 +39,9 @@ let countdownTimer = null;
 let finishedVisible = false;
 let isAdmin = false;
 let peekListener = null;
+let peekChatListener = null;
 let peekRid = null;
+let peekChatOpen = false;
 
 function initFB() {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -55,46 +70,66 @@ function timeAgo(ts) {
 }
 
 function copyRoomId(rid, btn) {
-  navigator.clipboard.writeText(rid).then(() => {
-    btn.textContent = '✓ COPIED';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = 'COPY ID';
-      btn.classList.remove('copied');
-    }, 2000);
-  }).catch(() => {
-    btn.textContent = '✓ COPIED';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = 'COPY ID';
-      btn.classList.remove('copied');
-    }, 2000);
-  });
+  navigator.clipboard.writeText(rid).then(() => {}).catch(() => {});
+  btn.textContent = '✓ COPIED';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'COPY ID'; btn.classList.remove('copied'); }, 2000);
 }
 
 function getPlayerStatusClass(st) {
   if (st === 'win') return 'st-win';
   if (st === 'lose') return 'st-lose';
-  if (st === 'spectator') return 'st-spec';
+  if (st === 'spec') return 'st-spec';
   return 'st-active';
 }
 
-function buildRoomCard(rid, room, idx) {
+// ルームの実態を判定する
+// status:'finished' → 終了
+// status:'playing' かつ players が全員退室(空) → ゾンビ終了扱い
+// lastActiveAt が ZOMBIE_THRESHOLD 以上前かつ playerが0人 → ゾンビ
+function classifyRoom(room) {
+  const ZOMBIE_MS = 10 * 60 * 1000; // 10分
   const players = room.players || {};
   const playerList = Object.values(players);
+  const lastActive = room.lastActiveAt || room.createdAt || 0;
+  const isExplicitlyFinished = room.status === 'finished';
+  const hasPlayers = playerList.length > 0;
+  const isStale = (Date.now() - lastActive) > ZOMBIE_MS;
+
+  if (isExplicitlyFinished) return 'finished';
+  if (!hasPlayers && isStale) return 'zombie'; // プレイヤーなし+放置
+  if (!hasPlayers) return 'zombie';
+  return 'playing';
+}
+
+function getRoomStatusLabel(kind) {
+  if (kind === 'finished') return { label: '終了', color: 'var(--muted)' };
+  if (kind === 'zombie') return { label: '放置中（全員退室？）', color: 'var(--yellow)' };
+  return { label: 'プレイ中', color: 'var(--green)' };
+}
+
+function buildRoomCard(rid, room, idx, isFinishedSection) {
+  const players = room.players || {};
+  // 終了済みセクションでは全プレイヤー（退室済み含む）を allPlayers として扱う
+  // activeセクションでは room.players がそのまま有効プレイヤー
+  const playerEntries = Object.entries(players);
+  const playerList = Object.values(players);
   const activePlayers = playerList.filter(p => p.st === 'active');
-  const isFinished = room.status === 'finished' || playerList.length === 0;
+  const kind = classifyRoom(room);
+  const st = getRoomStatusLabel(kind);
   const ruleName = RULE_LABELS[room.rule] || room.rule || '?';
-  const createdAt = room.createdAt || room.lastActiveAt || null;
+  const createdAt = room.createdAt || null;
   const lastActive = room.lastActiveAt || room.createdAt || null;
+  const isFinished = kind !== 'playing';
 
   const avatarChar = (name) => name ? name.charAt(0).toUpperCase() : '?';
 
-  const playersHtml = playerList.length === 0
+  // 終了済みセクションは全プレイヤー名を表示（退室済みでも）
+  const playersHtml = playerEntries.length === 0
     ? '<div style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">プレイヤーなし</div>'
-    : playerList.map(p => {
+    : playerEntries.map(([, p]) => {
         const sc = p.sc !== undefined ? p.sc : 0;
-        const stClass = getPlayerStatusClass(p.st);
+        const stClass = isFinishedSection ? '' : getPlayerStatusClass(p.st);
         const isWin = p.st === 'win';
         return `
         <div class="player-chip ${stClass}">
@@ -117,7 +152,7 @@ function buildRoomCard(rid, room, idx) {
       <div class="rule-badge">${ruleName}</div>
       <button class="copy-btn" onclick="copyRoomId('${rid}', this)">COPY ID</button>
       <button class="peek-btn" onclick="openPeek('${rid}')">👁 PEEK</button>
-      <button class="join-btn" onclick="window.open('${QROOM_BASE}?r=${rid}','_blank')">→ 参加</button>
+      ${!isFinished ? `<button class="join-btn" onclick="window.open('${QROOM_BASE}?r=${rid}','_blank')">→ 参加</button>` : ''}
     </div>
     <div class="room-meta">
       <div class="meta-item">
@@ -134,18 +169,18 @@ function buildRoomCard(rid, room, idx) {
       </div>
       <div class="meta-item">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        状態: <span style="color:${isFinished ? 'var(--muted)' : 'var(--green)'}">${isFinished ? '終了' : 'プレイ中'}</span>
+        状態: <span style="color:${st.color}">${st.label}</span>
       </div>
     </div>
     <div class="players-wrap">
-      <div class="players-title">PLAYERS</div>
+      <div class="players-title">PLAYERS${isFinishedSection ? '（全員）' : ''}</div>
       <div class="players-grid">${playersHtml}</div>
     </div>
   </div>`;
 }
 
 function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 async function fetchRooms() {
@@ -155,40 +190,31 @@ async function fetchRooms() {
     const roomsData = snap.val() || {};
     const roomKeys = Object.keys(roomsData);
 
-    const ACTIVE_THRESHOLD_MS = 30 * 60 * 1000;
-    const FINISHED_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+    const FINISHED_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000; // 7日
     const now_ms = Date.now();
 
     const active = [], finished = [];
     roomKeys.forEach(rid => {
       const room = roomsData[rid];
       const lastActive = room.lastActiveAt || room.createdAt || 0;
-      const isActiveRecent = (now_ms - lastActive) < ACTIVE_THRESHOLD_MS;
-      const isFinishedRecent = (now_ms - lastActive) < FINISHED_THRESHOLD_MS;
+      const isRecent = (now_ms - lastActive) < FINISHED_THRESHOLD_MS;
+      if (!isRecent) return; // 7日以上前は無視
 
-      const players = room.players || {};
-      const activePlayers = Object.values(players).filter(p => {
-        const playerTs = p.statsAt || p.joined || 0;
-        return (now_ms - playerTs) < ACTIVE_THRESHOLD_MS;
-      });
-
-      if (!isActiveRecent || room.status === 'finished' || activePlayers.length === 0) {
-        if (isFinishedRecent) finished.push({ rid, room });
+      const kind = classifyRoom(room);
+      if (kind === 'playing') {
+        active.push({ rid, room });
       } else {
-        const filteredRoom = { ...room, players: Object.fromEntries(
-          Object.entries(players).filter(([, p]) => {
-            const playerTs = p.statsAt || p.joined || 0;
-            return (now_ms - playerTs) < ACTIVE_THRESHOLD_MS;
-          })
-        )};
-        active.push({ rid, room: filteredRoom });
+        finished.push({ rid, room });
       }
     });
 
     active.sort((a, b) => (b.room.lastActiveAt || 0) - (a.room.lastActiveAt || 0));
     finished.sort((a, b) => (b.room.lastActiveAt || 0) - (a.room.lastActiveAt || 0));
 
-    const totalPlayers = active.reduce((s, { room }) => s + Object.keys(room.players || {}).length, 0);
+    // アクティブ人数はactiveルームのアクティブプレイヤー数
+    const totalPlayers = active.reduce((s, { room }) => {
+      return s + Object.values(room.players || {}).filter(p => p.st === 'active').length;
+    }, 0);
 
     document.getElementById('chip-rooms').textContent = active.length;
     document.getElementById('chip-rooms').classList.remove('loading-shimmer');
@@ -206,7 +232,7 @@ async function fetchRooms() {
     if (active.length === 0) {
       activeEl.innerHTML = `<div class="empty"><div class="empty-icon">🎮</div><div class="empty-text">現在プレイ中のルームはありません</div></div>`;
     } else {
-      activeEl.innerHTML = active.map(({ rid, room }, i) => buildRoomCard(rid, room, i)).join('');
+      activeEl.innerHTML = active.map(({ rid, room }, i) => buildRoomCard(rid, room, i, false)).join('');
     }
 
     const finEl = document.getElementById('rooms-finished');
@@ -223,7 +249,7 @@ async function fetchRooms() {
       });
       const sortedGroups = Object.values(grouped).sort((a, b) => b.ts - a.ts);
       finEl.innerHTML = sortedGroups.map((group, gi) => {
-        const cardsHtml = group.items.map(({ rid, room }, i) => buildRoomCard(rid, room, i)).join('');
+        const cardsHtml = group.items.map(({ rid, room }, i) => buildRoomCard(rid, room, i, true)).join('');
         const isOpen = gi === 0;
         return `
         <div class="date-group" id="dg-${gi}">
@@ -301,13 +327,10 @@ function startCountdown() {
 }
 
 function openPeek(rid) {
-  _doOpenPeek(rid);
-}
-
-function _doOpenPeek(rid) {
   if (!db) { alert('Firebase未接続です。しばらく待ってから再試行してください。'); return; }
   closePeek();
   peekRid = rid;
+  peekChatOpen = false;
   document.getElementById('peek-rid').textContent = 'ROOM ' + rid;
   document.getElementById('peek-overlay').classList.add('show');
   document.getElementById('peek-drawer').classList.add('open');
@@ -329,37 +352,40 @@ function closePeek() {
     db.ref('rooms/' + peekRid).off('value', peekListener);
     peekListener = null;
   }
+  if (peekChatListener && peekRid && db) {
+    db.ref('rooms/' + peekRid + '/chat').off('child_added', peekChatListener);
+    peekChatListener = null;
+  }
   peekRid = null;
+  peekChatOpen = false;
   document.getElementById('peek-overlay').classList.remove('show');
   document.getElementById('peek-drawer').classList.remove('open');
   document.body.style.overflow = '';
 }
 
 function renderPeek(rid, room) {
-  const RULE_LABEL_MAP = {
-    survival:'サバイバル', free:'フリー', newyork:'New York', rentou:'連答',
-    updown:'UpDown', by:'BY', freeze:'フリーズ', m_n_rest:'MN休憩',
-    swedish:'スウェーデン', ren_wrong:'連続不正解', divide:'分配',
-    combo:'コンボ', attack_surv:'攻撃サバイバル', lucky:'ラッキー',
-    spiral:'スパイラル', time_race:'タイムレース'
-  };
   const players = room.players || {};
-  const playerList = Object.entries(players).sort((a, b) => (b[1].sc || 0) - (a[1].sc || 0));
+  const playerList = Object.entries(players).sort((a, b) => {
+    const sa = a[1].sc !== undefined ? a[1].sc : 0;
+    const sb = b[1].sc !== undefined ? b[1].sc : 0;
+    return sb - sa;
+  });
   const timer = room.timer || null;
-  const ruleName = RULE_LABEL_MAP[room.rule] || room.rule || '?';
+  const ruleName = RULE_LABELS[room.rule] || room.rule || '?';
   const now_d = new Date();
   const ts = String(now_d.getHours()).padStart(2,'0') + ':' +
               String(now_d.getMinutes()).padStart(2,'0') + ':' +
               String(now_d.getSeconds()).padStart(2,'0');
 
-  const stColor = room.status === 'playing' ? 'var(--green)' : room.status === 'finished' ? 'var(--muted)' : 'var(--yellow)';
+  const kind = classifyRoom(room);
+  const stInfo = getRoomStatusLabel(kind);
 
   let timerHtml = '';
   if (timer) {
     const tState = timer.state || '—';
-    const tRem = timer.remaining !== undefined ? Math.max(0, Math.ceil(timer.remaining / 1000)) : '—';
-    const mm = typeof tRem === 'number' ? String(Math.floor(tRem/60)).padStart(2,'0') : '—';
-    const ss = typeof tRem === 'number' ? String(tRem%60).padStart(2,'0') : '—';
+    const tRem = timer.remaining !== undefined ? Math.max(0, Math.ceil(timer.remaining / 1000)) : null;
+    const mm = tRem !== null ? String(Math.floor(tRem/60)).padStart(2,'0') : '—';
+    const ss = tRem !== null ? String(tRem%60).padStart(2,'0') : '—';
     timerHtml = `
     <div class="peek-section">
       <div class="peek-section-title">TIMER</div>
@@ -373,27 +399,36 @@ function renderPeek(rid, room) {
     : playerList.map(([pid, p], i) => {
         const isWin = p.st === 'win';
         const isLose = p.st === 'lose';
+        const stStr = (p.st || '?').toUpperCase();
+        const stColor = p.st==='active'?'var(--green)':p.st==='win'?'var(--green)':p.st==='lose'?'var(--red)':p.st==='spec'?'var(--muted)':'var(--muted)';
         return `
         <div class="peek-player-row ${isWin?'win':isLose?'lose':''}">
           <div style="color:var(--muted);font-family:var(--mono);font-size:0.75rem;min-width:18px;">${i+1}</div>
           <div class="peek-avatar ${isWin?'win':''}">${(p.name||'?').charAt(0).toUpperCase()}</div>
           <div class="peek-pname">${escHtml(p.name||'?')}</div>
           <div class="peek-stats">
-            <span>✓${p.c||0}</span>
-            <span>✗${p.w||0}</span>
-            <span class="sc ${isWin?'win':''}">${p.sc||0}pt</span>
+            <span>◯${p.c||0}</span>
+            <span>✕${p.w||0}</span>
+            <span class="sc ${isWin?'win':''}">${p.sc!==undefined?p.sc:0}pt</span>
           </div>
-          <div style="font-family:var(--mono);font-size:0.68rem;color:${
-            p.st==='active'?'var(--green)':p.st==='win'?'var(--green)':p.st==='lose'?'var(--red)':'var(--muted)'
-          };min-width:40px;text-align:right;">${(p.st||'?').toUpperCase()}</div>
+          <div style="font-family:var(--mono);font-size:0.68rem;color:${stColor};min-width:40px;text-align:right;">${stStr}</div>
         </div>`;
       }).join('');
 
+  // chat tab toggling: preserve open state
+  const chatTabActive = peekChatOpen ? 'peek-tab-active' : '';
+  const infoTabActive = peekChatOpen ? '' : 'peek-tab-active';
+
   document.getElementById('peek-body').innerHTML = `
+    <div class="peek-tabs">
+      <button class="peek-tab ${infoTabActive}" onclick="peekShowInfo()">📊 INFO</button>
+      <button class="peek-tab ${chatTabActive}" onclick="peekShowChat('${rid}')">💬 CHAT</button>
+    </div>
+    <div id="peek-info-panel">
     <div class="peek-section">
       <div class="peek-section-title">ROOM INFO <div class="peek-live-dot" style="border-radius:50%"></div></div>
       <div class="peek-kv"><span class="peek-key">RULE</span><span class="peek-val">${ruleName}</span></div>
-      <div class="peek-kv"><span class="peek-key">STATUS</span><span class="peek-val" style="color:${stColor}">${(room.status||'?').toUpperCase()}</span></div>
+      <div class="peek-kv"><span class="peek-key">STATUS</span><span class="peek-val" style="color:${stInfo.color}">${stInfo.label}</span></div>
       <div class="peek-kv"><span class="peek-key">PLAYERS</span><span class="peek-val">${playerList.length} 人</span></div>
       <div class="peek-kv"><span class="peek-key">CREATED</span><span class="peek-val">${room.createdAt ? new Date(room.createdAt).toLocaleTimeString('ja-JP') : '—'}</span></div>
       <div class="peek-kv"><span class="peek-key">LAST ACTIVE</span><span class="peek-val">${room.lastActiveAt ? new Date(room.lastActiveAt).toLocaleTimeString('ja-JP') : '—'}</span></div>
@@ -404,7 +439,72 @@ function renderPeek(rid, room) {
       ${playersHtml}
     </div>
     <div style="text-align:right;font-family:var(--mono);font-size:0.65rem;color:rgba(255,255,255,0.2);margin-top:8px;">更新: ${ts}</div>
+    </div>
+    <div id="peek-chat-panel" style="display:${peekChatOpen ? 'block' : 'none'};">
+      <div class="peek-chat-log" id="peek-chat-log"><div style="text-align:center;padding:40px;color:var(--muted);font-family:var(--mono);font-size:0.8rem;">読み込み中...</div></div>
+    </div>
   `;
+
+  if (peekChatOpen) {
+    peekLoadChat(rid);
+  }
+}
+
+function peekShowInfo() {
+  peekChatOpen = false;
+  document.getElementById('peek-info-panel').style.display = 'block';
+  document.getElementById('peek-chat-panel').style.display = 'none';
+  document.querySelectorAll('.peek-tab').forEach((t,i) => t.classList.toggle('peek-tab-active', i===0));
+}
+
+function peekShowChat(rid) {
+  peekChatOpen = true;
+  document.getElementById('peek-info-panel').style.display = 'none';
+  document.getElementById('peek-chat-panel').style.display = 'block';
+  document.querySelectorAll('.peek-tab').forEach((t,i) => t.classList.toggle('peek-tab-active', i===1));
+  peekLoadChat(rid);
+}
+
+function peekLoadChat(rid) {
+  if (!db) return;
+  // 既存リスナー解除
+  if (peekChatListener && peekRid && db) {
+    db.ref('rooms/' + peekRid + '/chat').off('child_added', peekChatListener);
+    peekChatListener = null;
+  }
+
+  const logEl = document.getElementById('peek-chat-log');
+  if (!logEl) return;
+  logEl.innerHTML = '';
+
+  peekChatListener = db.ref('rooms/' + rid + '/chat').limitToLast(100).on('child_added', snap => {
+    const msg = snap.val();
+    if (!msg) return;
+    const logEl2 = document.getElementById('peek-chat-log');
+    if (!logEl2) return;
+
+    const div = document.createElement('div');
+    if (msg.type === 'system') {
+      div.className = 'peek-chat-sys';
+      div.textContent = msg.text || '';
+    } else if (msg.type === 'stamp') {
+      div.className = 'peek-chat-msg';
+      div.innerHTML = `<span class="peek-chat-name">${escHtml(msg.playerName||'?')}</span><span class="peek-chat-stamp">${escHtml(msg.text||'')}</span>`;
+    } else {
+      div.className = 'peek-chat-msg';
+      div.innerHTML = `<span class="peek-chat-name">${escHtml(msg.playerName||'?')}</span><span class="peek-chat-bubble">${escHtml(msg.text||'')}</span>`;
+    }
+
+    const timeStr = msg.ts ? new Date(msg.ts).toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'}) : '';
+    if (timeStr) {
+      const timeEl = document.createElement('span');
+      timeEl.className = 'peek-chat-time';
+      timeEl.textContent = timeStr;
+      div.appendChild(timeEl);
+    }
+    logEl2.appendChild(div);
+    logEl2.scrollTop = logEl2.scrollHeight;
+  });
 }
 
 function activateAdmin() {
