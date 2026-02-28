@@ -474,7 +474,14 @@ async function _sendNotifToUids(uids, title, body, statusEl) {
     );
     results.forEach((r, idx) => {
       if (r.status === 'fulfilled') { ok++; }
-      else { fail++; errors.push(`${batch[idx]}: ${r.reason?.message||r.reason}`); }
+      else {
+        fail++;
+        const msg = r.reason?.message || String(r.reason);
+        errors.push(`${batch[idx]}: ${msg}`);
+        if (msg.toLowerCase().includes('permission_denied') && errors.length === 1) {
+          console.error(`[broadcast] PERMISSION_DENIED — Firebase RulesでnotificationsのwriteをarticAuth != nullに変更してください`);
+        }
+      }
     });
     if (statusEl) statusEl.textContent = `送信中… (${ok} / ${uids.length})`;
   }
