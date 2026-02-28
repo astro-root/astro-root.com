@@ -2380,7 +2380,9 @@ async function sendFriendRequest() {
   if(targetId === currentUserProfile.displayId) return toast('自分自身には送れません');
   const uidSnap = await db.ref(`userIndex/${targetId}`).once('value');
   if(!uidSnap.exists()) return toast('ユーザーが見つかりません');
-  const toUid = uidSnap.val();
+  const _indexVal = uidSnap.val();
+  const toUid = (typeof _indexVal === 'object' && _indexVal !== null) ? _indexVal.uid : _indexVal;
+  if(!toUid) return toast('ユーザーIDの取得に失敗しました');
   const alreadySnap = await db.ref(`friends/${currentUser.uid}/${toUid}`).once('value');
   if(alreadySnap.exists()) return toast('すでにフレンドです');
   const targetProf = (await db.ref(`users/${toUid}`).once('value')).val() || {};
