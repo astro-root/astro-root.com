@@ -361,6 +361,7 @@ async function topNotifReadAll() {
   if(Object.keys(updates).length) await firebase.database().ref(`notifications/${currentUser.uid}`).update(updates);
   unreadNotifCount = 0;
   updateHeroAccountBtn();
+  updateNotifBadge();
   if(_topNotifDrawerOpen) loadTopNotifDrawer();
 }
 async function topNotifJoin(notifId, roomId) {
@@ -1545,7 +1546,10 @@ async function renderAccountPage() {
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
     await renderStatsGrid();
-    if(currentUser) {
+    // 通知リストは initTopNotifCenter の on('value') リスナーが管理しているため
+    // ここで once() による二重fetchは行わない。
+    // リスナーが未発火の場合（ページ初回表示直後など）のみ手動fetchする。
+    if(currentUser && !_topNotifRef) {
       try {
         const snap = await db.ref('notifications/' + currentUser.uid).once('value');
         const items = [];
@@ -2310,13 +2314,17 @@ async function acceptFriendFromNotif(notifId, fromUid) {
   await db.ref(`friendRequests/${currentUser.uid}/${fromUid}`).remove();
   await pushNotification(fromUid, 'friendAccepted', 'フレンド承認', `${currentUserProfile.displayId} さんがフレンド申請を承認しました`);
   toast(`✅ ${fromProf.displayId || '?'} さんとフレンドになりました`);
+  // ルーム内パネルと全通知UIを両方更新
   loadAndRenderNotifs();
+  if(_topNotifDrawerOpen) loadTopNotifDrawer();
 }
 
 async function declineFriendFromNotif(notifId, fromUid) {
   await db.ref(`notifications/${currentUser.uid}/${notifId}/read`).set(true);
   await db.ref(`friendRequests/${currentUser.uid}/${fromUid}`).remove();
+  // ルーム内パネルと全通知UIを両方更新
   loadAndRenderNotifs();
+  if(_topNotifDrawerOpen) loadTopNotifDrawer();
 }
 
 
