@@ -288,7 +288,7 @@
       <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTER</button>
     </div>
     <div id="auth-login-form">
-      <div class="field"><label>EMAIL</label><input type="email" id="auth-email-login" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="field"><label>EMAIL or USER ID</label><input type="text" id="auth-email-login" placeholder="your@email.com or user_id" autocomplete="username"></div>
       <div class="field"><label>PASSWORD</label><input type="password" id="auth-pw-login" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginAccount()"></div>
       <div id="auth-err-login" class="err"></div>
       <button class="btn btn-pri" onclick="loginAccount()" style="margin-bottom:12px;">LOGIN</button>
@@ -327,6 +327,10 @@
     <div class="field">
       <label>EMAIL</label>
       <div class="profile-static" id="profile-email-display">—</div>
+    </div>
+    <div class="field">
+      <label>NAME <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
+      <input type="text" id="profile-name-input" maxlength="20" placeholder="あなたの名前">
     </div>
     <div class="field">
       <label>称号 <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
