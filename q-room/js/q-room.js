@@ -469,7 +469,11 @@ function renderPlayers() {
 
     // アカウントアイコン・称号
     const prof = accountProfileCache[p.accountUid] || null;
-    const pIcon = prof ? `<span class="pcard-account-icon">${prof.icon||'👤'}</span>` : '';
+    const pIcon = prof
+      ? (prof.iconUrl
+          ? `<img src="${prof.iconUrl}" style="width:1rem;height:1rem;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;">`
+          : `<span class="pcard-account-icon">${prof.icon||'👤'}</span>`)
+      : '';
     const pTitle = prof && prof.title ? `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:6px;">${esc(prof.title)}</span>` : '';
     
     let boardSection = '';
@@ -1277,7 +1281,11 @@ function updateAccountBar(loggedIn) {
   if(!btn) return;
   if(loggedIn && currentUserProfile) {
     btn.classList.add('logged-in');
-    icon.textContent = currentUserProfile.icon || '👤';
+    if(currentUserProfile.iconUrl) {
+      icon.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:1.3rem;height:1.3rem;border-radius:50%;object-fit:cover;vertical-align:middle;">`;
+    } else {
+      icon.textContent = currentUserProfile.icon || '👤';
+    }
     label.textContent = `${currentUserProfile.displayId}  ▸ プロフィール`;
     btn.onclick = openProfileModal;
   } else {
@@ -1427,25 +1435,49 @@ async function logoutAccount() {
 
 // ── Profile ────────────────────────────────────────────────────────────────
 let _selectedIcon = null;
+let _cropState = { img: null, x: 0, y: 0, scale: 1, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
 
 function openProfileModal() {
   if(!currentUser || !currentUserProfile) return;
   _selectedIcon = currentUserProfile.icon || '🎮';
-  document.getElementById('profile-icon-display').textContent = _selectedIcon;
+  const disp = document.getElementById('profile-icon-display');
+  if(currentUserProfile.iconUrl) {
+    disp.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+  } else {
+    disp.textContent = _selectedIcon;
+  }
   document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
   document.getElementById('profile-email-display').textContent = currentUser.email || '—';
   document.getElementById('profile-name-input').value = currentUserProfile.name || '';
   document.getElementById('profile-title-input').value = currentUserProfile.title || '';
   document.getElementById('icon-picker').style.display = 'none';
+  document.getElementById('icon-crop-wrap').style.display = 'none';
+  document.getElementById('new-uid-input').value = '';
+  document.getElementById('new-email-input').value = '';
+  document.getElementById('reauth-pw-email').value = '';
+  document.getElementById('reauth-pw-current').value = '';
+  document.getElementById('new-pw-input').value = '';
+  document.getElementById('new-pw-confirm').value = '';
+  ['uid-change-err','email-change-err','pw-change-err'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
   renderStatsGrid();
   document.getElementById('modal-profile').classList.add('active');
 }
 
 function closeProfileModal() { document.getElementById('modal-profile').classList.remove('active'); }
 
+function toggleAccountSettings() {
+  const body = document.getElementById('account-settings-body');
+  const arrow = document.getElementById('account-settings-arrow');
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  arrow.textContent = open ? '▲' : '▼';
+}
+
 function toggleIconPicker() {
   const picker = document.getElementById('icon-picker');
+  const cropWrap = document.getElementById('icon-crop-wrap');
   if(picker.style.display === 'none') {
+    cropWrap.style.display = 'none';
     picker.innerHTML = ICON_LIST.map(ic => `<button class="icon-option ${ic===_selectedIcon?'selected':''}" onclick="selectIcon('${ic}')">${ic}</button>`).join('');
     picker.style.display = 'grid';
   } else {
@@ -1455,15 +1487,150 @@ function toggleIconPicker() {
 
 function selectIcon(ic) {
   _selectedIcon = ic;
-  document.getElementById('profile-icon-display').textContent = ic;
+  const disp = document.getElementById('profile-icon-display');
+  disp.textContent = ic;
   document.querySelectorAll('.icon-option').forEach(el => el.classList.toggle('selected', el.textContent === ic));
+}
+
+function triggerImageUpload() {
+  document.getElementById('icon-image-file').value = '';
+  document.getElementById('icon-image-file').click();
+}
+
+function onIconImageSelected(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  document.getElementById('icon-picker').style.display = 'none';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('icon-crop-img');
+    img.onload = () => {
+      const stage = document.getElementById('icon-crop-stage');
+      const sw = stage.offsetWidth, sh = stage.offsetHeight;
+      const scale = Math.max(sw / img.naturalWidth, sh / img.naturalHeight);
+      _cropState = { img, x: (sw - img.naturalWidth * scale) / 2, y: (sh - img.naturalHeight * scale) / 2, scale, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
+      applyCropTransform();
+      document.getElementById('icon-crop-wrap').style.display = '';
+      initCropEvents(stage);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyCropTransform() {
+  const { img, x, y, scale } = _cropState;
+  if(!img) return;
+  img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+}
+
+function initCropEvents(stage) {
+  stage.onmousedown = e => {
+    _cropState.dragging = true; _cropState.startX = e.clientX; _cropState.startY = e.clientY;
+    _cropState.startImgX = _cropState.x; _cropState.startImgY = _cropState.y;
+    stage.style.cursor = 'grabbing';
+  };
+  window.onmousemove = e => {
+    if(!_cropState.dragging) return;
+    _cropState.x = _cropState.startImgX + (e.clientX - _cropState.startX);
+    _cropState.y = _cropState.startImgY + (e.clientY - _cropState.startY);
+    applyCropTransform();
+  };
+  window.onmouseup = () => { _cropState.dragging = false; stage.style.cursor = 'grab'; };
+
+  stage.ontouchstart = e => {
+    if(e.touches.length === 1) {
+      _cropState.dragging = true;
+      _cropState.startX = e.touches[0].clientX; _cropState.startY = e.touches[0].clientY;
+      _cropState.startImgX = _cropState.x; _cropState.startImgY = _cropState.y;
+    } else if(e.touches.length === 2) {
+      _cropState.lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }
+    e.preventDefault();
+  };
+  stage.ontouchmove = e => {
+    if(e.touches.length === 1 && _cropState.dragging) {
+      _cropState.x = _cropState.startImgX + (e.touches[0].clientX - _cropState.startX);
+      _cropState.y = _cropState.startImgY + (e.touches[0].clientY - _cropState.startY);
+      applyCropTransform();
+    } else if(e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if(_cropState.lastDist) {
+        const ratio = dist / _cropState.lastDist;
+        const stage = document.getElementById('icon-crop-stage');
+        const cx = stage.offsetWidth / 2, cy = stage.offsetHeight / 2;
+        _cropState.x = cx + (_cropState.x - cx) * ratio;
+        _cropState.y = cy + (_cropState.y - cy) * ratio;
+        _cropState.scale *= ratio;
+        applyCropTransform();
+      }
+      _cropState.lastDist = dist;
+    }
+    e.preventDefault();
+  };
+  stage.ontouchend = () => { _cropState.dragging = false; _cropState.lastDist = 0; };
+
+  stage.onwheel = e => {
+    e.preventDefault();
+    const ratio = e.deltaY < 0 ? 1.1 : 0.9;
+    const rect = stage.getBoundingClientRect();
+    const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+    _cropState.x = cx + (_cropState.x - cx) * ratio;
+    _cropState.y = cy + (_cropState.y - cy) * ratio;
+    _cropState.scale *= ratio;
+    applyCropTransform();
+  };
+}
+
+async function cropIconAndSave() {
+  if(!currentUser) return;
+  const img = _cropState.img;
+  if(!img) return;
+  const stage = document.getElementById('icon-crop-stage');
+  const sw = stage.offsetWidth, sh = stage.offsetHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = 200; canvas.height = 200;
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(100, 100, 100, 0, Math.PI * 2);
+  ctx.clip();
+  const scaleX = 200 / sw, scaleY = 200 / sh;
+  ctx.drawImage(img, _cropState.x * scaleX, _cropState.y * scaleY, img.naturalWidth * _cropState.scale * scaleX, img.naturalHeight * _cropState.scale * scaleY);
+  ctx.restore();
+
+  const prevBtn = document.querySelector('#icon-crop-wrap button');
+  const origText = prevBtn.textContent;
+  prevBtn.textContent = '保存中…'; prevBtn.disabled = true;
+
+  try {
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+    await db.ref(`users/${currentUser.uid}`).update({ iconUrl: dataUrl, icon: '' });
+    currentUserProfile = { ...currentUserProfile, iconUrl: dataUrl, icon: '' };
+    accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+    const disp = document.getElementById('profile-icon-display');
+    disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+    updateAccountBar(true);
+    document.getElementById('icon-crop-wrap').style.display = 'none';
+    toast('✅ アイコンを保存しました');
+  } catch(e) {
+    toast('❌ 保存に失敗しました: ' + e.message);
+  } finally {
+    prevBtn.textContent = origText; prevBtn.disabled = false;
+  }
+}
+
+function cancelCrop() {
+  document.getElementById('icon-crop-wrap').style.display = 'none';
 }
 
 async function saveProfile() {
   if(!currentUser || !currentUserProfile) return;
   const title = document.getElementById('profile-title-input').value.trim();
   const name = document.getElementById('profile-name-input').value.trim();
-  const updates = { icon: _selectedIcon, title, name };
+  const iconVal = currentUserProfile.iconUrl ? currentUserProfile.icon : _selectedIcon;
+  const updates = { title, name };
+  if(!currentUserProfile.iconUrl) updates.icon = _selectedIcon;
   await db.ref(`users/${currentUser.uid}`).update(updates);
   currentUserProfile = { ...currentUserProfile, ...updates };
   updateAccountBar(true);
@@ -1482,6 +1649,83 @@ async function renderStatsGrid() {
     <div class="stat-card"><div class="stat-card-val">${s.totalCorrect||0}</div><div class="stat-card-label">CORRECT</div></div>
     <div class="stat-card"><div class="stat-card-val">${s.totalWrong||0}</div><div class="stat-card-label">WRONG</div></div>
   `;
+}
+
+function showFieldErr(fieldId, msg) {
+  const el = document.getElementById(fieldId);
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+async function updateUserId() {
+  if(!currentUser || !currentUserProfile) return;
+  const newId = document.getElementById('new-uid-input').value.trim();
+  if(!newId || newId.length < 3) return showFieldErr('uid-change-err', 'ユーザーIDは3文字以上にしてください');
+  if(!/^[a-zA-Z0-9_]+$/.test(newId)) return showFieldErr('uid-change-err', '半角英数字・_のみ使用できます');
+  if(newId === currentUserProfile.displayId) return showFieldErr('uid-change-err', '現在と同じIDです');
+  const snap = await db.ref(`userIndex/${newId}`).once('value');
+  if(snap.exists()) return showFieldErr('uid-change-err', 'そのユーザーIDはすでに使われています');
+  const oldId = currentUserProfile.displayId;
+  await db.ref(`userIndex/${oldId}`).remove();
+  await db.ref(`userIndex/${newId}`).set(currentUser.uid);
+  await db.ref(`users/${currentUser.uid}`).update({ displayId: newId });
+  currentUserProfile = { ...currentUserProfile, displayId: newId };
+  document.getElementById('profile-uid-display').textContent = newId;
+  document.getElementById('new-uid-input').value = '';
+  updateAccountBar(true);
+  toast('✅ ユーザーIDを変更しました');
+}
+
+async function updateEmail() {
+  if(!currentUser) return;
+  const newEmail = document.getElementById('new-email-input').value.trim();
+  const pw = document.getElementById('reauth-pw-email').value;
+  if(!newEmail) return showFieldErr('email-change-err', '新しいメールアドレスを入力してください');
+  if(!pw) return showFieldErr('email-change-err', '現在のパスワードを入力してください');
+  try {
+    const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, pw);
+    await currentUser.reauthenticateWithCredential(cred);
+    await currentUser.updateEmail(newEmail);
+    await db.ref(`users/${currentUser.uid}`).update({ email: newEmail });
+    currentUserProfile = { ...currentUserProfile, email: newEmail };
+    document.getElementById('profile-email-display').textContent = newEmail;
+    document.getElementById('new-email-input').value = '';
+    document.getElementById('reauth-pw-email').value = '';
+    toast('✅ メールアドレスを変更しました');
+  } catch(e) {
+    const msg = e.code === 'auth/wrong-password' ? 'パスワードが正しくありません'
+      : e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに使われています'
+      : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
+      : 'エラー: ' + e.message;
+    showFieldErr('email-change-err', msg);
+  }
+}
+
+async function updatePassword() {
+  if(!currentUser) return;
+  const currentPw = document.getElementById('reauth-pw-current').value;
+  const newPw = document.getElementById('new-pw-input').value;
+  const confirmPw = document.getElementById('new-pw-confirm').value;
+  if(!currentPw) return showFieldErr('pw-change-err', '現在のパスワードを入力してください');
+  if(newPw !== confirmPw) return showFieldErr('pw-change-err', '新しいパスワードが一致しません');
+  const pwErr = validatePassword(newPw);
+  if(pwErr) return showFieldErr('pw-change-err', pwErr);
+  try {
+    const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPw);
+    await currentUser.reauthenticateWithCredential(cred);
+    await currentUser.updatePassword(newPw);
+    document.getElementById('reauth-pw-current').value = '';
+    document.getElementById('new-pw-input').value = '';
+    document.getElementById('new-pw-confirm').value = '';
+    toast('✅ パスワードを変更しました');
+  } catch(e) {
+    const msg = e.code === 'auth/wrong-password' ? '現在のパスワードが正しくありません'
+      : e.code === 'auth/weak-password' ? 'パスワードが弱すぎます'
+      : 'エラー: ' + e.message;
+    showFieldErr('pw-change-err', msg);
+  }
 }
 
 async function updateAccountStats(type, isWin) {
