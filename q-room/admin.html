@@ -296,30 +296,60 @@ async function loadAllUsers() {
     if (e.message && e.message.includes('permission_denied')) {
       errMsg = `
         <strong>permission_denied エラー</strong><br>
-        Firebase Realtime Database のルールで <code>/users</code> への読み取りが拒否されています。<br><br>
+        Firebase Realtime Database のルールで管理者用の読み取りが拒否されています。<br><br>
         Firebase コンソール → Realtime Database → ルール で以下を設定してください:<br>
         <pre style="background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;margin-top:8px;font-size:0.78rem;text-align:left;overflow:auto;">{
   "rules": {
+    "userIndex": {
+      ".read": true,
+      "$displayId": {
+        ".write": "auth != null"
+      }
+    },
     "users": {
       ".read": "auth.token.email === 'astro.root.quiz@gmail.com'",
       "$uid": {
+        ".read": "auth.uid === $uid",
         ".write": "auth.uid === $uid"
       }
     },
     "stats": {
       ".read": "auth.token.email === 'astro.root.quiz@gmail.com'",
       "$uid": {
+        ".read": "auth.uid === $uid",
         ".write": "auth.uid === $uid"
       }
     },
     "friends": {
       ".read": "auth.token.email === 'astro.root.quiz@gmail.com'",
       "$uid": {
+        ".read": "auth.uid === $uid",
         ".write": "auth.uid === $uid"
       }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth != null"
+      }
+    },
+    "friendRequests": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth != null"
+      }
+    },
+    "rooms": {
+      ".read": "auth != null || true",
+      ".write": "auth != null || true"
+    },
+    "devNotice": {
+      ".read": true,
+      ".write": "auth.token.email === 'astro.root.quiz@gmail.com'"
     }
   }
-}</pre>`;
+}</pre>
+        <strong>重要：</strong> <code>userIndex</code> は未認証でも読める必要があります（ユーザーIDログインのため）。`;
     }
     document.getElementById('user-tbody').innerHTML = `<tr><td colspan="12" class="loading-msg" style="color:var(--red);text-align:left;padding:24px;">${errMsg}</td></tr>`;
   }
