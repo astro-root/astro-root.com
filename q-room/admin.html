@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Room Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #09090b;
+  --surface: rgba(24,24,27,0.9);
+  --border: rgba(255,255,255,0.1);
+  --cyan: #06b6d4;
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --font-en: 'Inter', sans-serif;
+  --font-ja: 'Noto Sans JP', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ja);
+  min-height: 100vh;
+  padding: 0;
+}
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+}
+.login-title {
+  font-family: var(--font-en);
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--cyan);
+  margin-bottom: 8px;
+  letter-spacing: 0.1em;
+}
+.login-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.field { margin-bottom: 20px; }
+label {
+  display: block;
+  font-family: var(--font-en);
+  font-size: 0.8rem;
+  color: var(--cyan);
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+input[type="email"], input[type="password"], input[type="text"] {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: var(--font-ja);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.3s;
+}
+input:focus {
+  border-color: var(--cyan);
+  background: rgba(6,182,212,0.08);
+  box-shadow: 0 0 0 4px rgba(6,182,212,0.12);
+}
+.btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-en);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  transition: all 0.3s;
+}
+.btn-pri {
+  background: linear-gradient(135deg, var(--cyan), #0284c7);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(6,182,212,0.3);
+}
+.btn-pri:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(6,182,212,0.4); }
+.btn-warn {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: var(--red);
+  width: auto;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+}
+.btn-warn:hover { background: rgba(239,68,68,0.25); }
+.err {
+  color: #fca5a5;
+  font-size: 0.88rem;
+  padding: 12px 16px;
+  background: rgba(239,68,68,0.2);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+#admin-screen { display: none; }
+.admin-header {
+  background: rgba(9,9,11,0.9);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(24px);
+}
+.admin-logo {
+  font-family: var(--font-en);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--cyan);
+  letter-spacing: 0.1em;
+}
+.admin-logo span { color: var(--muted); font-weight: 400; font-size: 0.8rem; margin-left: 12px; }
+.admin-body { padding: 32px; max-width: 1400px; margin: 0 auto; }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+.stat-card-val {
+  font-family: var(--font-en);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--cyan);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-card-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: var(--font-en);
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.section-title {
+  font-family: var(--font-en);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.search-bar input {
+  flex: 1;
+  max-width: 320px;
+}
+
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+thead {
+  background: rgba(255,255,255,0.04);
+}
+th {
+  padding: 14px 16px;
+  text-align: left;
+  font-family: var(--font-en);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.03); }
+
+.user-icon { font-size: 1.4rem; line-height: 1; }
+.uid-cell {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--cyan);
+}
+.email-cell {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.title-cell {
+  font-size: 0.82rem;
+  color: var(--yellow);
+}
+.name-cell { font-weight: 700; }
+.stat-cell {
+  font-family: var(--font-en);
+  font-weight: 700;
+  text-align: center;
+}
+.winrate { color: var(--green); }
+.correct { color: var(--cyan); }
+.wrong { color: var(--red); }
+
+.expand-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-family: var(--font-en);
+  transition: 0.2s;
+  white-space: nowrap;
+}
+.expand-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+.detail-row { background: rgba(6,182,212,0.03); }
+.detail-row td { padding: 0; }
+.detail-inner {
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  border-left: 3px solid rgba(6,182,212,0.3);
+}
+.detail-item { }
+.detail-label {
+  font-family: var(--font-en);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.detail-val {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.friend-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.friend-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: rgba(6,182,212,0.12);
+  border: 1px solid rgba(6,182,212,0.3);
+  color: var(--cyan);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: var(--muted);
+  font-family: var(--font-en);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+}
+.badge-admin {
+  background: rgba(239,68,68,0.2);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: var(--red);
+  font-size: 0.65rem;
+  font-family: var(--font-en);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 600px) {
+  .admin-body { padding: 16px; }
+  .admin-header { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">Q-ROOM ADMIN</div>
+    <div class="login-sub">管理者アカウントでログインしてください</div>
+    <div class="err" id="login-err"></div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="admin-email" placeholder="admin@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="admin-pw" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <button class="btn btn-pri" onclick="adminLogin()">LOGIN</button>
+  </div>
+</div>
+
+<div id="admin-screen">
+  <div class="admin-header">
+    <div class="admin-logo">Q-ROOM ADMIN <span>User Management</span></div>
+    <button class="btn-warn" onclick="adminLogout()">LOGOUT</button>
+  </div>
+  <div class="admin-body">
+    <div class="stats-row" id="global-stats">
+      <div class="stat-card"><div class="stat-card-val" id="gs-users">—</div><div class="stat-card-label">TOTAL USERS</div></div>
+      <div class="stat-card"><div class="stat-card-val" id="gs-games">—</div><div class="stat-card-label">TOTAL GAMES</div></div>
+      <div class="stat-card"><div class="stat-card-val" id="gs-correct">—</div><div class="stat-card-label">TOTAL CORRECT</div></div>
+      <div class="stat-card"><div class="stat-card-val" id="gs-wins">—</div><div class="stat-card-label">TOTAL WINS</div></div>
+    </div>
+
+    <div class="section-title">USER LIST</div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="ユーザーID・名前・メールで検索…" oninput="filterUsers(this.value)">
+    </div>
+    <div class="table-wrap">
+      <div class="loading" id="table-loading">読み込み中…</div>
+      <table id="user-table" style="display:none;">
+        <thead>
+          <tr>
+            <th></th>
+            <th>USER ID</th>
+            <th>NAME</th>
+            <th>EMAIL</th>
+            <th>TITLE</th>
+            <th>GAMES</th>
+            <th>WIN%</th>
+            <th>CORRECT</th>
+            <th>WRONG</th>
+            <th>FRIENDS</th>
+            <th>REGISTERED</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="user-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA3xtGLVJwij2BTiiOk7DsNeF9hIOuZCyI",
+  authDomain: "q-room-fe8a6.firebaseapp.com",
+  databaseURL: "https://q-room-fe8a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "q-room-fe8a6",
+  storageBucket: "q-room-fe8a6.firebasestorage.app",
+  messagingSenderId: "151049149394",
+  appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
+};
+
+const ADMIN_UIDS = [];
+
+let db, auth, adminUser;
+let allUsers = [];
+
+firebase.initializeApp(firebaseConfig);
+db = firebase.database();
+auth = firebase.auth();
+
+auth.onAuthStateChanged(async user => {
+  if(user) {
+    adminUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = '';
+    loadAllUsers();
+  } else {
+    adminUser = null;
+    document.getElementById('login-screen').style.display = '';
+    document.getElementById('admin-screen').style.display = 'none';
+  }
+});
+
+async function adminLogin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const pw = document.getElementById('admin-pw').value;
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+  if(!email || !pw) { errEl.textContent = 'メールアドレスとパスワードを入力してください'; errEl.style.display = ''; return; }
+  try {
+    await auth.signInWithEmailAndPassword(email, pw);
+  } catch(e) {
+    errEl.textContent = 'ログインに失敗しました: ' + e.message;
+    errEl.style.display = '';
+  }
+}
+
+async function adminLogout() {
+  if(!confirm('ログアウトしますか？')) return;
+  await auth.signOut();
+}
+
+async function loadAllUsers() {
+  document.getElementById('table-loading').style.display = '';
+  document.getElementById('user-table').style.display = 'none';
+
+  const [usersSnap, statsSnap, friendsSnap] = await Promise.all([
+    db.ref('users').once('value'),
+    db.ref('stats').once('value'),
+    db.ref('friends').once('value')
+  ]);
+
+  const users = usersSnap.val() || {};
+  const stats = statsSnap.val() || {};
+  const friends = friendsSnap.val() || {};
+
+  allUsers = Object.entries(users).map(([uid, u]) => {
+    const s = stats[uid] || {};
+    const f = friends[uid] ? Object.keys(friends[uid]) : [];
+    return { uid, ...u, stats: s, friendUids: f };
+  });
+
+  let totalGames = 0, totalCorrect = 0, totalWins = 0;
+  allUsers.forEach(u => {
+    totalGames += u.stats.totalGames || 0;
+    totalCorrect += u.stats.totalCorrect || 0;
+    totalWins += u.stats.wins || 0;
+  });
+  document.getElementById('gs-users').textContent = allUsers.length;
+  document.getElementById('gs-games').textContent = totalGames;
+  document.getElementById('gs-correct').textContent = totalCorrect;
+  document.getElementById('gs-wins').textContent = totalWins;
+
+  renderUserTable(allUsers);
+  document.getElementById('table-loading').style.display = 'none';
+  document.getElementById('user-table').style.display = '';
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function formatDate(ts) {
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('ja-JP') + ' ' + d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+}
+
+function renderUserTable(users) {
+  const tbody = document.getElementById('user-tbody');
+  if(users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--muted);">ユーザーが見つかりません</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const s = u.stats || {};
+    const winRate = s.totalGames > 0 ? Math.round(s.wins / s.totalGames * 100) : 0;
+    return `<tr id="row-${u.uid}">
+      <td class="user-icon">${esc(u.icon || '👤')}</td>
+      <td class="uid-cell">${esc(u.displayId || '?')}</td>
+      <td class="name-cell">${esc(u.name || '—')}</td>
+      <td class="email-cell">${esc(u.email || '—')}</td>
+      <td class="title-cell">${esc(u.title || '—')}</td>
+      <td class="stat-cell">${s.totalGames || 0}</td>
+      <td class="stat-cell winrate">${winRate}%</td>
+      <td class="stat-cell correct">${s.totalCorrect || 0}</td>
+      <td class="stat-cell wrong">${s.totalWrong || 0}</td>
+      <td class="stat-cell">${u.friendUids.length}</td>
+      <td style="font-size:0.75rem;color:var(--muted);white-space:nowrap;">${formatDate(u.createdAt)}</td>
+      <td><button class="expand-btn" onclick="toggleDetail('${u.uid}')">詳細</button></td>
+    </tr>
+    <tr id="detail-${u.uid}" class="detail-row" style="display:none;">
+      <td colspan="12">
+        <div class="detail-inner">
+          <div class="detail-item">
+            <div class="detail-label">Firebase UID</div>
+            <div class="detail-val">${esc(u.uid)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Email</div>
+            <div class="detail-val">${esc(u.email || '—')}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Display ID</div>
+            <div class="detail-val">${esc(u.displayId || '—')}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Name</div>
+            <div class="detail-val">${esc(u.name || '—')}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">称号</div>
+            <div class="detail-val">${esc(u.title || '—')}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Icon</div>
+            <div class="detail-val" style="font-size:1.5rem;">${esc(u.icon || '👤')}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Total Games</div>
+            <div class="detail-val">${s.totalGames || 0}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Wins</div>
+            <div class="detail-val">${s.wins || 0} (${winRate}%)</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Total Correct</div>
+            <div class="detail-val" style="color:var(--cyan);">${s.totalCorrect || 0}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Total Wrong</div>
+            <div class="detail-val" style="color:var(--red);">${s.totalWrong || 0}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Registered</div>
+            <div class="detail-val">${formatDate(u.createdAt)}</div>
+          </div>
+          <div class="detail-item" style="grid-column: 1 / -1;">
+            <div class="detail-label">Friends (${u.friendUids.length})</div>
+            <div class="friend-tags" id="friend-tags-${u.uid}">
+              ${u.friendUids.length === 0 ? '<span style="color:var(--muted);font-size:0.78rem;">フレンドなし</span>' : '<span style="color:var(--muted);font-size:0.78rem;">読み込み中…</span>'}
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleDetail(uid) {
+  const row = document.getElementById(`detail-${uid}`);
+  const isHidden = row.style.display === 'none';
+  row.style.display = isHidden ? '' : 'none';
+  if(isHidden) loadFriendNames(uid);
+}
+
+async function loadFriendNames(uid) {
+  const user = allUsers.find(u => u.uid === uid);
+  if(!user || user.friendUids.length === 0) return;
+  const tagsEl = document.getElementById(`friend-tags-${uid}`);
+  const profiles = await Promise.all(user.friendUids.map(fuid => db.ref(`users/${fuid}/displayId`).once('value')));
+  tagsEl.innerHTML = profiles.map((snap, i) => {
+    const displayId = snap.val() || user.friendUids[i].substring(0,8);
+    return `<span class="friend-tag">${esc(displayId)}</span>`;
+  }).join('');
+}
+
+function filterUsers(query) {
+  if(!query.trim()) { renderUserTable(allUsers); return; }
+  const q = query.toLowerCase();
+  const filtered = allUsers.filter(u =>
+    (u.displayId||'').toLowerCase().includes(q) ||
+    (u.name||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q) ||
+    (u.title||'').toLowerCase().includes(q)
+  );
+  renderUserTable(filtered);
+}
+</script>
+</body>
+</html>
