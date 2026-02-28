@@ -1053,6 +1053,7 @@ function updateChatBadge() {
 function toggleChat() {
   chatOpen = !chatOpen;
   document.getElementById('chat-drawer').classList.toggle('open', chatOpen);
+  document.getElementById('chat-overlay').classList.toggle('show', chatOpen);
   if(chatOpen) {
     chatUnread = 0;
     updateChatBadge();
@@ -1409,11 +1410,7 @@ function updateHeroAccountBtn() {
 }
 
 function handleHeroAccountBtn() {
-  if(currentUser) {
-    toggleTopNotifDrawer();
-  } else {
-    show('account');
-  }
+  showAccountPage();
 }
 
 let _topNotifDrawerOpen = false;
@@ -2151,7 +2148,6 @@ async function declineFriendFromNotif(notifId, fromUid) {
 
 function openFriendModal() {
   if(!currentUser) { showAccountPage(); return; }
-  show('top');
   document.getElementById('modal-friend').classList.add('active');
   loadFriendData();
 }
