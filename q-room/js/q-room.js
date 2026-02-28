@@ -1050,8 +1050,8 @@ function updateTimerDisplay() {
       let left = Math.ceil((5000 - elapsed) / 1000);
       if(left > 5) left = 5;
       if(left <= 0) {
+        // GO!表示はcountdown→running遷移検知側（updateTimerDisplay）に一本化
         clearInterval(cdInterval); cdInterval = null;
-        showGoAndHide(co);
         return;
       }
       if(left !== lastShown) {
