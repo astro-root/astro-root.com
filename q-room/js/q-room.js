@@ -1,20 +1,3 @@
-// ============================================================
-// IMPORTANT: Firebase Realtime Database Security Rules
-// ============================================================
-// 通知センターが動かない場合、以下のルールが設定されているか確認してください。
-// Firebase Console > Realtime Database > Rules に以下を設定:
-//
-// "notifications": {
-//   "$uid": {
-//     ".read": "auth != null && auth.uid === $uid",
-//     ".write": "auth != null"   // ← 他ユーザーからの書き込みを許可（必須！）
-//   }
-// }
-//
-// .write が auth.uid === $uid になっていると、自分以外から通知を
-// 送れず、招待・フレンド通知・admin一斉通知が全て permission_denied で失敗します。
-// ============================================================
-
 const firebaseConfig = {
   apiKey: "AIzaSyA3xtGLVJwij2BTiiOk7DsNeF9hIOuZCyI",
   authDomain: "q-room-fe8a6.firebaseapp.com",
@@ -133,7 +116,6 @@ async function handleCreate() {
       players: { [myId]: newPlayer(n, currentUser ? currentUser.uid : null, currentUserProfile) }
     });
     await pushSysMsg(`${n} が入室しました`);
-    // フレンド全員にルーム作成通知を送信
     notifyFriendsRoomCreated(r).catch(e => console.warn('[notif] notifyFriendsRoomCreated failed:', e));
     enterRoom(true, n);
   } catch(e) {
@@ -1437,7 +1419,11 @@ function updateHeroAccountBtn() {
 }
 
 function handleHeroAccountBtn() {
-  showAccountPage();
+  if(currentUser) {
+    toggleTopNotifDrawer();
+  } else {
+    showAccountPage();
+  }
 }
 
 let _topNotifDrawerOpen = false;
@@ -2233,26 +2219,18 @@ function formatNotifTs(ts) {
   return Math.floor(diff/86400000) + '日前';
 }
 
-
-// フレンドアイコンHTML生成ヘルパー（iconUrl画像 or 絵文字に対応）
-function friendIconHtml(p) {
-  if(p && p.iconUrl) {
-    return `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" onerror="this.parentElement.textContent='${(p.icon||'👤').replace(/'/g,'&#39;')}'">`;
-  }
-  return p && p.icon ? p.icon : '👤';
-}
-
 async function pushNotification(toUid, type, title, body, extra={}) {
-  if(!db) { console.warn("[pushNotification] db is null, skipping"); return; }
+  if(!db) { console.warn('[pushNotification] db is null'); return; }
   try {
     await db.ref(`notifications/${toUid}`).push({
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
   } catch(e) {
-    if(e.code === 'PERMISSION_DENIED' || (e.message && e.message.includes('permission_denied'))) {
-      console.error("[pushNotification] PERMISSION_DENIED for uid=" + toUid + ". Check Firebase rules: notifications/{uid} must allow write from authenticated users.");
+    const isPermDenied = e.code === 'PERMISSION_DENIED' || (e.message||'').toLowerCase().includes('permission_denied');
+    if(isPermDenied) {
+      console.error('[pushNotification] PERMISSION_DENIED uid=' + toUid + ' — Firebase Rules: notifications/$uid .write must be "auth != null"');
     } else {
-      console.error("[pushNotification] error:", e);
+      console.error('[pushNotification] error:', e);
     }
     throw e;
   }
@@ -2336,13 +2314,15 @@ async function loadFriendData() {
     friendList.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
     return;
   }
-  const profiles = await Promise.all(friendUids.map(uid => db.ref(`users/${uid}`).once('value')));
+  const profiles = await Promise.all(friendUids.map(uid =>
+    db.ref(`users/${uid}`).once('value').catch(() => ({ val: () => null }))
+  ));
   friendList.innerHTML = profiles.map((snap, i) => {
     const p = snap.val() || {};
     const uid = friendUids[i];
     accountProfileCache[uid] = p;
     return `<div class="friend-item">
-      <div class="friend-icon">${p.icon||'👤'}</div>
+      <div class="friend-icon">${friendIconHtml(p)}</div>
       <div class="friend-info">
         <div class="friend-displayid">${esc(p.displayId||'?')}</div>
         <div class="friend-title">${p.title ? esc(p.title) : '称号なし'}</div>
@@ -2417,7 +2397,9 @@ async function loadInviteFriendList() {
     el.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
     return;
   }
-  const profiles = await Promise.all(friendUids.map(uid => db.ref(`users/${uid}`).once('value')));
+  const profiles = await Promise.all(friendUids.map(uid =>
+    db.ref(`users/${uid}`).once('value').catch(() => ({ val: () => null }))
+  ));
   el.innerHTML = profiles.map((snap, i) => {
     const p = snap.val() || {};
     const uid = friendUids[i];
@@ -2447,8 +2429,8 @@ async function inviteFriendToRoom(toUid, toDisplayId, btn) {
   } catch(e) {
     btn.textContent = '❌ 失敗';
     btn.disabled = false;
-    toast(`❌ 招待の送信に失敗しました（権限エラーの可能性）`);
-    console.error('[inviteFriendToRoom] failed:', e);
+    toast('❌ 招待の送信に失敗しました');
+    console.error('[inviteFriendToRoom]', e);
   }
 }
 
@@ -2460,8 +2442,9 @@ async function notifyFriendsRoomCreated(roomId) {
     notifPromises.push(
       pushNotification(child.key, 'friendRoom',
         `${currentUserProfile.displayId} さんが部屋を作りました`,
-        `Room ID: ${roomId} に招待されました`, { roomId, fromUid: currentUser.uid }
-      ).catch(e => console.warn('[notifyFriendsRoomCreated] failed for uid=' + child.key, e))
+        `Room ID: ${roomId} に招待されました`,
+        { roomId, fromUid: currentUser.uid }
+      ).catch(e => console.warn('[notifyFriendsRoomCreated] uid=' + child.key, e))
     );
   });
   await Promise.allSettled(notifPromises);
