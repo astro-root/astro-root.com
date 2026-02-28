@@ -273,15 +273,19 @@ function dismissDevNotice() {
 let _topNotifRef = null, _topNotifCb = null;
 function initTopNotifCenter(user) {
   if(_topNotifRef && _topNotifCb) _topNotifRef.off('value', _topNotifCb);
-  _topNotifRef = firebase.database().ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(30);
+  // limitToLast を 50 に統一
+  _topNotifRef = firebase.database().ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(50);
   _topNotifCb = _topNotifRef.on('value', snap => {
     const items = [];
     snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
     unreadNotifCount = items.filter(n => !n.read).length;
     updateHeroAccountBtn();
+    // アカウント画面の通知リストを更新
     renderAccountNotifList(items);
-    // ドロワーが開いていれば更新
-    if(_topNotifDrawerOpen) loadTopNotifDrawer();
+    // 通知ドロワーが開いていれば中身を更新
+    if(_topNotifDrawerOpen) renderTopNotifDrawer(items);
+    // ルーム内通知パネルが開いていれば更新
+    if(_notifOpen) renderNotifList(items);
   });
 }
 function hideTopNotifCenter() {
@@ -1429,14 +1433,18 @@ async function loadTopNotifDrawer() {
   const listEl = document.getElementById('top-notif-drawer-list');
   if(!listEl) return;
   listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
-  const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(30).once('value');
+  const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value');
   const items = [];
   snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
-  // mark all read count update
   unreadNotifCount = items.filter(n => !n.read).length;
   updateHeroAccountBtn();
-  // render using existing renderNotifList-style
-  if(!items.length) {
+  renderTopNotifDrawer(items);
+}
+
+function renderTopNotifDrawer(items) {
+  const listEl = document.getElementById('top-notif-drawer-list');
+  if(!listEl) return;
+  if(!items || !items.length) {
     listEl.innerHTML = '<div class="notif-empty">通知はありません</div>';
     return;
   }
@@ -2050,20 +2058,15 @@ async function updateAccountStats(type, isWin) {
 
 
 function listenNotifications() {
-  if(!currentUser || !db) return;
-  stopNotifListener();
-  notifRef = db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50);
-  notifCb = notifRef.on('value', snap => {
-    const items = [];
-    snap.forEach(child => items.unshift({ id: child.key, ...child.val() }));
-    unreadNotifCount = items.filter(n => !n.read).length;
-    updateHeroAccountBtn();
-    updateNotifBadge();
-    if(document.getElementById('screen-account')?.classList.contains('active')) renderAccountNotifList(items);
-  });
+  // initTopNotifCenter がすでにリスナーを張っているので、
+  // ルーム入室時はベルボタンのバッジ更新だけ追加で行う
+  if(!currentUser) return;
+  updateNotifBadge();
+  // initTopNotifCenter のコールバックが _notifOpen を確認してルーム内パネルも更新するので追加リスナー不要
 }
 
 function stopNotifListener() {
+  // notifRef は initTopNotifCenter に統合したため、ここでは何もしない
   if(notifRef && notifCb) { notifRef.off('value', notifCb); notifRef = null; notifCb = null; }
 }
 
