@@ -20,6 +20,11 @@
 
 <!-- TOP SCREEN -->
 <div id="screen-top" class="screen active">
+  <div id="dev-notice-banner" class="dev-notice-banner" style="display:none;">
+    <span class="dev-notice-icon">📢</span>
+    <span class="dev-notice-text" id="dev-notice-text"></span>
+    <button class="dev-notice-close" onclick="dismissDevNotice()">✕</button>
+  </div>
   <div class="hero">
     <button class="hero-theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
       <span id="theme-icon">☀️</span>
@@ -80,12 +85,11 @@
 <!-- ROOM SCREEN -->
 <div id="screen-room" class="screen">
   <div class="header">
-    <div class="room-info">ROOM<span id="game-rid">—</span></div>
-    <div class="rule-badge" id="game-rule">—</div>
-    <div style="display:flex; gap:10px; flex-shrink:0;">
+    <div class="header-row1">
       <button class="h-btn-icon h-btn-icon-theme-room" onclick="toggleTheme()" title="ダーク/ライトモード切替" id="theme-toggle-btn-room">
         <span id="theme-icon-room">☀️</span>
       </button>
+      <div class="header-row1-spacer"></div>
       <button class="h-btn-icon h-btn-icon-tweet" onclick="tweetInvite()" title="招待ツイート">
         <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       </button>
@@ -103,6 +107,10 @@
       <button class="h-btn-icon" onclick="openModal()" title="Settings">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
+    </div>
+    <div class="header-row2">
+      <div class="room-info">ROOM<span id="game-rid">—</span></div>
+      <div class="rule-badge" id="game-rule">—</div>
     </div>
   </div>
   <div class="timer-panel" id="timer-panel">
@@ -186,6 +194,13 @@
       <div id="invite-friend-section" style="display:none; margin-top:20px;">
         <hr style="margin-bottom:20px;">
         <button class="btn btn-sec" onclick="openInviteFriendModal()" style="border-color:rgba(6,182,212,0.4);color:var(--cyan);">👥 フレンドを招待</button>
+      </div>
+      <div id="admin-dev-notice-section" style="display:none; margin-top:20px;">
+        <hr style="margin-bottom:20px;">
+        <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:10px;">📢 DEV NOTICE（全ユーザーに表示）</div>
+        <textarea id="dev-notice-input" placeholder="開発者からのお知らせを入力…" style="min-height:80px;margin-bottom:10px;"></textarea>
+        <button class="btn btn-sec" onclick="sendDevNotice()" style="border-color:rgba(245,158,11,0.5);color:var(--yellow);">📢 通知を送信</button>
+        <button class="btn btn-sec" onclick="clearDevNotice()" style="margin-top:8px;color:var(--text-muted);">✕ 通知をクリア</button>
       </div>
     </div>
   </div>
