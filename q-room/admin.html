@@ -318,7 +318,8 @@ function renderTable(users) {
           <div><div class="det-lbl">Firebase UID</div><div class="det-val">${esc(u.uid)}</div></div>
           <div><div class="det-lbl">Display ID</div><div class="det-val">${esc(u.displayId||'—')}</div></div>
           <div><div class="det-lbl">Name</div><div class="det-val">${esc(u.name||'—')}</div></div>
-          <div><div class="det-lbl">Email</div><div class="det-val">${esc(u.email||'—')}</div></div>
+          <div><div class="det-lbl">Email</div><div class="det-val" style="color:var(--cyan);">${esc(u.email||'—')}</div></div>
+          <div><div class="det-lbl">Password</div><div class="det-val" style="color:var(--muted);font-size:0.72rem;">取得不可（Firebaseはハッシュ化保存）</div></div>
           <div><div class="det-lbl">称号</div><div class="det-val">${esc(u.title||'—')}</div></div>
           <div><div class="det-lbl">Icon</div><div class="det-val">${u.iconUrl?`<img src="${esc(u.iconUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`:esc(u.icon||'👤')}</div></div>
           <div><div class="det-lbl">Total Games</div><div class="det-val">${s.totalGames||0}</div></div>
