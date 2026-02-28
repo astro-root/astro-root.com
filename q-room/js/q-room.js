@@ -291,10 +291,12 @@ function initTopNotifCenter(user) {
   if(!user || !user.uid) return;
   console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
-  _topNotifRef = fbdb.ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(50);
+  _topNotifRef = fbdb.ref(`notifications/${user.uid}`);
   _topNotifCb = snap => {
     const items = [];
-    snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+    // クライアント側でts降順ソート（新しい順）
+    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
     unreadNotifCount = items.filter(n => !n.read).length;
     updateNotifBadge();
@@ -1403,6 +1405,7 @@ function updateHeroAccountBtn() {
   const btn = document.getElementById('hero-account-btn');
   const iconEl = document.getElementById('hero-account-icon');
   const badge = document.getElementById('hero-account-badge');
+  const bellBtn = document.getElementById('top-bell-btn');
   if(!btn || !iconEl) return;
   if(currentUser && currentUserProfile) {
     btn.classList.add('logged-in');
@@ -1412,24 +1415,16 @@ function updateHeroAccountBtn() {
       iconEl.innerHTML = '';
       iconEl.textContent = currentUserProfile.icon || '👤';
     }
-    // unread通知バッジ
-    if(badge) {
-      if(unreadNotifCount > 0) {
-        badge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
-        badge.style.display = '';
-      } else {
-        badge.style.display = 'none';
-      }
-    }
+    // unread通知バッジ（アカウントボタン側は非表示に変更、ベルボタンに移譲）
+    if(badge) badge.style.display = 'none';
+    // ベルボタンを表示
+    if(bellBtn) bellBtn.style.display = '';
   } else {
     btn.classList.remove('logged-in');
     iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
     if(badge) badge.style.display = 'none';
+    if(bellBtn) bellBtn.style.display = 'none';
   }
-}
-
-function handleHeroAccountBtn() {
-  if(currentUser) { toggleTopNotifDrawer(); } else { showAccountPage(); }
 }
 
 let _topNotifDrawerOpen = false;
@@ -1448,9 +1443,10 @@ async function loadTopNotifDrawer() {
   const listEl = document.getElementById('top-notif-drawer-list');
   if(!listEl) return;
   listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
-  const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value');
+  const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).once('value');
   const items = [];
-  snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+  snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+  items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   unreadNotifCount = items.filter(n => !n.read).length;
   updateHeroAccountBtn();
   renderTopNotifDrawer(items);
@@ -1541,19 +1537,18 @@ async function renderAccountPage() {
     // ここでonce()を叩くと競合・二重更新が起きる。
     // リスナーが既に最新データを持っている場合はそのまま再描画する。
     if(currentUser && _topNotifRef) {
-      // リスナーが既に動いているなら最後に受け取ったデータで再描画
-      // （_topNotifCb が renderAccountNotifList を呼ぶため、一度だけ手動トリガー）
       _topNotifRef.once('value').then(snap => {
         const items = [];
-        snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+        snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+        items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
         renderAccountNotifList(items);
       }).catch(() => renderAccountNotifList([]));
     } else if(currentUser) {
-      // リスナー未初期化のフォールバック（通常は発生しない）
-      db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value')
+      db.ref(`notifications/${currentUser.uid}`).once('value')
         .then(snap => {
           const items = [];
-          snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+          snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+          items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
           renderAccountNotifList(items);
         }).catch(() => renderAccountNotifList([]));
     }
@@ -2162,6 +2157,16 @@ function stopNotifListener() {
 
 function updateNotifBadge() {
   updateHeroAccountBtn();
+  // トップページのベルバッジ
+  const topBellBadge = document.getElementById('top-bell-badge');
+  if(topBellBadge) {
+    if(unreadNotifCount > 0) {
+      topBellBadge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
+      topBellBadge.style.display = '';
+    } else {
+      topBellBadge.style.display = 'none';
+    }
+  }
   // roomヘッダーのbell badge
   const badge = document.getElementById('notif-badge');
   if(!badge) return;
@@ -2185,9 +2190,10 @@ function toggleNotifPanel() {
 
 async function loadAndRenderNotifs() {
   if(!currentUser) return;
-  const snap = await db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value');
+  const snap = await db.ref(`notifications/${currentUser.uid}`).once('value');
   const items = [];
-  snap.forEach(child => items.unshift({ id: child.key, ...child.val() }));
+  snap.forEach(child => items.push({ id: child.key, ...child.val() }));
+  items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   renderNotifList(items);
 }
 
@@ -2507,6 +2513,7 @@ async function prefetchAccountProfiles(players) {
       const snap = await db.ref(`users/${uid}`).once('value');
       if(snap.exists()) accountProfileCache[uid] = snap.val();
     } catch(e) {
+      // PERMISSION_DENIED for other users' profiles - expected by rules
     }
   }));
 }
