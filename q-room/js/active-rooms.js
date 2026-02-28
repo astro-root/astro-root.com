@@ -46,6 +46,9 @@ let peekChatOpen = false;
 function initFB() {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   db = firebase.database();
+  // /rooms読み取りにはauth必須 → 匿名ログインで対応
+  const auth = firebase.auth();
+  auth.signInAnonymously().catch(() => {});
   db.ref('.info/connected').on('value', snap => {
     const ok = snap.val() === true;
     document.getElementById('dot').className = 'dot' + (ok ? '' : ' offline');
