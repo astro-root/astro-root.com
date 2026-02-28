@@ -1808,3 +1808,220 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   text-align: center; color: var(--text-muted); font-size: 0.82rem;
   padding: 20px; font-family: var(--font-en); letter-spacing: 0.08em;
 }
+
+/* ============================================================
+   ACCOUNT SCREEN
+   ============================================================ */
+
+.acct-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 14px;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  background: var(--bg-main);
+  z-index: 10;
+}
+.acct-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-main);
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+}
+.acct-back-btn:hover { background: var(--border-color); }
+.acct-header-title {
+  flex: 1;
+  font-family: var(--font-en);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--text-main);
+}
+.acct-theme-btn {
+  position: static !important;
+  margin-left: auto;
+}
+
+#screen-account {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ゲストセクション */
+.acct-guest-icon {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px 12px;
+  color: var(--text-muted);
+}
+.acct-guest-label {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  font-family: var(--font-jp);
+}
+.acct-tabs {
+  display: flex;
+  gap: 0;
+  margin: 0 20px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.acct-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px;
+  font-family: var(--font-en);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.2s, color 0.2s;
+}
+.acct-tab.active {
+  background: var(--cyan);
+  color: #000;
+}
+.acct-form-wrap {
+  padding: 0 20px 20px;
+}
+
+/* ログイン済みセクション */
+.acct-profile-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+.acct-profile-icon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.acct-profile-icon-wrap .profile-icon-display {
+  width: 72px;
+  height: 72px;
+  font-size: 2.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid var(--border-color);
+}
+.acct-profile-meta {
+  flex: 1;
+  min-width: 0;
+  padding-top: 6px;
+}
+.acct-profile-uid {
+  font-family: var(--font-en);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.acct-profile-email {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.acct-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+.acct-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.acct-section-title {
+  font-family: var(--font-en);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.acct-section-header .acct-section-title { margin-bottom: 0; }
+.acct-readall-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-jp);
+  transition: 0.2s;
+}
+.acct-readall-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+.acct-notif-list {
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* hero アカウントボタン */
+.hero-account-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+.hero-account-btn:hover {
+  border-color: var(--cyan);
+  background: rgba(6,182,212,0.1);
+  color: var(--cyan);
+}
+.hero-account-btn.logged-in {
+  border-color: var(--cyan);
+  background: rgba(6,182,212,0.1);
+}
+.hero-account-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: var(--font-en);
+  border-radius: 10px;
+  padding: 2px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
+}
