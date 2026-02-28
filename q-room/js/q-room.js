@@ -43,13 +43,15 @@ window.onload = () => {
   if(roomId) document.getElementById('in-room').value = roomId;
   const savedName = localStorage.getItem('qr_name');
   if(savedName) document.getElementById('in-name').value = savedName;
+  initAccountSystem();
 };
 
 function initFB() {
   if(!db){ 
     try {
       firebase.initializeApp(firebaseConfig); 
-      db = firebase.database(); 
+      db = firebase.database();
+      auth = firebase.auth();
       db.ref('.info/serverTimeOffset').on('value', snap => {
         serverTimeOffset = snap.val() || 0;
       });
@@ -101,7 +103,7 @@ async function handleCreate() {
       status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
       lastActiveAt: firebase.database.ServerValue.TIMESTAMP,
-      players: { [myId]: newPlayer(n) }
+      players: { [myId]: newPlayer(n, currentUser ? currentUser.uid : null) }
     });
     await pushSysMsg(`${n} が入室しました`);
     enterRoom(true, n);
@@ -134,7 +136,7 @@ async function handleJoin() {
 
     localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
-    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n));
+    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n, currentUser ? currentUser.uid : null));
     await pushSysMsg(`${n} が入室しました`);
     enterRoom(false, n);
   } catch(e) {
@@ -143,8 +145,8 @@ async function handleJoin() {
   }
 }
 
-function newPlayer(name) {
-  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [] };
+function newPlayer(name, accountUid=null) {
+  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [], ...(accountUid ? {accountUid} : {}) };
 }
 
 // ── Enter Room ─────────────────────────────────────────────────────────────
@@ -183,6 +185,16 @@ function enterRoom(isCreate=false, playerName='') {
   });
 
   checkAdmin().then(() => { if(roomData) renderPlayers(); });
+
+  // アカウントログイン中なら通知リスナー起動・フレンド招待ボタン表示
+  if(currentUser) {
+    listenNotifications();
+    const bellBtn = document.getElementById('notif-bell-btn');
+    if(bellBtn) bellBtn.style.display = '';
+    const invSec = document.getElementById('invite-friend-section');
+    if(invSec) invSec.style.display = '';
+    if(isCreate) notifyFriendsRoomCreated(rId);
+  }
 }
 
 async function leaveRoom(kicked=false) {
@@ -454,6 +466,11 @@ function renderPlayers() {
     if(p.str > 0) sub += `<span style="color:var(--cyan)">連:${p.str}</span> `;
     if(p.adv > 0) sub += `<span style="color:var(--red)">DAdv!</span> `;
     if(r==='board_quiz' && roomData.board_host===id) sub += `<span style="color:var(--magenta)">🎙HOST</span> `;
+
+    // アカウントアイコン・称号
+    const prof = accountProfileCache[p.accountUid] || null;
+    const pIcon = prof ? `<span class="pcard-account-icon">${prof.icon||'👤'}</span>` : '';
+    const pTitle = prof && prof.title ? `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:6px;">${esc(prof.title)}</span>` : '';
     
     let boardSection = '';
     if(r === 'board_quiz') {
@@ -503,7 +520,7 @@ function renderPlayers() {
     <div class="pcard ${cls}">
       <div class="rank-num">${ranks[idx]}</div>
       <div class="p-main">
-        <div class="p-name">${esc(p.name)} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}</div>
+        <div class="p-name">${pIcon}${esc(p.name)}${pTitle} ${isMe?'<span class="badge b-you">YOU</span>':''}${isAdmin()&&!isMe?`<button class="kick-btn" onclick="kickPlayer('${id}')">✕</button>`:''}</div>
         <div class="p-stats">
           <span class="c">◯ ${p.c}</span>
           <span class="w">✕ ${wtxt}</span>
@@ -788,6 +805,11 @@ async function sendAction(type) {
   if (me.st === 'win' && prevParsed.st !== 'win') me.winAt = Date.now();
 
   await db.ref(`rooms/${rId}/players`).update(pData);
+  
+  // アカウント統計更新
+  if(currentUser && (type === 'correct' || type === 'wrong')) {
+    updateAccountStats(type, me.st === 'win' && JSON.parse(mePrev).st !== 'win');
+  }
   
   if(r==='attack_surv') {
     const act = Object.values(pData).filter(p=>p.st==='active').length;
@@ -1206,3 +1228,550 @@ function toggleTheme() {
     }
   } catch(e) {}
 })();
+// ── Account System ─────────────────────────────────────────────────────────
+let auth = null;
+let currentUser = null;
+let currentUserProfile = null;
+let notifRef = null, notifCb = null;
+let friendReqListenerRef = null;
+let accountProfileCache = {};
+let _notifOpen = false;
+let unreadNotifCount = 0;
+
+const ICON_LIST = ['🎮','🏆','⭐','🔥','🎯','💎','🌟','👑','🚀','🎲','🧠','⚡','🌈','🦁','🐯','🦊','🐺','🦋','🌸','🍀','🎪','🎨','🎭','🎬','🎤','🏅','🥇','🎁','🌙','☀️'];
+
+function initAccountSystem() {
+  try {
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!db) db = firebase.database();
+    if(!auth) auth = firebase.auth();
+  } catch(e) {}
+
+  auth.onAuthStateChanged(async user => {
+    currentUser = user;
+    if(user) {
+      const snap = await db.ref(`users/${user.uid}`).once('value');
+      currentUserProfile = snap.val();
+      updateAccountBar(true);
+      if(rId) {
+        listenNotifications();
+        const bellBtn = document.getElementById('notif-bell-btn');
+        if(bellBtn) bellBtn.style.display = '';
+        const invSec = document.getElementById('invite-friend-section');
+        if(invSec) invSec.style.display = '';
+      }
+      // 他プレイヤーのプロフィールをキャッシュ
+      if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
+    } else {
+      currentUserProfile = null;
+      updateAccountBar(false);
+      stopNotifListener();
+    }
+  });
+}
+
+function updateAccountBar(loggedIn) {
+  const btn = document.getElementById('account-bar-btn');
+  const icon = document.getElementById('account-bar-icon');
+  const label = document.getElementById('account-bar-label');
+  if(!btn) return;
+  if(loggedIn && currentUserProfile) {
+    btn.classList.add('logged-in');
+    icon.textContent = currentUserProfile.icon || '👤';
+    label.textContent = `${currentUserProfile.displayId}  ▸ プロフィール`;
+    btn.onclick = openProfileModal;
+  } else {
+    btn.classList.remove('logged-in');
+    icon.textContent = '👤';
+    label.textContent = 'LOGIN / REGISTER';
+    btn.onclick = openAuthModal;
+  }
+}
+
+function handleAccountBarClick() {
+  if(currentUser) openProfileModal();
+  else openAuthModal();
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+function openAuthModal() { document.getElementById('modal-auth').classList.add('active'); }
+function closeAuthModal() { document.getElementById('modal-auth').classList.remove('active'); clearAuthErr(); }
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-login-form').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('auth-register-form').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  clearAuthErr();
+}
+
+function clearAuthErr() {
+  ['auth-err-login','auth-err-reg'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+}
+
+function showAuthErr(formType, msg) {
+  const id = formType === 'login' ? 'auth-err-login' : 'auth-err-reg';
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.innerText = msg;
+  el.style.display = 'block';
+}
+
+function validatePassword(pw) {
+  if(pw.length < 8) return 'パスワードは8文字以上にしてください';
+  if(!/[a-zA-Z]/.test(pw)) return 'パスワードに英字を含めてください';
+  if(!/[0-9]/.test(pw)) return 'パスワードに数字を含めてください';
+  if(!/[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?`~]/.test(pw)) return 'パスワードに記号を含めてください';
+  return null;
+}
+
+async function registerAccount() {
+  try {
+    if(!auth) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); if(!db) db = firebase.database(); }
+    const email = document.getElementById('auth-email-reg').value.trim();
+    const displayId = document.getElementById('auth-uid-reg').value.trim();
+    const pw = document.getElementById('auth-pw-reg').value;
+
+    if(!email) return showAuthErr('reg', 'メールアドレスを入力してください');
+    if(!displayId || displayId.length < 3) return showAuthErr('reg', 'ユーザーIDは3文字以上にしてください');
+    if(!/^[a-zA-Z0-9_]+$/.test(displayId)) return showAuthErr('reg', 'ユーザーIDは半角英数字・_のみ使用できます');
+    const pwErr = validatePassword(pw);
+    if(pwErr) return showAuthErr('reg', pwErr);
+
+    // displayId重複チェック
+    const idSnap = await db.ref(`userIndex/${displayId}`).once('value');
+    if(idSnap.exists()) return showAuthErr('reg', 'そのユーザーIDはすでに使われています');
+
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    const uid = cred.user.uid;
+    const profile = { displayId, icon: '🎮', title: '', createdAt: Date.now() };
+    await db.ref(`users/${uid}`).set(profile);
+    await db.ref(`userIndex/${displayId}`).set(uid);
+    await db.ref(`stats/${uid}`).set({ totalGames:0, totalCorrect:0, totalWrong:0, wins:0 });
+    currentUserProfile = profile;
+    closeAuthModal();
+    toast('✅ アカウントを作成しました！');
+  } catch(e) {
+    const msg = e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに登録されています'
+      : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
+      : e.code === 'auth/weak-password' ? 'パスワードが弱すぎます'
+      : 'エラーが発生しました: ' + e.message;
+    showAuthErr('reg', msg);
+  }
+}
+
+async function loginAccount() {
+  try {
+    if(!auth) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); if(!db) db = firebase.database(); }
+    const email = document.getElementById('auth-email-login').value.trim();
+    const pw = document.getElementById('auth-pw-login').value;
+    if(!email) return showAuthErr('login', 'メールアドレスを入力してください');
+    if(!pw) return showAuthErr('login', 'パスワードを入力してください');
+    await auth.signInWithEmailAndPassword(email, pw);
+    closeAuthModal();
+    toast('✅ ログインしました');
+  } catch(e) {
+    const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
+      ? 'メールアドレスまたはパスワードが正しくありません'
+      : 'ログインに失敗しました: ' + e.message;
+    showAuthErr('login', msg);
+  }
+}
+
+async function forgotPassword() {
+  const email = document.getElementById('auth-email-login').value.trim();
+  if(!email) return showAuthErr('login', 'まずメールアドレスを入力してください');
+  try {
+    await auth.sendPasswordResetEmail(email);
+    toast('📧 パスワードリセットメールを送信しました');
+  } catch(e) {
+    showAuthErr('login', 'メール送信に失敗しました');
+  }
+}
+
+async function logoutAccount() {
+  if(!confirm('ログアウトしますか？')) return;
+  await auth.signOut();
+  closeProfileModal();
+  toast('ログアウトしました');
+}
+
+// ── Profile ────────────────────────────────────────────────────────────────
+let _selectedIcon = null;
+
+function openProfileModal() {
+  if(!currentUser || !currentUserProfile) return;
+  _selectedIcon = currentUserProfile.icon || '🎮';
+  document.getElementById('profile-icon-display').textContent = _selectedIcon;
+  document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
+  document.getElementById('profile-email-display').textContent = currentUser.email || '—';
+  document.getElementById('profile-title-input').value = currentUserProfile.title || '';
+  document.getElementById('icon-picker').style.display = 'none';
+  renderStatsGrid();
+  document.getElementById('modal-profile').classList.add('active');
+}
+
+function closeProfileModal() { document.getElementById('modal-profile').classList.remove('active'); }
+
+function toggleIconPicker() {
+  const picker = document.getElementById('icon-picker');
+  if(picker.style.display === 'none') {
+    picker.innerHTML = ICON_LIST.map(ic => `<button class="icon-option ${ic===_selectedIcon?'selected':''}" onclick="selectIcon('${ic}')">${ic}</button>`).join('');
+    picker.style.display = 'grid';
+  } else {
+    picker.style.display = 'none';
+  }
+}
+
+function selectIcon(ic) {
+  _selectedIcon = ic;
+  document.getElementById('profile-icon-display').textContent = ic;
+  document.querySelectorAll('.icon-option').forEach(el => el.classList.toggle('selected', el.textContent === ic));
+}
+
+async function saveProfile() {
+  if(!currentUser || !currentUserProfile) return;
+  const title = document.getElementById('profile-title-input').value.trim();
+  const updates = { icon: _selectedIcon, title };
+  await db.ref(`users/${currentUser.uid}`).update(updates);
+  currentUserProfile = { ...currentUserProfile, ...updates };
+  updateAccountBar(true);
+  // キャッシュも更新
+  accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+  closeProfileModal();
+  toast('✅ プロフィールを保存しました');
+}
+
+async function renderStatsGrid() {
+  const snap = await db.ref(`stats/${currentUser.uid}`).once('value');
+  const s = snap.val() || {};
+  const winRate = s.totalGames > 0 ? Math.round(s.wins / s.totalGames * 100) : 0;
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-card-val">${s.totalGames||0}</div><div class="stat-card-label">GAMES</div></div>
+    <div class="stat-card"><div class="stat-card-val">${winRate}%</div><div class="stat-card-label">WIN RATE</div></div>
+    <div class="stat-card"><div class="stat-card-val">${s.totalCorrect||0}</div><div class="stat-card-label">CORRECT</div></div>
+    <div class="stat-card"><div class="stat-card-val">${s.totalWrong||0}</div><div class="stat-card-label">WRONG</div></div>
+  `;
+}
+
+async function updateAccountStats(type, isWin) {
+  if(!currentUser) return;
+  const ref = db.ref(`stats/${currentUser.uid}`);
+  const updates = {};
+  if(type === 'correct') updates.totalCorrect = firebase.database.ServerValue.increment(1);
+  if(type === 'wrong') updates.totalWrong = firebase.database.ServerValue.increment(1);
+  if(isWin) {
+    updates.wins = firebase.database.ServerValue.increment(1);
+    updates.totalGames = firebase.database.ServerValue.increment(1);
+  }
+  await ref.update(updates);
+}
+
+// ── Notifications ──────────────────────────────────────────────────────────
+function listenNotifications() {
+  if(!currentUser || !db) return;
+  stopNotifListener();
+  notifRef = db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50);
+  notifCb = notifRef.on('value', snap => {
+    const items = [];
+    snap.forEach(child => items.unshift({ id: child.key, ...child.val() }));
+    unreadNotifCount = items.filter(n => !n.read).length;
+    updateNotifBadge();
+    if(_notifOpen) renderNotifList(items);
+  });
+}
+
+function stopNotifListener() {
+  if(notifRef && notifCb) { notifRef.off('value', notifCb); notifRef = null; notifCb = null; }
+}
+
+function updateNotifBadge() {
+  const badge = document.getElementById('notif-badge');
+  if(!badge) return;
+  if(unreadNotifCount > 0) {
+    badge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function toggleNotifPanel() {
+  if(!currentUser) { openAuthModal(); return; }
+  const drawer = document.getElementById('notif-drawer');
+  const overlay = document.getElementById('notif-overlay');
+  _notifOpen = !_notifOpen;
+  drawer.classList.toggle('open', _notifOpen);
+  overlay.classList.toggle('show', _notifOpen);
+  if(_notifOpen) loadAndRenderNotifs();
+}
+
+async function loadAndRenderNotifs() {
+  if(!currentUser) return;
+  const snap = await db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value');
+  const items = [];
+  snap.forEach(child => items.unshift({ id: child.key, ...child.val() }));
+  renderNotifList(items);
+}
+
+function renderNotifList(items) {
+  const el = document.getElementById('notif-list');
+  if(!el) return;
+  if(items.length === 0) {
+    el.innerHTML = '<div class="notif-empty">通知はありません</div>';
+    return;
+  }
+  const typeIcon = { invite:'🎮', friendReq:'👥', friendAccepted:'✅', friendRoom:'🚀' };
+  el.innerHTML = items.map(n => {
+    const ts = n.ts ? formatNotifTs(n.ts) : '';
+    const icon = typeIcon[n.type] || '🔔';
+    let actionBtn = '';
+    if(n.type === 'invite' && n.roomId && !n.read) {
+      actionBtn = `<div class="notif-item-action" onclick="joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</div>`;
+    }
+    if(n.type === 'friendReq' && n.fromUid && !n.read) {
+      actionBtn = `<div style="display:flex;gap:6px;margin-top:6px;">
+        <span class="notif-item-action" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">承認</span>
+        <span class="notif-item-action" style="color:var(--red);border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.08);" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">拒否</span>
+      </div>`;
+    }
+    return `<div class="notif-item ${n.read?'':'unread'}" id="notif-${n.id}">
+      <div class="notif-item-icon">${icon}</div>
+      <div class="notif-item-body">
+        <div class="notif-item-title">${esc(n.title||'')}</div>
+        <div class="notif-item-text">${esc(n.body||'')}${actionBtn}</div>
+      </div>
+      <div class="notif-item-ts">${ts}</div>
+    </div>`;
+  }).join('');
+}
+
+function formatNotifTs(ts) {
+  const diff = Date.now() - ts;
+  if(diff < 60000) return '今';
+  if(diff < 3600000) return Math.floor(diff/60000) + '分前';
+  if(diff < 86400000) return Math.floor(diff/3600000) + '時間前';
+  return Math.floor(diff/86400000) + '日前';
+}
+
+async function pushNotification(toUid, type, title, body, extra={}) {
+  if(!db) return;
+  await db.ref(`notifications/${toUid}`).push({
+    type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
+  });
+}
+
+async function markAllNotifRead() {
+  if(!currentUser) return;
+  const snap = await db.ref(`notifications/${currentUser.uid}`).once('value');
+  const updates = {};
+  snap.forEach(child => { if(!child.val().read) updates[`${child.key}/read`] = true; });
+  if(Object.keys(updates).length > 0) await db.ref(`notifications/${currentUser.uid}`).update(updates);
+  loadAndRenderNotifs();
+}
+
+async function joinFromNotif(notifId, roomId) {
+  await db.ref(`notifications/${currentUser.uid}/${notifId}/read`).set(true);
+  toggleNotifPanel();
+  document.getElementById('in-room').value = roomId;
+  toast(`ルームID ${roomId} をセットしました`);
+}
+
+async function acceptFriendFromNotif(notifId, fromUid) {
+  await db.ref(`notifications/${currentUser.uid}/${notifId}/read`).set(true);
+  const fromSnap = await db.ref(`users/${fromUid}`).once('value');
+  const fromProf = fromSnap.val() || {};
+  const now = Date.now();
+  await db.ref(`friends/${currentUser.uid}/${fromUid}`).set({ since: now });
+  await db.ref(`friends/${fromUid}/${currentUser.uid}`).set({ since: now });
+  await db.ref(`friendRequests/${currentUser.uid}/${fromUid}`).remove();
+  await pushNotification(fromUid, 'friendAccepted', 'フレンド承認', `${currentUserProfile.displayId} さんがフレンド申請を承認しました`);
+  toast(`✅ ${fromProf.displayId || '?'} さんとフレンドになりました`);
+  loadAndRenderNotifs();
+}
+
+async function declineFriendFromNotif(notifId, fromUid) {
+  await db.ref(`notifications/${currentUser.uid}/${notifId}/read`).set(true);
+  await db.ref(`friendRequests/${currentUser.uid}/${fromUid}`).remove();
+  loadAndRenderNotifs();
+}
+
+// ── Friends ────────────────────────────────────────────────────────────────
+function openFriendModal() {
+  if(!currentUser) { openAuthModal(); return; }
+  closeProfileModal();
+  document.getElementById('modal-friend').classList.add('active');
+  loadFriendData();
+}
+function closeFriendModal() { document.getElementById('modal-friend').classList.remove('active'); }
+
+async function loadFriendData() {
+  const [friendsSnap, reqSnap] = await Promise.all([
+    db.ref(`friends/${currentUser.uid}`).once('value'),
+    db.ref(`friendRequests/${currentUser.uid}`).once('value')
+  ]);
+
+  // フレンド申請
+  const reqs = [];
+  reqSnap.forEach(child => reqs.push({ uid: child.key, ...child.val() }));
+  const reqSec = document.getElementById('friend-req-section');
+  const reqList = document.getElementById('friend-req-list');
+  if(reqs.length > 0) {
+    reqSec.style.display = '';
+    reqList.innerHTML = reqs.map(r => `
+      <div class="friend-req-item">
+        <div class="friend-icon">${r.icon||'👤'}</div>
+        <div class="friend-info">
+          <div class="friend-displayid">${esc(r.displayId||'?')}</div>
+          <div class="friend-title">${r.title ? esc(r.title) : ''}</div>
+        </div>
+        <div class="friend-actions">
+          <button class="friend-btn friend-btn-accept" onclick="acceptFriendDirect('${r.uid}','${r.displayId||''}')">承認</button>
+          <button class="friend-btn friend-btn-decline" onclick="declineFriendDirect('${r.uid}')">拒否</button>
+        </div>
+      </div>`).join('');
+  } else {
+    reqSec.style.display = 'none';
+  }
+
+  // フレンド一覧
+  const friendList = document.getElementById('friend-list');
+  const friendUids = [];
+  friendsSnap.forEach(child => friendUids.push(child.key));
+  if(friendUids.length === 0) {
+    friendList.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
+    return;
+  }
+  const profiles = await Promise.all(friendUids.map(uid => db.ref(`users/${uid}`).once('value')));
+  friendList.innerHTML = profiles.map((snap, i) => {
+    const p = snap.val() || {};
+    const uid = friendUids[i];
+    accountProfileCache[uid] = p;
+    return `<div class="friend-item">
+      <div class="friend-icon">${p.icon||'👤'}</div>
+      <div class="friend-info">
+        <div class="friend-displayid">${esc(p.displayId||'?')}</div>
+        <div class="friend-title">${p.title ? esc(p.title) : '称号なし'}</div>
+      </div>
+      <div class="friend-actions">
+        <button class="friend-btn friend-btn-remove" onclick="removeFriend('${uid}','${p.displayId||''}')">削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function sendFriendRequest() {
+  const input = document.getElementById('friend-search-input');
+  const targetId = input.value.trim();
+  if(!targetId) return toast('ユーザーIDを入力してください');
+  if(targetId === currentUserProfile.displayId) return toast('自分自身には送れません');
+  const uidSnap = await db.ref(`userIndex/${targetId}`).once('value');
+  if(!uidSnap.exists()) return toast('ユーザーが見つかりません');
+  const toUid = uidSnap.val();
+  const alreadySnap = await db.ref(`friends/${currentUser.uid}/${toUid}`).once('value');
+  if(alreadySnap.exists()) return toast('すでにフレンドです');
+  const targetProf = (await db.ref(`users/${toUid}`).once('value')).val() || {};
+  await db.ref(`friendRequests/${toUid}/${currentUser.uid}`).set({
+    displayId: currentUserProfile.displayId,
+    icon: currentUserProfile.icon || '👤',
+    title: currentUserProfile.title || '',
+    ts: Date.now()
+  });
+  await pushNotification(toUid, 'friendReq', 'フレンド申請', `${currentUserProfile.displayId} さんからフレンド申請が届きました`, { fromUid: currentUser.uid });
+  input.value = '';
+  toast(`✅ ${targetId} さんにフレンド申請を送りました`);
+}
+
+async function acceptFriendDirect(fromUid, fromDisplayId) {
+  const now = Date.now();
+  await db.ref(`friends/${currentUser.uid}/${fromUid}`).set({ since: now });
+  await db.ref(`friends/${fromUid}/${currentUser.uid}`).set({ since: now });
+  await db.ref(`friendRequests/${currentUser.uid}/${fromUid}`).remove();
+  await pushNotification(fromUid, 'friendAccepted', 'フレンド承認', `${currentUserProfile.displayId} さんがフレンド申請を承認しました`);
+  toast(`✅ ${fromDisplayId} さんとフレンドになりました`);
+  loadFriendData();
+}
+
+async function declineFriendDirect(fromUid) {
+  await db.ref(`friendRequests/${currentUser.uid}/${fromUid}`).remove();
+  loadFriendData();
+}
+
+async function removeFriend(uid, displayId) {
+  if(!confirm(`${displayId} さんをフレンドから削除しますか？`)) return;
+  await db.ref(`friends/${currentUser.uid}/${uid}`).remove();
+  await db.ref(`friends/${uid}/${currentUser.uid}`).remove();
+  toast(`${displayId} さんをフレンドから削除しました`);
+  loadFriendData();
+}
+
+// ── フレンドを部屋に招待 ───────────────────────────────────────────────────
+function openInviteFriendModal() {
+  if(!currentUser) return;
+  document.getElementById('modal-invite-friend').classList.add('active');
+  loadInviteFriendList();
+}
+function closeInviteFriendModal() { document.getElementById('modal-invite-friend').classList.remove('active'); }
+
+async function loadInviteFriendList() {
+  const el = document.getElementById('invite-friend-list');
+  el.innerHTML = '<div class="friend-empty">読み込み中…</div>';
+  const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
+  const friendUids = [];
+  friendsSnap.forEach(child => friendUids.push(child.key));
+  if(friendUids.length === 0) {
+    el.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
+    return;
+  }
+  const profiles = await Promise.all(friendUids.map(uid => db.ref(`users/${uid}`).once('value')));
+  el.innerHTML = profiles.map((snap, i) => {
+    const p = snap.val() || {};
+    const uid = friendUids[i];
+    return `<div class="friend-item">
+      <div class="friend-icon">${p.icon||'👤'}</div>
+      <div class="friend-info">
+        <div class="friend-displayid">${esc(p.displayId||'?')}</div>
+        <div class="friend-title">${p.title ? esc(p.title) : ''}</div>
+      </div>
+      <div class="friend-actions">
+        <button class="friend-btn friend-btn-invite" onclick="inviteFriendToRoom('${uid}','${p.displayId||''}',this)">招待</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function inviteFriendToRoom(toUid, toDisplayId, btn) {
+  if(!rId) return;
+  btn.textContent = '送信中…';
+  btn.disabled = true;
+  await pushNotification(toUid, 'invite',
+    `${currentUserProfile.displayId} さんから招待が届きました`,
+    `Room ID: ${rId} に招待されました`, { roomId: rId, fromUid: currentUser.uid });
+  btn.textContent = '✅ 送信済み';
+  toast(`✅ ${toDisplayId} さんに招待しました`);
+}
+
+// フレンドに部屋作成を通知
+async function notifyFriendsRoomCreated(roomId) {
+  if(!currentUser || !currentUserProfile) return;
+  const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
+  const notifPromises = [];
+  friendsSnap.forEach(child => {
+    notifPromises.push(pushNotification(child.key, 'friendRoom',
+      `${currentUserProfile.displayId} さんが部屋を作りました`,
+      `Room ID: ${roomId}`, { roomId, fromUid: currentUser.uid }));
+  });
+  await Promise.all(notifPromises);
+}
+
+// アカウントプロフィールをまとめてキャッシュ
+async function prefetchAccountProfiles(players) {
+  const uids = Object.values(players).map(p => p.accountUid).filter(uid => uid && !accountProfileCache[uid]);
+  await Promise.all(uids.map(async uid => {
+    const snap = await db.ref(`users/${uid}`).once('value');
+    if(snap.exists()) accountProfileCache[uid] = snap.val();
+  }));
+}
