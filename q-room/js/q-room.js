@@ -8,10 +8,10 @@ const firebaseConfig = {
   appId: "1:151049149394:web:7a3ea6406454f6a87d460b"
 };
 
-// ── Admin ──────────────────────────────────────────────────────────────────
 
 
-// ── State ──────────────────────────────────────────────────────────────────
+
+
 let _isAdmin = false;
 function isAdmin() { return _isAdmin; }
 function checkAdmin() { return Promise.resolve(); }
@@ -34,7 +34,7 @@ const DEF_CONF = {
   board_quiz: {m:10, n:3, x:1, y:10, z:5, a:15}
 };
 
-// ── Init ───────────────────────────────────────────────────────────────────
+
 window.onload = () => {
   const params = new URLSearchParams(window.location.search);
   const qRoom = params.get('r');
@@ -76,7 +76,7 @@ function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.st
 function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
 
-// ── Room Create/Join ───────────────────────────────────────────────────────
+
 async function handleCreate() {
   try {
     initFB();
@@ -150,7 +150,7 @@ function newPlayer(name, accountUid=null) {
   return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [], ...(accountUid ? {accountUid} : {}) };
 }
 
-// ── Enter Room ─────────────────────────────────────────────────────────────
+
 function enterRoom(isCreate=false, playerName='') {
   try {
     if (window.location.protocol !== 'file:') {
@@ -187,7 +187,6 @@ function enterRoom(isCreate=false, playerName='') {
 
   checkAdmin().then(() => { if(roomData) renderPlayers(); });
 
-  // アカウントログイン中なら通知リスナー起動・フレンド招待ボタン表示
   if(currentUser) {
     listenNotifications();
     const bellBtn = document.getElementById('notif-bell-btn');
@@ -225,13 +224,13 @@ async function backToRoom() {
   await db.ref(`rooms/${rId}/status`).set('playing');
 }
 
-// ── Modal ──────────────────────────────────────────────────────────────────
+
 function openModal(){
   document.getElementById('modal').classList.add('active');
 }
 function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
 
-// ── Dev Notice (TOPバナー) ─────────────────────────────────────────────────
+
 let _devNoticeRef = null;
 function initDevNotice() {
   try {
@@ -261,7 +260,7 @@ function dismissDevNotice() {
   if(b) b.classList.remove('show');
 }
 
-// ── TOP通知センター ─────────────────────────────────────────────────────────
+
 let _topNotifRef = null, _topNotifCb = null;
 function initTopNotifCenter(user) {
   if(_topNotifRef && _topNotifCb) _topNotifRef.off('value', _topNotifCb);
@@ -325,7 +324,7 @@ async function topNotifJoin(notifId, roomId) {
 function openFeedback(){ document.getElementById('modal-feedback').classList.add('active'); }
 function closeFeedback(){ document.getElementById('modal-feedback').classList.remove('active'); }
 
-// ── URL / Share ────────────────────────────────────────────────────────────
+
 function getRoomUrl() {
   if(window.location.protocol === 'file:') return `https://astro-root.com/q-room/?r=${rId}`;
   const base = window.location.origin + window.location.pathname.replace(/\/q-room\/.*/, '/q-room/').replace(/([^/])$/, '$1/');
@@ -369,7 +368,7 @@ function nativeShare() {
 function copyUrl(){ navigator.clipboard.writeText(getRoomUrl()); toast('URL copied'); }
 function copyId(){ navigator.clipboard.writeText(rId); toast('ID copied'); }
 
-// ── Tweet ──────────────────────────────────────────────────────────────────
+
 function tweetApp() {
   const text = `🎮オンラインクイズルーム「Q-Room」を今すぐチェック！\nタイムレース、アタック風サバイバル、螺旋階段など豊富なルール対応✨\n#クイズQRoom #クイズ`;
   const url = 'https://astro-root.com/q-room/';
@@ -397,7 +396,7 @@ function tweetResult() {
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
 }
 
-// ── Rule UI ────────────────────────────────────────────────────────────────
+
 function changeRuleUI(skipRender=false) {
   const r = document.getElementById('sel-rule').value;
   const c = (roomData && roomData.rule === r && roomData.conf) ? roomData.conf : DEF_CONF[r];
@@ -437,7 +436,6 @@ function changeRuleUI(skipRender=false) {
     db.ref('rooms/'+rId).update({rule: r, conf: newConf});
     pushSysMsg(`ルールが「${ruleName}」に変更されました`);
 
-    // ルール変更時に全員のスコアを自動リセット
     if(roomData.players) {
       const pData = JSON.parse(JSON.stringify(roomData.players));
       const sc = r === 'divide' ? (newConf.init || 10) : r === 'attack_surv' ? (newConf.life || 20) : 0;
@@ -490,7 +488,7 @@ function updateConf() {
   }
 }
 
-// ── Sort / Rank ────────────────────────────────────────────────────────────
+
 function sortPlayers(pl, rule) {
   return Object.entries(pl).sort((a,b) => {
     const p1=a[1], p2=b[1];
@@ -525,7 +523,7 @@ function calcRanks(sorted) {
   return ranks;
 }
 
-// ── Render Players ─────────────────────────────────────────────────────────
+
 function renderPlayers() {
   const pl = roomData.players || {};
   const r = roomData.rule;
@@ -557,7 +555,6 @@ function renderPlayers() {
     if(p.adv > 0) sub += `<span style="color:var(--red)">DAdv!</span> `;
     if(r==='board_quiz' && roomData.board_host===id) sub += `<span style="color:var(--magenta)">🎙HOST</span> `;
 
-    // アカウントアイコン・称号
     const prof = accountProfileCache[p.accountUid] || null;
     const pIcon = prof
       ? (prof.iconUrl
@@ -655,7 +652,7 @@ function renderPlayers() {
   }
 }
 
-// ── Board Quiz Panel ───────────────────────────────────────────────────────
+
 let boardAnsDebounce = null;
 
 function renderBoardQuizPanel(me, boardPhase, isHostMe) {
@@ -777,7 +774,7 @@ async function boardNextQuestion() {
   await db.ref(`rooms/${rId}/board_phase`).set('input');
 }
 
-// ── Kick ───────────────────────────────────────────────────────────────────
+
 async function kickPlayer(pid) {
   const p = roomData.players[pid];
   if(!p) return;
@@ -786,7 +783,7 @@ async function kickPlayer(pid) {
   toast(`${p.name} を退室させました`);
 }
 
-// ── Actions ────────────────────────────────────────────────────────────────
+
 let _sendActionLock = false;
 async function sendAction(type) {
   if(_sendActionLock) return;
@@ -900,7 +897,6 @@ async function sendAction(type) {
 
   await db.ref(`rooms/${rId}/players`).update(pData);
   
-  // アカウント統計更新
   if(currentUser && (type === 'correct' || type === 'wrong')) {
     updateAccountStats(type, me.st === 'win' && JSON.parse(mePrev).st !== 'win');
   }
@@ -959,7 +955,7 @@ async function endGame() {
   }
 }
 
-// ── Result ─────────────────────────────────────────────────────────────────
+
 function renderResult() {
   show('result');
   const pl = roomData.players || {};
@@ -989,7 +985,7 @@ function renderResult() {
   document.getElementById('rlist').innerHTML = h;
 }
 
-// ── Name / Chat helpers ────────────────────────────────────────────────────
+
 function getMyName(fallback='') {
   if(roomData && roomData.players && roomData.players[myId] && roomData.players[myId].name)
     return roomData.players[myId].name;
@@ -1080,7 +1076,7 @@ async function pushSysMsg(text) {
   });
 }
 
-// ── Timer ──────────────────────────────────────────────────────────────────
+
 let timerInterval = null;
 let timerData = null;
 let timerRef = null;
@@ -1154,10 +1150,8 @@ function updateTimerDisplay() {
     disp.textContent = formatMs(remaining !== undefined ? remaining : limitMs);
     disp.className = 'timer-display';
 
-    // cdStartAtが届いた時点でどれだけ経過しているか計算し、ローカル基準時刻を補正
     const cdReceivedAt = Date.now();
     const serverElapsedAtReceive = cdStartAt ? Math.max(0, getServerTime() - cdStartAt) : 0;
-    // ローカルカウントダウン開始点 = 受信時刻 - すでに経過したサーバー時間
     const localCdBase = cdReceivedAt - serverElapsedAtReceive;
 
     let lastShown = -1;
@@ -1166,7 +1160,6 @@ function updateTimerDisplay() {
       let left = Math.ceil((5000 - elapsed) / 1000);
       if(left > 5) left = 5;
       if(left <= 0) {
-        // GO!表示はcountdown→running遷移検知側（updateTimerDisplay）に一本化
         clearInterval(cdInterval); cdInterval = null;
         return;
       }
@@ -1183,7 +1176,6 @@ function updateTimerDisplay() {
     cdInterval = setInterval(tick, 50);
 
   } else if(state === 'running') {
-    // countdownから遷移してきた場合はGO!を表示
     if(prevState === 'countdown') {
       showGoAndHide(co);
     } else {
@@ -1250,7 +1242,6 @@ async function timerAction(action) {
       remaining: currentRemaining, limitMs: td.limitMs || limitMs, startAt: null
     });
     clearTimeout(cdStartTimeout);
-    // カウントダウン5秒後にrunningへ遷移
     cdStartTimeout = setTimeout(async () => {
       const snap = await db.ref(`rooms/${rId}/timer/state`).once('value');
       if(snap.val() === 'countdown') {
@@ -1296,7 +1287,7 @@ async function finishTimeRace() {
   await db.ref(`rooms/${rId}/status`).set('finished');
 }
 
-// ── Theme ──────────────────────────────────────────────────────────────────
+
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') !== 'light';
@@ -1320,7 +1311,7 @@ function toggleTheme() {
     }
   } catch(e) {}
 })();
-// ── Account System ─────────────────────────────────────────────────────────
+
 let auth = null;
 let currentUser = null;
 let currentUserProfile = null;
@@ -1394,7 +1385,7 @@ function handleAccountBarClick() {
   else openAuthModal();
 }
 
-// ── Auth ───────────────────────────────────────────────────────────────────
+
 function openAuthModal() { document.getElementById('modal-auth').classList.add('active'); }
 function closeAuthModal() { document.getElementById('modal-auth').classList.remove('active'); clearAuthErr(); }
 
@@ -1526,7 +1517,7 @@ async function logoutAccount() {
   toast('ログアウトしました');
 }
 
-// ── Profile ────────────────────────────────────────────────────────────────
+
 let _selectedIcon = null;
 let _cropState = { img: null, x: 0, y: 0, scale: 1, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
 
@@ -1834,7 +1825,7 @@ async function updateAccountStats(type, isWin) {
   await ref.update(updates);
 }
 
-// ── Notifications ──────────────────────────────────────────────────────────
+
 function listenNotifications() {
   if(!currentUser || !db) return;
   stopNotifListener();
@@ -1888,7 +1879,7 @@ function renderNotifList(items) {
     el.innerHTML = '<div class="notif-empty">通知はありません</div>';
     return;
   }
-  const typeIcon = { invite:'🎮', friendReq:'👥', friendAccepted:'✅', friendRoom:'🚀' };
+  const typeIcon = { invite:'🎮', friendReq:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢' };
   el.innerHTML = items.map(n => {
     const ts = n.ts ? formatNotifTs(n.ts) : '';
     const icon = typeIcon[n.type] || '🔔';
@@ -1967,7 +1958,7 @@ async function declineFriendFromNotif(notifId, fromUid) {
   loadAndRenderNotifs();
 }
 
-// ── Friends ────────────────────────────────────────────────────────────────
+
 function openFriendModal() {
   if(!currentUser) { openAuthModal(); return; }
   closeProfileModal();
@@ -1982,7 +1973,6 @@ async function loadFriendData() {
     db.ref(`friendRequests/${currentUser.uid}`).once('value')
   ]);
 
-  // フレンド申請
   const reqs = [];
   reqSnap.forEach(child => reqs.push({ uid: child.key, ...child.val() }));
   const reqSec = document.getElementById('friend-req-section');
@@ -2005,7 +1995,6 @@ async function loadFriendData() {
     reqSec.style.display = 'none';
   }
 
-  // フレンド一覧
   const friendList = document.getElementById('friend-list');
   const friendUids = [];
   friendsSnap.forEach(child => friendUids.push(child.key));
@@ -2076,7 +2065,7 @@ async function removeFriend(uid, displayId) {
   loadFriendData();
 }
 
-// ── フレンドを部屋に招待 ───────────────────────────────────────────────────
+
 function openInviteFriendModal() {
   if(!currentUser) return;
   document.getElementById('modal-invite-friend').classList.add('active');
@@ -2122,7 +2111,6 @@ async function inviteFriendToRoom(toUid, toDisplayId, btn) {
   toast(`✅ ${toDisplayId} さんに招待しました`);
 }
 
-// フレンドに部屋作成を通知
 async function notifyFriendsRoomCreated(roomId) {
   if(!currentUser || !currentUserProfile) return;
   const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
@@ -2135,7 +2123,6 @@ async function notifyFriendsRoomCreated(roomId) {
   await Promise.all(notifPromises);
 }
 
-// アカウントプロフィールをまとめてキャッシュ
 async function prefetchAccountProfiles(players) {
   const uids = Object.values(players).map(p => p.accountUid).filter(uid => uid && !accountProfileCache[uid]);
   await Promise.all(uids.map(async uid => {
