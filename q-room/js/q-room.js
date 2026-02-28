@@ -285,17 +285,24 @@ function dismissDevNotice() {
 }
 
 
-let _topNotifRef = null, _topNotifCb = null;
+let _topNotifRef = null, _topNotifCb = null, _topNotifUid = null;
 function initTopNotifCenter(user) {
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; _topNotifCb = null; }
   if(!user || !user.uid) return;
+  // 同じユーザーのリスナーが既に生きていればスキップ（onAuthStateChangedの多重発火対策）
+  if(_topNotifUid === user.uid && _topNotifRef && _topNotifCb) {
+    console.log('[initTopNotifCenter] listener already active for uid=' + user.uid + ', skipping');
+    return;
+  }
+  // 別ユーザー or 初回: 既存リスナーをクリア
+  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  _topNotifRef = null; _topNotifCb = null; _topNotifUid = null;
+
   console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
-  _topNotifRef = fbdb.ref(`notifications/${user.uid}`);
-  _topNotifCb = snap => {
+  const ref = fbdb.ref(`notifications/${user.uid}`);
+  const cb = snap => {
     const items = [];
     snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    // クライアント側でts降順ソート（新しい順）
     items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
     unreadNotifCount = items.filter(n => !n.read).length;
@@ -304,12 +311,16 @@ function initTopNotifCenter(user) {
     if(_topNotifDrawerOpen) renderTopNotifDrawer(items);
     if(_notifOpen) renderNotifList(items);
   };
-  _topNotifRef.on('value', _topNotifCb, err => {
+  ref.on('value', cb, err => {
     console.error('[initTopNotifCenter] ❌ Firebase listener error:', err.code, err.message);
   });
+  _topNotifRef = ref;
+  _topNotifCb = cb;
+  _topNotifUid = user.uid;
 }
 function hideTopNotifCenter() {
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; }
+  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  _topNotifRef = null; _topNotifCb = null; _topNotifUid = null;
 }
 function toggleTopNotif() {}
 
