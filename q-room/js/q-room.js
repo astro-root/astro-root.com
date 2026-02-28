@@ -1341,12 +1341,16 @@ async function registerAccount() {
     const pwErr = validatePassword(pw);
     if(pwErr) return showAuthErr('reg', pwErr);
 
-    // displayId重複チェック
+    // displayId重複チェック（未認証で読めるようにルール設定が必要）
     const idSnap = await db.ref(`userIndex/${displayId}`).once('value');
     if(idSnap.exists()) return showAuthErr('reg', 'そのユーザーIDはすでに使われています');
 
     const cred = await auth.createUserWithEmailAndPassword(email, pw);
     const uid = cred.user.uid;
+
+    // DBへの書き込み前にトークンを強制取得してFirebase Auth状態を確定させる
+    await cred.user.getIdToken(true);
+
     const profile = { displayId, icon: '🎮', title: '', createdAt: Date.now() };
     await db.ref(`users/${uid}`).set(profile);
     await db.ref(`userIndex/${displayId}`).set(uid);
@@ -1530,19 +1534,23 @@ function renderNotifList(items) {
     const icon = typeIcon[n.type] || '🔔';
     let actionBtn = '';
     if(n.type === 'invite' && n.roomId && !n.read) {
-      actionBtn = `<div class="notif-item-action" onclick="joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</div>`;
+      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
     }
     if(n.type === 'friendReq' && n.fromUid && !n.read) {
-      actionBtn = `<div style="display:flex;gap:6px;margin-top:6px;">
-        <span class="notif-item-action" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">承認</span>
-        <span class="notif-item-action" style="color:var(--red);border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.08);" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">拒否</span>
+      actionBtn = `<div class="notif-actions">
+        <button class="notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button>
+        <button class="notif-action-btn notif-action-btn-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button>
       </div>`;
     }
-    return `<div class="notif-item ${n.read?'':'unread'}" id="notif-${n.id}">
+    if(n.type === 'friendRoom' && n.roomId && !n.read) {
+      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
+    }
+    return `<div class="notif-item ${n.read?'':'unread'}">
       <div class="notif-item-icon">${icon}</div>
       <div class="notif-item-body">
         <div class="notif-item-title">${esc(n.title||'')}</div>
-        <div class="notif-item-text">${esc(n.body||'')}${actionBtn}</div>
+        <div class="notif-item-text">${esc(n.body||'')}</div>
+        ${actionBtn}
       </div>
       <div class="notif-item-ts">${ts}</div>
     </div>`;
