@@ -116,8 +116,16 @@ async function handleCreate() {
       players: { [myId]: newPlayer(n, currentUser ? currentUser.uid : null, currentUserProfile) }
     });
     await pushSysMsg(`${n} が入室しました`);
-    notifyFriendsRoomCreated(r).catch(e => console.warn('[notif]', e));
     enterRoom(true, n);
+    // currentUserProfile が確定している状態で通知送信
+    if(currentUser && currentUserProfile) {
+      notifyFriendsRoomCreated(rId).catch(e => console.warn('[notifyFriendsRoomCreated]', e));
+    } else if(currentUser) {
+      // profileがまだ取得中の場合は少し待って再試行
+      setTimeout(async () => {
+        if(currentUserProfile) notifyFriendsRoomCreated(rId).catch(e => console.warn('[notifyFriendsRoomCreated]', e));
+      }, 1500);
+    }
   } catch(e) {
     console.error(e);
     err('エラーが発生しました。通信状態を確認してください。');
@@ -209,7 +217,7 @@ function enterRoom(isCreate=false, playerName='') {
     if(bellBtn) bellBtn.style.display = '';
     const invSec = document.getElementById('invite-friend-section');
     if(invSec) invSec.style.display = '';
-    if(isCreate) notifyFriendsRoomCreated(rId);
+    // notifyFriendsRoomCreated は handleCreate 側で currentUserProfile 確定後に呼ぶ
   }
 }
 
@@ -281,11 +289,13 @@ let _topNotifRef = null, _topNotifCb = null;
 function initTopNotifCenter(user) {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; _topNotifCb = null; }
   if(!user || !user.uid) return;
+  console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
   _topNotifRef = fbdb.ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(50);
   _topNotifCb = snap => {
     const items = [];
     snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+    console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
     unreadNotifCount = items.filter(n => !n.read).length;
     updateNotifBadge();
     renderAccountNotifList(items);
@@ -293,7 +303,7 @@ function initTopNotifCenter(user) {
     if(_notifOpen) renderNotifList(items);
   };
   _topNotifRef.on('value', _topNotifCb, err => {
-    console.error('[notif] Firebase listener error:', err.code, err.message);
+    console.error('[initTopNotifCenter] ❌ Firebase listener error:', err.code, err.message);
   });
 }
 function hideTopNotifCenter() {
@@ -2216,18 +2226,21 @@ function formatNotifTs(ts) {
 }
 
 async function pushNotification(toUid, type, title, body, extra={}) {
-  if(!db) { console.warn('[pushNotification] db is null'); return; }
+  if(!db) { console.warn('[pushNotification] db is null, skipping'); return; }
+  if(!toUid) { console.warn('[pushNotification] toUid is null/empty, skipping'); return; }
+  console.log('[pushNotification] writing to uid=' + toUid + ' type=' + type);
   try {
     await db.ref(`notifications/${toUid}`).push({
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
+    console.log('[pushNotification] success uid=' + toUid);
   } catch(e) {
     const msg = (e.message||'').toLowerCase();
     if(e.code === 'PERMISSION_DENIED' || msg.includes('permission_denied')) {
-      console.error('[pushNotification] PERMISSION_DENIED uid=' + toUid +
-        ' — Firebase Rules: notifications/$uid .write must be auth!=null');
+      console.error('[pushNotification] ❌ PERMISSION_DENIED uid=' + toUid +
+        ' — Firebase Rules: notifications/$uid .write が auth!=null になっているか確認してください');
     } else {
-      console.error('[pushNotification]', e);
+      console.error('[pushNotification] ❌ error uid=' + toUid, e);
     }
     throw e;
   }
@@ -2289,24 +2302,21 @@ async function loadFriendData() {
       db.ref(`friendRequests/${currentUser.uid}`).once('value')
     ]);
   } catch(e) {
-    console.error('[loadFriendData] read failed:', e);
-    friendList.innerHTML = '<div class="friend-empty">読み込みに失敗しました（ルール設定を確認してください）</div>';
+    console.error('[loadFriendData] ❌ read failed:', e);
+    friendList.innerHTML = '<div class="friend-empty">読み込みに失敗しました</div>';
     if(reqSec) reqSec.style.display = 'none';
     return;
   }
 
-  // フレンド申請
   const reqs = [];
   reqSnap.forEach(child => reqs.push({ uid: child.key, ...child.val() }));
   if(reqs.length > 0) {
     reqSec.style.display = '';
     reqList.innerHTML = reqs.map(r => {
-      const iconHtml = r.iconUrl
-        ? `<img src="${r.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : (r.icon||'👤');
+      const ic = r.iconUrl ? `<img src="${r.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (r.icon||'👤');
       return `
       <div class="friend-req-item">
-        <div class="friend-icon">${iconHtml}</div>
+        <div class="friend-icon">${ic}</div>
         <div class="friend-info">
           <div class="friend-displayid">${esc(r.displayId||'?')}</div>
           <div class="friend-title">${r.title ? esc(r.title) : ''}</div>
@@ -2321,7 +2331,6 @@ async function loadFriendData() {
     reqSec.style.display = 'none';
   }
 
-  // フレンド一覧
   const friendUids = [];
   friendsSnap.forEach(child => friendUids.push(child.key));
   if(friendUids.length === 0) {
@@ -2329,22 +2338,19 @@ async function loadFriendData() {
     return;
   }
 
-  // users/$uid を個別に取得（permission_denied でも他が止まらないよう個別catch）
   const profiles = await Promise.all(
     friendUids.map(uid =>
       db.ref(`users/${uid}`).once('value')
         .then(s => ({ uid, data: s.val() || {} }))
-        .catch(e => { console.warn('[loadFriendData] users/' + uid, e); return { uid, data: {} }; })
+        .catch(e => { console.warn('[loadFriendData] users/' + uid + ' failed:', e); return { uid, data: {} }; })
     )
   );
 
   friendList.innerHTML = profiles.map(({ uid, data: p }) => {
     accountProfileCache[uid] = p;
-    const iconHtml = p.iconUrl
-      ? `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : (p.icon||'👤');
+    const ic = p.iconUrl ? `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (p.icon||'👤');
     return `<div class="friend-item">
-      <div class="friend-icon">${iconHtml}</div>
+      <div class="friend-icon">${ic}</div>
       <div class="friend-info">
         <div class="friend-displayid">${esc(p.displayId||'?')}</div>
         <div class="friend-title">${p.title ? esc(p.title) : '称号なし'}</div>
@@ -2427,11 +2433,9 @@ async function loadInviteFriendList() {
     )
   );
   el.innerHTML = profiles.map(({ uid, data: p }) => {
-    const iconHtml = p.iconUrl
-      ? `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : (p.icon||'👤');
+    const ic = p.iconUrl ? `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (p.icon||'👤');
     return `<div class="friend-item">
-      <div class="friend-icon">${iconHtml}</div>
+      <div class="friend-icon">${ic}</div>
       <div class="friend-info">
         <div class="friend-displayid">${esc(p.displayId||'?')}</div>
         <div class="friend-title">${p.title ? esc(p.title) : ''}</div>
@@ -2462,21 +2466,28 @@ async function inviteFriendToRoom(toUid, toDisplayId, btn) {
 }
 
 async function notifyFriendsRoomCreated(roomId) {
-  if(!currentUser || !currentUserProfile) return;
+  if(!currentUser || !currentUserProfile) {
+    console.warn('[notifyFriendsRoomCreated] currentUser or currentUserProfile is null, skipping');
+    return;
+  }
   try {
     const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
     const promises = [];
+    let count = 0;
     friendsSnap.forEach(child => {
+      count++;
       promises.push(
         pushNotification(child.key, 'friendRoom',
           `${currentUserProfile.displayId} さんが部屋を作りました`,
           `Room ID: ${roomId} に招待されました`,
           { roomId, fromUid: currentUser.uid }
-        ).catch(e => console.warn('[notifyFriendsRoomCreated] uid=' + child.key, e))
+        ).catch(e => console.error('[notifyFriendsRoomCreated] uid=' + child.key + ' failed:', e))
       );
     });
+    console.log('[notifyFriendsRoomCreated] sending to', count, 'friends');
     await Promise.allSettled(promises);
-  } catch(e) { console.warn('[notifyFriendsRoomCreated]', e); }
+    console.log('[notifyFriendsRoomCreated] done');
+  } catch(e) { console.error('[notifyFriendsRoomCreated]', e); }
 }
 
 async function prefetchAccountProfiles(players) {
