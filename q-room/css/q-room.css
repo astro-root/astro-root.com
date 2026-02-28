@@ -304,7 +304,8 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
 .rule-badge {
   font-size: 0.78rem; padding: 5px 11px; background: rgba(225,29,72,0.15);
   border: 1px solid rgba(225,29,72,0.4); border-radius: 8px; color: #fb7185; font-weight: 700;
-  letter-spacing: 0.05em; white-space: nowrap;
+  letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex-shrink: 1; min-width: 0; max-width: 120px;
 }
 @media (max-width: 380px) {
   .room-info span { font-size: 1.1rem; }
@@ -454,11 +455,9 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
 .m-content::-webkit-scrollbar-track { background: transparent; }
 .m-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 .m-close {
-  position: sticky;
-  top: 8px;
-  float: right;
-  margin-top: -40px;
-  margin-right: -8px;
+  position: absolute;
+  top: 16px;
+  right: 16px;
   background: rgba(255,255,255,0.06); border: 1px solid var(--border-color);
   color: var(--text-muted); font-size: 1.4rem; cursor: pointer; transition: 0.3s; line-height: 1; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   z-index: 10;
@@ -860,11 +859,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   font-size: 0.9rem;
 }
 
-.rule-badge {
-  flex-shrink: 1;
-  min-width: 0;
-  max-width: 80px;
-}
+/* [rule-badge flex props merged into main definition] */
 
 .header > div:last-child {
   display: flex;
@@ -1448,8 +1443,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
     width: 40px;
     height: 40px;
     font-size: 1.2rem;
-    margin-top: -40px;
-    margin-right: -4px;
+    top: 12px;
+    right: 12px;
   }
   .m-title {
     font-size: 1.1rem;
@@ -1636,8 +1631,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
     width: 40px;
     height: 40px;
     font-size: 1.15rem;
-    margin-top: -38px;
-    margin-right: -4px;
+    top: 12px;
+    right: 12px;
   }
   .m-title {
     font-size: 1.1rem;
@@ -2038,26 +2033,9 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
    BUG FIXES
    ============================================================ */
 
-/* ルール名が長い場合に枠からはみ出ないよう修正 */
-.rule-badge {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 120px;
-}
+/* [rule-badge overflow props merged into main definition] */
 
-/* ドロワーの×ボタンずれ修正：sticky float 組み合わせ問題を解消 */
-.m-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  float: none;
-  margin: 0;
-}
-/* m-content は relative が必要（absolute 基準として） */
-.m-content {
-  position: relative;
-}
+/* [m-close fix merged into main definition above] */
 
 /* account 画面のヘッダーは position:sticky なので bg-color 変数名修正 */
 .acct-header {
