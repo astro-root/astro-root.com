@@ -1147,13 +1147,11 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   z-index: 200;
   visibility: hidden;
   opacity: 0;
-  pointer-events: none;
   transition: opacity 0.3s, visibility 0.3s;
 }
 .notif-overlay.show {
   visibility: visible;
   opacity: 1;
-  pointer-events: auto;
 }
 .notif-drawer {
   position: fixed;
@@ -1546,6 +1544,156 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   .rule-badge { font-size: 0.72rem; padding: 4px 9px; }
 }
 
+/* ============================================
+   iOS input zoom 防止（font-size < 16px でスマホがズームする）
+   ============================================ */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  input:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  select:focus,
+  textarea:focus {
+    font-size: 16px;
+    transform: none;
+  }
+}
+
+/* ============================================
+   モバイル全体のタッチターゲット・UX改善
+   ============================================ */
+@media (max-width: 540px) {
+
+  /* screen-top の safe-area 対応 */
+  #screen-top {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: max(80px, calc(60px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  /* ヒーローセクション */
+  .hero {
+    padding-top: max(60px, calc(40px + env(safe-area-inset-top, 0px)));
+    padding-bottom: 28px;
+  }
+  .hero-theme-btn {
+    top: max(16px, env(safe-area-inset-top, 16px));
+    width: 44px;
+    height: 44px;
+  }
+
+  /* フォーム */
+  .field { margin-bottom: 16px; }
+  label {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+  .btn { padding: 15px; font-size: 0.92rem; }
+  .btn-gen {
+    padding: 0 18px;
+    min-width: 52px;
+    font-size: 1.3rem;
+  }
+
+  /* account-bar */
+  .account-bar { margin: 0 20px 20px; }
+  .account-bar-btn { padding: 13px 18px; gap: 10px; }
+
+  /* 下部リンクボタン群 */
+  .form-wrap > div:last-child {
+    gap: 4px;
+    margin-top: 20px;
+  }
+  .form-wrap > div:last-child > button,
+  .form-wrap > div:last-child > a {
+    padding: 10px 12px;
+    min-height: 60px;
+  }
+
+  /* モーダル */
+  .m-content {
+    max-height: 88vh;
+    padding: 44px 20px 24px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 0 0;
+  }
+  .m-close {
+    width: 40px;
+    height: 40px;
+    font-size: 1.15rem;
+    margin-top: -38px;
+    margin-right: -4px;
+  }
+  .m-title {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  /* チャット */
+  .chat-input-row {
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .chat-input { font-size: 16px; }
+
+  /* アクションパネル */
+  .action-panel {
+    padding: 14px 16px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .ox-btn { padding: 22px 0; }
+  .sub-actions { gap: 8px; }
+  .sub-btn { padding: 12px 6px; font-size: 0.8rem; }
+
+  /* 通知センター */
+  .top-notif-toggle-btn { padding: 12px 14px; }
+  .top-notif-readall { margin-right: 10px; }
+
+  /* タイマー */
+  .timer-display { font-size: 2.6rem; }
+
+  /* フレンドモーダル */
+  .friend-search-row { gap: 8px; }
+  .friend-search-btn { padding: 14px 14px; }
+
+  /* auth モーダル */
+  .auth-tabs { margin-bottom: 16px; }
+  .auth-tab { min-height: 40px; }
+}
+
+@media (max-width: 375px) {
+  .form-wrap { padding: 0 14px; }
+  .account-bar { margin: 0 14px 18px; }
+  .top-notif-readall { display: none; }
+}
+
+/* ============================================
+   タッチデバイスの :hover 誤発火防止
+   ============================================ */
+@media (hover: none) {
+  .btn-pri:hover { box-shadow: 0 10px 30px rgba(6,182,212,0.3); transform: none; }
+  .btn-sec:hover { border-color: var(--border-color); background: var(--surface-color); transform: none; }
+  .btn-warn:hover { transform: none; }
+  .pcard:hover { transform: none; box-shadow: none; border-color: var(--border-color); }
+  .pcard:hover::before { transform: translateX(-100%); }
+  .sub-btn:hover:not(:disabled) { border-color: var(--border-color); color: var(--text-muted); background: var(--surface-color); transform: none; }
+  .account-bar-btn:hover { border-color: var(--border-color); color: var(--text-muted); background: var(--surface-color); }
+  .account-bar-btn.logged-in:hover { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.06); }
+}
+
+/* ============================================
+   :active でのフィードバック（タッチ向け）
+   ============================================ */
+.btn-pri:active { transform: scale(0.97); }
+.btn-sec:active { transform: scale(0.97); }
+.account-bar-btn:active { transform: scale(0.98); }
+
 .dev-notice-banner {
   display: none;
   align-items: flex-start; gap: 10px;
@@ -1567,59 +1715,95 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 
 .top-notif-section {
   display: none;
+  background: var(--surface-color);
+  backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 .top-notif-section.visible { display: block; }
+[data-theme="light"] .top-notif-section {
+  background: rgba(238,242,247,0.95);
+}
 .top-notif-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px 10px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0;
+  min-height: 48px;
+}
+.top-notif-toggle-btn {
+  flex: 1;
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; cursor: pointer;
+  padding: 12px 16px;
+  min-height: 48px;
+  text-align: left;
 }
 .top-notif-title {
-  font-family: var(--font-en); font-size: 0.75rem; font-weight: 700;
+  font-family: var(--font-en); font-size: 0.72rem; font-weight: 700;
   letter-spacing: 0.15em; color: var(--text-muted); display: flex; align-items: center; gap: 6px;
 }
+.top-notif-chevron {
+  font-size: 0.6rem; color: var(--text-muted); margin-left: 2px;
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+  display: inline-block;
+}
+.top-notif-section.expanded .top-notif-chevron { transform: rotate(180deg); }
 .top-notif-unread {
   background: var(--magenta); color: #fff;
-  font-size: 0.62rem; font-weight: 700; font-family: var(--font-en);
+  font-size: 0.6rem; font-weight: 700; font-family: var(--font-en);
   min-width: 16px; height: 16px; border-radius: 8px;
-  display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
+  display: none; align-items: center; justify-content: center; padding: 0 4px;
 }
+.top-notif-unread.show { display: inline-flex; }
 .top-notif-readall {
   background: none; border: 1px solid var(--border-color); border-radius: 8px;
-  color: var(--text-muted); font-family: var(--font-ja); font-size: 0.72rem;
-  padding: 5px 10px; cursor: pointer; transition: 0.2s;
+  color: var(--text-muted); font-family: var(--font-ja); font-size: 0.7rem;
+  padding: 6px 12px; cursor: pointer; transition: 0.2s; white-space: nowrap;
+  margin-right: 12px; min-height: 36px;
 }
 .top-notif-readall:hover { border-color: var(--cyan); color: var(--cyan); }
+.top-notif-body-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.top-notif-section.expanded .top-notif-body-wrap {
+  max-height: 280px;
+}
 .top-notif-list {
-  max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
   border-top: 1px solid rgba(255,255,255,0.06);
+  max-height: 280px;
 }
 [data-theme="light"] .top-notif-list { border-top-color: rgba(0,0,0,0.07); }
 .top-notif-item {
   display: flex; align-items: flex-start; gap: 10px;
-  padding: 11px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
-  position: relative; transition: background 0.2s; cursor: default;
+  padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: relative; transition: background 0.2s; cursor: pointer;
 }
+.top-notif-item:active { background: rgba(255,255,255,0.04); }
 [data-theme="light"] .top-notif-item { border-bottom-color: rgba(0,0,0,0.06); }
-.top-notif-item.unread { background: rgba(6,182,212,0.04); }
+.top-notif-item.unread { background: rgba(6,182,212,0.05); }
 .top-notif-item.unread::before {
-  content: ''; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  content: ''; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
   width: 5px; height: 5px; border-radius: 50%; background: var(--cyan);
 }
 .top-notif-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; line-height: 1; }
 .top-notif-body { flex: 1; min-width: 0; }
-.top-notif-item-title { font-size: 0.84rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.4; }
-.top-notif-item-text { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
-.top-notif-item-ts { font-size: 0.64rem; color: var(--text-muted); font-family: var(--font-mono); flex-shrink: 0; white-space: nowrap; margin-top: 1px; }
-.top-notif-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.top-notif-item-title { font-size: 0.82rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.4; }
+.top-notif-item-text { font-size: 0.76rem; color: var(--text-muted); line-height: 1.5; }
+.top-notif-item-ts { font-size: 0.62rem; color: var(--text-muted); font-family: var(--font-mono); flex-shrink: 0; white-space: nowrap; margin-top: 2px; }
+.top-notif-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .top-notif-action-btn {
   font-size: 0.72rem; font-family: var(--font-en); font-weight: 700; letter-spacing: 0.04em;
-  color: var(--cyan); padding: 4px 10px; border: 1px solid rgba(6,182,212,0.4);
+  color: var(--cyan); padding: 6px 12px; border: 1px solid rgba(6,182,212,0.4);
   border-radius: 7px; cursor: pointer; background: rgba(6,182,212,0.08); transition: 0.2s;
+  min-height: 32px;
 }
-.top-notif-action-btn:hover { background: rgba(6,182,212,0.2); }
+.top-notif-action-btn:active { background: rgba(6,182,212,0.25); }
 .top-notif-action-decline { color: var(--red); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
-.top-notif-action-decline:hover { background: rgba(239,68,68,0.18); }
+.top-notif-action-decline:active { background: rgba(239,68,68,0.2); }
 .top-notif-empty {
   text-align: center; color: var(--text-muted); font-size: 0.82rem;
   padding: 20px; font-family: var(--font-en); letter-spacing: 0.08em;
