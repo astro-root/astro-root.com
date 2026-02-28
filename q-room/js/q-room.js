@@ -1598,7 +1598,7 @@ async function registerAccount() {
 
     const profile = { displayId, email, icon: '🎮', title: '', name: '', createdAt: Date.now() };
     await db.ref(`users/${uid}`).set(profile);
-    await db.ref(`userIndex/${displayId}`).set(uid);
+    await db.ref(`userIndex/${displayId}`).set({ uid, email });
     await db.ref(`stats/${uid}`).set({ totalGames:0, totalCorrect:0, totalWrong:0, wins:0 });
 
     await cred.user.sendEmailVerification();
@@ -1629,13 +1629,35 @@ async function loginAccount() {
     if(!emailOrId.includes('@')) {
       const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
       if(!uidSnap.exists()) return showAuthErr('login', 'ユーザーIDが見つかりません');
-      const uid = uidSnap.val();
-      const userSnap = await db.ref(`users/${uid}/email`).once('value');
-      if(!userSnap.exists()) return showAuthErr('login', 'メールアドレスの取得に失敗しました');
-      email = userSnap.val();
+      const indexVal = uidSnap.val();
+      // 旧形式（uid文字列）と新形式（{uid, email}オブジェクト）の両方に対応
+      if(typeof indexVal === 'object' && indexVal.email) {
+        email = indexVal.email;
+      } else {
+        // 旧形式: uidのみ保存されている場合はusers/{uid}/emailを試みる
+        const uid = typeof indexVal === 'string' ? indexVal : indexVal.uid;
+        try {
+          const userSnap = await db.ref(`users/${uid}/email`).once('value');
+          if(!userSnap.exists()) return showAuthErr('login', 'メールアドレスの取得に失敗しました。メールアドレスでログインしてください。');
+          email = userSnap.val();
+        } catch(permErr) {
+          return showAuthErr('login', 'このユーザーIDはメールアドレスでのログインが必要です（旧形式アカウント）');
+        }
+      }
     }
 
     await auth.signInWithEmailAndPassword(email, pw);
+    // 旧形式userIndex（uid文字列のみ）を新形式（{uid,email}）に自動マイグレーション
+    if(!emailOrId.includes('@') && db) {
+      const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
+      if(uidSnap.exists()) {
+        const val = uidSnap.val();
+        if(typeof val === 'string') {
+          // 旧形式: uidのみ → 新形式に更新
+          await db.ref(`userIndex/${emailOrId}`).set({ uid: val, email });
+        }
+      }
+    }
     show('top');
     toast('✅ ログインしました');
   } catch(e) {
@@ -1655,10 +1677,19 @@ async function forgotPassword() {
       if(!db) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); db = firebase.database(); }
       const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
       if(!uidSnap.exists()) return showAuthErr('login', 'ユーザーIDが見つかりません');
-      const uid = uidSnap.val();
-      const userSnap = await db.ref(`users/${uid}/email`).once('value');
-      if(!userSnap.exists()) return showAuthErr('login', 'メールアドレスの取得に失敗しました');
-      email = userSnap.val();
+      const indexVal = uidSnap.val();
+      if(typeof indexVal === 'object' && indexVal.email) {
+        email = indexVal.email;
+      } else {
+        const uid = typeof indexVal === 'string' ? indexVal : indexVal.uid;
+        try {
+          const userSnap = await db.ref(`users/${uid}/email`).once('value');
+          if(!userSnap.exists()) return showAuthErr('login', 'メールアドレスの取得に失敗しました');
+          email = userSnap.val();
+        } catch(permErr) {
+          return showAuthErr('login', 'このユーザーIDはメールアドレスでのパスワードリセットが必要です');
+        }
+      }
     }
     await auth.sendPasswordResetEmail(email);
     toast('📧 パスワードリセットメールを送信しました');
@@ -1905,7 +1936,7 @@ async function updateUserId() {
   if(snap.exists()) return showFieldErr('uid-change-err', 'そのユーザーIDはすでに使われています');
   const oldId = currentUserProfile.displayId;
   await db.ref(`userIndex/${oldId}`).remove();
-  await db.ref(`userIndex/${newId}`).set(currentUser.uid);
+  await db.ref(`userIndex/${newId}`).set({ uid: currentUser.uid, email: currentUser.email });
   await db.ref(`users/${currentUser.uid}`).update({ displayId: newId });
   currentUserProfile = { ...currentUserProfile, displayId: newId };
   document.getElementById('profile-uid-display').textContent = newId;
@@ -1925,6 +1956,10 @@ async function updateEmail() {
     await currentUser.reauthenticateWithCredential(cred);
     await currentUser.updateEmail(newEmail);
     await db.ref(`users/${currentUser.uid}`).update({ email: newEmail });
+    // userIndex のメールアドレスも更新
+    if(currentUserProfile.displayId) {
+      await db.ref(`userIndex/${currentUserProfile.displayId}`).set({ uid: currentUser.uid, email: newEmail });
+    }
     currentUserProfile = { ...currentUserProfile, email: newEmail };
     document.getElementById('profile-email-display').textContent = newEmail;
     document.getElementById('new-email-input').value = '';
