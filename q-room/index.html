@@ -266,9 +266,9 @@
     <!-- アカウント設定 -->
     <div class="acct-section">
       <button onclick="toggleAccountSettings()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-family:var(--font-en);font-size:0.82rem;font-weight:700;letter-spacing:0.1em;padding:0;margin-bottom:12px;" id="account-settings-toggle">
-        ⚙️ ACCOUNT SETTINGS <span id="account-settings-arrow" style="margin-left:4px;">▲</span>
+        ⚙️ ACCOUNT SETTINGS <span id="account-settings-arrow" style="margin-left:4px;">▼</span>
       </button>
-      <div id="account-settings-body">
+      <div id="account-settings-body" style="display:none;">
         <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
           <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">USER ID</div>
           <input type="text" id="new-uid-input" placeholder="新しいユーザーID（3〜20文字）" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')" style="margin-bottom:8px;">
@@ -420,6 +420,7 @@
   <div class="notif-drawer-header">
     <div class="notif-drawer-title">🔔 NOTIFICATIONS</div>
     <button class="notif-readall-btn" onclick="topNotifReadAll()">すべて既読</button>
+    <button class="notif-readall-btn" onclick="toggleTopNotifDrawer();showAccountPage();" style="border-color:rgba(6,182,212,0.4);color:var(--cyan);">⚙️ アカウント設定</button>
     <button class="chat-close" onclick="toggleTopNotifDrawer()" style="margin-left:8px;">✕</button>
   </div>
   <div class="notif-list" id="top-notif-drawer-list"></div>
