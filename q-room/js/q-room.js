@@ -280,6 +280,8 @@ function initTopNotifCenter(user) {
     unreadNotifCount = items.filter(n => !n.read).length;
     updateHeroAccountBtn();
     renderAccountNotifList(items);
+    // ドロワーが開いていれば更新
+    if(_topNotifDrawerOpen) loadTopNotifDrawer();
   });
 }
 function hideTopNotifCenter() {
@@ -289,7 +291,7 @@ function toggleTopNotif() {}
 
 function renderTopNotifCenter(items) { renderAccountNotifList(items); }
 
-function renderAccountNotifList(items) {
+function renderAccountNotifList(items = []) {
   const list = document.getElementById('top-notif-list');
   if(!list) return;
   if(!items || !items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
@@ -320,6 +322,9 @@ async function topNotifReadAll() {
   const updates = {};
   snap.forEach(c => { if(!c.val().read) updates[`${c.key}/read`] = true; });
   if(Object.keys(updates).length) await firebase.database().ref(`notifications/${currentUser.uid}`).update(updates);
+  unreadNotifCount = 0;
+  updateHeroAccountBtn();
+  if(_topNotifDrawerOpen) loadTopNotifDrawer();
 }
 async function topNotifJoin(notifId, roomId) {
   await topNotifMarkRead(notifId);
@@ -1403,12 +1408,87 @@ function updateHeroAccountBtn() {
   }
 }
 
+function handleHeroAccountBtn() {
+  if(currentUser) {
+    toggleTopNotifDrawer();
+  } else {
+    show('account');
+  }
+}
+
+let _topNotifDrawerOpen = false;
+function toggleTopNotifDrawer() {
+  const drawer = document.getElementById('top-notif-drawer');
+  const overlay = document.getElementById('top-notif-overlay');
+  if(!drawer || !overlay) return;
+  _topNotifDrawerOpen = !_topNotifDrawerOpen;
+  drawer.classList.toggle('open', _topNotifDrawerOpen);
+  overlay.classList.toggle('show', _topNotifDrawerOpen);
+  if(_topNotifDrawerOpen) loadTopNotifDrawer();
+}
+
+async function loadTopNotifDrawer() {
+  if(!currentUser) return;
+  const listEl = document.getElementById('top-notif-drawer-list');
+  if(!listEl) return;
+  listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
+  const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(30).once('value');
+  const items = [];
+  snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+  // mark all read count update
+  unreadNotifCount = items.filter(n => !n.read).length;
+  updateHeroAccountBtn();
+  // render using existing renderNotifList-style
+  if(!items.length) {
+    listEl.innerHTML = '<div class="notif-empty">通知はありません</div>';
+    return;
+  }
+  const typeIcon = { invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢' };
+  listEl.innerHTML = items.map(n => {
+    const ts = n.ts ? formatNotifTs(n.ts) : '';
+    const icon = typeIcon[n.type] || '🔔';
+    let actionBtn = '';
+    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) {
+      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="joinFromTopDrawer('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
+    }
+    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) {
+      actionBtn = `<div class="notif-actions">
+        <button class="notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button>
+        <button class="notif-action-btn notif-action-btn-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button>
+      </div>`;
+    }
+    return `<div class="notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}');this.classList.remove('unread')">
+      <div class="notif-item-icon">${icon}</div>
+      <div class="notif-item-body">
+        <div class="notif-item-title">${esc(n.title||'')}</div>
+        <div class="notif-item-text">${esc(n.body||'')}</div>
+        ${actionBtn}
+      </div>
+      <div class="notif-item-ts">${ts}</div>
+    </div>`;
+  }).join('');
+}
+
+async function joinFromTopDrawer(notifId, roomId) {
+  await topNotifMarkRead(notifId);
+  toggleTopNotifDrawer();
+  document.getElementById('in-room').value = roomId;
+  toast(`ルームID ${roomId} をセットしました`);
+}
+
 function showAccountPage() {
   show('account');
   renderAccountPage();
+  // ログイン済みの場合、少し後に通知セクションが見えるようにスムーズスクロール
+  if(currentUser && unreadNotifCount > 0) {
+    setTimeout(() => {
+      const notifSection = document.querySelector('#screen-account .acct-notif-list');
+      if(notifSection) notifSection.closest('.acct-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
+  }
 }
 
-function renderAccountPage() {
+async function renderAccountPage() {
   const guestSec = document.getElementById('acct-guest-section');
   const userSec = document.getElementById('acct-user-section');
   if(!guestSec || !userSec) return;
@@ -1443,8 +1523,18 @@ function renderAccountPage() {
     document.getElementById('reauth-pw-current').value = '';
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
-    renderStatsGrid();
-    if(currentUser) renderAccountNotifList();
+    await renderStatsGrid();
+    if(currentUser) {
+      if(_topNotifRef) {
+        // すでにリスナーがある場合はキャッシュデータで描画
+        const snap = await db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(30).once('value');
+        const items = [];
+        snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+        renderAccountNotifList(items);
+      } else {
+        renderAccountNotifList([]);
+      }
+    }
   } else {
     guestSec.style.display = '';
     userSec.style.display = 'none';
@@ -1588,30 +1678,7 @@ async function logoutAccount() {
 let _selectedIcon = null;
 let _cropState = { img: null, x: 0, y: 0, scale: 1, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
 
-function showAccountPage() {
-  if(!currentUser || !currentUserProfile) return;
-  _selectedIcon = currentUserProfile.icon || '🎮';
-  const disp = document.getElementById('profile-icon-display');
-  if(currentUserProfile.iconUrl) {
-    disp.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
-  } else {
-    disp.textContent = _selectedIcon;
-  }
-  document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
-  document.getElementById('profile-email-display').textContent = currentUser.email || '—';
-  document.getElementById('profile-name-input').value = currentUserProfile.name || '';
-  document.getElementById('profile-title-input').value = currentUserProfile.title || '';
-  document.getElementById('icon-picker').style.display = 'none';
-  document.getElementById('icon-crop-wrap').style.display = 'none';
-  document.getElementById('new-uid-input').value = '';
-  document.getElementById('new-email-input').value = '';
-  document.getElementById('reauth-pw-email').value = '';
-  document.getElementById('reauth-pw-current').value = '';
-  document.getElementById('new-pw-input').value = '';
-  document.getElementById('new-pw-confirm').value = '';
-  ['uid-change-err','email-change-err','pw-change-err'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-  renderStatsGrid();
-}
+// [Removed duplicate showAccountPage - merged into first definition above]
 
 function toggleAccountSettings() {
   const body = document.getElementById('account-settings-body');
@@ -1920,6 +1987,7 @@ function listenNotifications() {
     snap.forEach(child => items.unshift({ id: child.key, ...child.val() }));
     unreadNotifCount = items.filter(n => !n.read).length;
     updateHeroAccountBtn();
+    updateNotifBadge();
     if(document.getElementById('screen-account')?.classList.contains('active')) renderAccountNotifList(items);
   });
 }
