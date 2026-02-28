@@ -28,6 +28,12 @@
     <div class="logo">Q-Room</div>
     <div class="logo-sub">Online QUIZ Room</div>
   </div>
+  <div class="account-bar" id="account-bar">
+    <button class="account-bar-btn" id="account-bar-btn" onclick="handleAccountBarClick()">
+      <span id="account-bar-icon">👤</span>
+      <span id="account-bar-label">LOGIN / REGISTER</span>
+    </button>
+  </div>
   <div class="form-wrap">
     <div class="field">
       <label>PLAYER NAME</label>
@@ -83,6 +89,10 @@
       </button>
       <button class="h-btn-icon" onclick="tweetInvite()" title="招待ツイート">
         <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </button>
+      <button class="h-btn-icon notif-bell-btn" onclick="toggleNotifPanel()" title="通知" id="notif-bell-btn" style="display:none;">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span class="notif-badge" id="notif-badge" style="display:none;"></span>
       </button>
       <button class="h-btn-icon chat-btn" onclick="toggleChat()" title="Chat" id="chat-header-btn">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -174,6 +184,10 @@
     <div id="admin-section-btns">
       <button class="btn btn-sec" onclick="resetPoints()" style="margin-bottom:16px;">🔄 RESET SCORES</button>
       <button class="btn btn-warn" onclick="endGame()">🏁 FINISH GAME</button>
+      <div id="invite-friend-section" style="display:none; margin-top:20px;">
+        <hr style="margin-bottom:20px;">
+        <button class="btn btn-sec" onclick="openInviteFriendModal()" style="border-color:rgba(6,182,212,0.4);color:var(--cyan);">👥 フレンドを招待</button>
+      </div>
     </div>
   </div>
 </div>
@@ -265,8 +279,112 @@
 
 <div id="toast" class="toast"></div>
 
+<!-- AUTH MODAL -->
+<div id="modal-auth" class="modal" onclick="if(event.target===this)closeAuthModal()">
+  <div class="m-content">
+    <button class="m-close" onclick="closeAuthModal()">✕</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">LOGIN</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTER</button>
+    </div>
+    <div id="auth-login-form">
+      <div class="field"><label>EMAIL</label><input type="email" id="auth-email-login" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="field"><label>PASSWORD</label><input type="password" id="auth-pw-login" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginAccount()"></div>
+      <div id="auth-err-login" class="err"></div>
+      <button class="btn btn-pri" onclick="loginAccount()" style="margin-bottom:12px;">LOGIN</button>
+      <button class="btn btn-ghost" onclick="forgotPassword()">パスワードをお忘れの場合</button>
+    </div>
+    <div id="auth-register-form" style="display:none;">
+      <div class="field"><label>EMAIL</label><input type="email" id="auth-email-reg" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="field">
+        <label>USER ID <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（半角英数字・_ 3〜20文字）</span></label>
+        <input type="text" id="auth-uid-reg" placeholder="quiz_master" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')">
+      </div>
+      <div class="field">
+        <label>PASSWORD <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（英字+数字+記号 8文字以上）</span></label>
+        <input type="password" id="auth-pw-reg" placeholder="Passw0rd!" autocomplete="new-password" onkeydown="if(event.key==='Enter')registerAccount()">
+      </div>
+      <div id="auth-err-reg" class="err"></div>
+      <button class="btn btn-pri" onclick="registerAccount()">CREATE ACCOUNT</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="modal-profile" class="modal" onclick="if(event.target===this)closeProfileModal()">
+  <div class="m-content">
+    <button class="m-close" onclick="closeProfileModal()">✕</button>
+    <div class="m-title">PROFILE</div>
+    <div class="profile-icon-wrap">
+      <div class="profile-icon-display" id="profile-icon-display">🎮</div>
+      <button class="profile-icon-change-btn" onclick="toggleIconPicker()">アイコン変更</button>
+    </div>
+    <div class="icon-picker" id="icon-picker" style="display:none;"></div>
+    <div class="field" style="margin-top:16px;">
+      <label>USER ID</label>
+      <div class="profile-static" id="profile-uid-display">—</div>
+    </div>
+    <div class="field">
+      <label>EMAIL</label>
+      <div class="profile-static" id="profile-email-display">—</div>
+    </div>
+    <div class="field">
+      <label>称号 <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
+      <input type="text" id="profile-title-input" maxlength="20" placeholder="クイズ王">
+    </div>
+    <button class="btn btn-pri" onclick="saveProfile()" style="margin-bottom:24px;">SAVE</button>
+    <hr style="margin:0 0 24px;">
+    <div class="m-title" style="font-size:1rem;margin-bottom:16px;">📊 STATS</div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <hr style="margin:24px 0;">
+    <button class="btn" onclick="openFriendModal()" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.35);color:var(--cyan);margin-bottom:12px;">👥 フレンド管理</button>
+    <button class="btn btn-warn" onclick="logoutAccount()">LOGOUT</button>
+  </div>
+</div>
+
+<!-- NOTIFICATION DRAWER -->
+<div class="notif-overlay" id="notif-overlay" onclick="toggleNotifPanel()"></div>
+<div class="notif-drawer" id="notif-drawer">
+  <div class="chat-handle"></div>
+  <div class="notif-drawer-header">
+    <span class="notif-drawer-title">NOTIFICATIONS</span>
+    <button class="notif-readall-btn" onclick="markAllNotifRead()">すべて既読</button>
+    <button class="chat-close" onclick="toggleNotifPanel()">✕</button>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
+
+<!-- FRIEND MODAL -->
+<div id="modal-friend" class="modal" onclick="if(event.target===this)closeFriendModal()">
+  <div class="m-content">
+    <button class="m-close" onclick="closeFriendModal()">✕</button>
+    <div class="m-title">👥 FRIENDS</div>
+    <div class="friend-search-row">
+      <input type="text" id="friend-search-input" placeholder="ユーザーIDで検索…" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')" onkeydown="if(event.key==='Enter')sendFriendRequest()">
+      <button class="friend-search-btn" onclick="sendFriendRequest()">申請</button>
+    </div>
+    <div id="friend-req-section" style="display:none;">
+      <div class="friend-section-label">フレンド申請</div>
+      <div id="friend-req-list"></div>
+    </div>
+    <div class="friend-section-label">フレンド一覧</div>
+    <div id="friend-list"></div>
+  </div>
+</div>
+
+<!-- INVITE FRIEND MODAL (ルーム内から) -->
+<div id="modal-invite-friend" class="modal" onclick="if(event.target===this)closeInviteFriendModal()">
+  <div class="m-content">
+    <button class="m-close" onclick="closeInviteFriendModal()">✕</button>
+    <div class="m-title">👥 フレンドを招待</div>
+    <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:20px;">フレンドに部屋の招待通知を送ります</div>
+    <div id="invite-friend-list"></div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="js/q-room.js"></script>
 </body>
 </html>
