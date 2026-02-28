@@ -25,31 +25,21 @@
     <span class="dev-notice-text" id="dev-notice-text"></span>
     <button class="dev-notice-close" onclick="dismissDevNotice()">✕</button>
   </div>
-  <div class="top-notif-section" id="top-notif-section">
-    <div class="top-notif-header">
-      <button class="top-notif-toggle-btn" onclick="toggleTopNotif()" aria-expanded="false" id="top-notif-toggle-btn">
-        <div class="top-notif-title">🔔 NOTIFICATIONS<span class="top-notif-unread" id="top-notif-unread"></span></div>
-        <span class="top-notif-chevron">▼</span>
-      </button>
-      <button class="top-notif-readall" onclick="topNotifReadAll()">すべて既読</button>
-    </div>
-    <div class="top-notif-body-wrap" id="top-notif-body-wrap">
-      <div class="top-notif-list" id="top-notif-list"></div>
-    </div>
-  </div>
+
   <div class="hero">
     <button class="hero-theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
       <span id="theme-icon">☀️</span>
     </button>
+    <button class="hero-account-btn" id="hero-account-btn" onclick="show('account')" title="アカウント">
+      <span id="hero-account-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <span class="hero-account-badge" id="hero-account-badge" style="display:none;"></span>
+    </button>
     <div class="logo">Q-Room</div>
     <div class="logo-sub">Online QUIZ Room</div>
   </div>
-  <div class="account-bar" id="account-bar">
-    <button class="account-bar-btn" id="account-bar-btn" onclick="handleAccountBarClick()">
-      <span id="account-bar-icon">👤</span>
-      <span id="account-bar-label">LOGIN / REGISTER</span>
-    </button>
-  </div>
+
   <div class="form-wrap">
     <div class="field">
       <label>PLAYER NAME</label>
@@ -159,6 +149,156 @@
     </div>
   </div>
   <div class="scroll-area"><div id="rlist" class="plist"></div></div>
+</div>
+
+
+<div id="screen-account" class="screen">
+  <div class="acct-header">
+    <button class="acct-back-btn" onclick="show('top')">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="acct-header-title">ACCOUNT</div>
+    <button class="hero-theme-btn acct-theme-btn" onclick="toggleTheme()" title="テーマ切替">
+      <span id="theme-icon-acct">☀️</span>
+    </button>
+  </div>
+
+  <!-- ログイン前 -->
+  <div id="acct-guest-section">
+    <div class="acct-guest-icon">
+      <svg viewBox="0 0 24 24" width="56" height="56" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div class="acct-guest-label">ログイン / アカウント登録</div>
+    <div class="acct-tabs">
+      <button class="acct-tab active" id="acct-tab-login" onclick="switchAcctTab('login')">LOGIN</button>
+      <button class="acct-tab" id="acct-tab-register" onclick="switchAcctTab('register')">REGISTER</button>
+    </div>
+    <div class="acct-form-wrap" id="acct-login-form">
+      <div class="field"><label>EMAIL or USER ID</label><input type="text" id="auth-email-login" placeholder="your@email.com or user_id" autocomplete="username"></div>
+      <div class="field"><label>PASSWORD</label><input type="password" id="auth-pw-login" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginAccount()"></div>
+      <div id="auth-err-login" class="err"></div>
+      <button class="btn btn-pri" onclick="loginAccount()" style="margin-bottom:12px;">LOGIN</button>
+      <button class="btn btn-ghost" onclick="forgotPassword()">パスワードをお忘れの場合</button>
+    </div>
+    <div class="acct-form-wrap" id="acct-register-form" style="display:none;">
+      <div class="field"><label>EMAIL</label><input type="email" id="auth-email-reg" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="field">
+        <label>USER ID <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（半角英数字・_ 3〜20文字）</span></label>
+        <input type="text" id="auth-uid-reg" placeholder="quiz_master" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')">
+      </div>
+      <div class="field">
+        <label>PASSWORD <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（英字+数字+記号 8文字以上）</span></label>
+        <input type="password" id="auth-pw-reg" placeholder="Passw0rd!" autocomplete="new-password" onkeydown="if(event.key==='Enter')registerAccount()">
+      </div>
+      <div id="auth-err-reg" class="err"></div>
+      <button class="btn btn-pri" onclick="registerAccount()">CREATE ACCOUNT</button>
+    </div>
+  </div>
+
+  <!-- ログイン後 -->
+  <div id="acct-user-section" style="display:none;">
+
+    <!-- プロフィールヘッダ -->
+    <div class="acct-profile-hero">
+      <div class="acct-profile-icon-wrap">
+        <div class="profile-icon-display" id="profile-icon-display">🎮</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;align-items:center;">
+          <button class="profile-icon-change-btn" onclick="toggleIconPicker()">絵文字アイコン</button>
+          <button class="profile-icon-change-btn" onclick="triggerImageUpload()">📷 画像をアップロード</button>
+          <button class="profile-icon-change-btn" id="btn-reset-icon" onclick="resetIconToDefault()" style="display:none;color:var(--red);border-color:rgba(239,68,68,0.4);">🗑 画像を削除</button>
+          <input type="file" id="icon-image-file" accept="image/*" style="display:none;" onchange="onIconImageSelected(event)">
+        </div>
+      </div>
+      <div class="acct-profile-meta">
+        <div class="acct-profile-uid" id="profile-uid-display">—</div>
+        <div class="acct-profile-email" id="profile-email-display">—</div>
+      </div>
+    </div>
+
+    <!-- アイコン選択 -->
+    <div class="icon-picker" id="icon-picker" style="display:none;"></div>
+
+    <!-- クロップUI -->
+    <div id="icon-crop-wrap" style="display:none;margin:0 20px 16px;">
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;text-align:center;">ドラッグ＆ピンチで位置・拡大を調整</div>
+      <div id="icon-crop-stage" style="width:200px;height:200px;border-radius:50%;overflow:hidden;position:relative;background:#111;margin:0 auto 12px;border:2px solid var(--cyan);touch-action:none;cursor:grab;">
+        <img id="icon-crop-img" style="position:absolute;transform-origin:0 0;user-select:none;-webkit-user-drag:none;" draggable="false">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="profile-icon-change-btn" onclick="cropIconAndSave()" style="color:var(--cyan);border-color:rgba(6,182,212,0.5);">✅ この位置で保存</button>
+        <button class="profile-icon-change-btn" onclick="cancelCrop()">キャンセル</button>
+      </div>
+    </div>
+
+    <!-- 名前・称号 -->
+    <div class="acct-section">
+      <div class="field">
+        <label>NAME <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
+        <input type="text" id="profile-name-input" maxlength="20" placeholder="あなたの名前">
+      </div>
+      <div class="field">
+        <label>称号 <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
+        <input type="text" id="profile-title-input" maxlength="20" placeholder="クイズ王">
+      </div>
+      <button class="btn btn-pri" onclick="saveProfile()" style="margin-bottom:0;">SAVE</button>
+    </div>
+
+    <!-- 通知センター -->
+    <div class="acct-section">
+      <div class="acct-section-header">
+        <div class="acct-section-title">🔔 NOTIFICATIONS</div>
+        <button class="acct-readall-btn" onclick="topNotifReadAll()">すべて既読</button>
+      </div>
+      <div class="top-notif-list acct-notif-list" id="top-notif-list"></div>
+    </div>
+
+    <!-- スタッツ -->
+    <div class="acct-section">
+      <div class="acct-section-title">📊 STATS</div>
+      <div class="stats-grid" id="stats-grid"></div>
+    </div>
+
+    <!-- フレンド -->
+    <div class="acct-section">
+      <button class="btn" onclick="openFriendModal()" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.35);color:var(--cyan);margin-bottom:0;">👥 フレンド管理</button>
+    </div>
+
+    <!-- アカウント設定 -->
+    <div class="acct-section">
+      <button onclick="toggleAccountSettings()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-family:var(--font-en);font-size:0.82rem;font-weight:700;letter-spacing:0.1em;padding:0;margin-bottom:12px;" id="account-settings-toggle">
+        ⚙️ ACCOUNT SETTINGS <span id="account-settings-arrow" style="margin-left:4px;">▼</span>
+      </button>
+      <div id="account-settings-body" style="display:none;">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
+          <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">USER ID</div>
+          <input type="text" id="new-uid-input" placeholder="新しいユーザーID（3〜20文字）" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')" style="margin-bottom:8px;">
+          <button class="btn btn-sec" onclick="updateUserId()" style="padding:10px;">USER ID を変更</button>
+          <div id="uid-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
+          <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">EMAIL</div>
+          <input type="email" id="new-email-input" placeholder="新しいメールアドレス" autocomplete="email" style="margin-bottom:8px;">
+          <input type="password" id="reauth-pw-email" placeholder="現在のパスワード（確認用）" autocomplete="current-password" style="margin-bottom:8px;">
+          <button class="btn btn-sec" onclick="updateEmail()" style="padding:10px;">メールアドレスを変更</button>
+          <div id="email-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;">
+          <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">PASSWORD</div>
+          <input type="password" id="reauth-pw-current" placeholder="現在のパスワード" autocomplete="current-password" style="margin-bottom:8px;">
+          <input type="password" id="new-pw-input" placeholder="新しいパスワード（英字+数字+記号 8文字以上）" autocomplete="new-password" style="margin-bottom:8px;">
+          <input type="password" id="new-pw-confirm" placeholder="新しいパスワード（確認）" autocomplete="new-password" style="margin-bottom:8px;">
+          <button class="btn btn-sec" onclick="updatePassword()" style="padding:10px;">パスワードを変更</button>
+          <div id="pw-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ログアウト -->
+    <div class="acct-section" style="padding-bottom:40px;">
+      <button class="btn btn-warn" onclick="logoutAccount()">LOGOUT</button>
+    </div>
+
+  </div>
 </div>
 
 
@@ -299,138 +439,8 @@
 <div id="toast" class="toast"></div>
 
 
-<div id="modal-auth" class="modal" onclick="if(event.target===this)closeAuthModal()">
-  <div class="m-content">
-    <button class="m-close" onclick="closeAuthModal()">✕</button>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">LOGIN</button>
-      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">REGISTER</button>
-    </div>
-    <div id="auth-login-form">
-      <div class="field"><label>EMAIL or USER ID</label><input type="text" id="auth-email-login" placeholder="your@email.com or user_id" autocomplete="username"></div>
-      <div class="field"><label>PASSWORD</label><input type="password" id="auth-pw-login" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginAccount()"></div>
-      <div id="auth-err-login" class="err"></div>
-      <button class="btn btn-pri" onclick="loginAccount()" style="margin-bottom:12px;">LOGIN</button>
-      <button class="btn btn-ghost" onclick="forgotPassword()">パスワードをお忘れの場合</button>
-    </div>
-    <div id="auth-register-form" style="display:none;">
-      <div class="field"><label>EMAIL</label><input type="email" id="auth-email-reg" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="field">
-        <label>USER ID <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（半角英数字・_ 3〜20文字）</span></label>
-        <input type="text" id="auth-uid-reg" placeholder="quiz_master" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')">
-      </div>
-      <div class="field">
-        <label>PASSWORD <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（英字+数字+記号 8文字以上）</span></label>
-        <input type="password" id="auth-pw-reg" placeholder="Passw0rd!" autocomplete="new-password" onkeydown="if(event.key==='Enter')registerAccount()">
-      </div>
-      <div id="auth-err-reg" class="err"></div>
-      <button class="btn btn-pri" onclick="registerAccount()">CREATE ACCOUNT</button>
-    </div>
-  </div>
-</div>
 
 
-<div id="modal-profile" class="modal" onclick="if(event.target===this)closeProfileModal()">
-  <div class="m-content">
-    <button class="m-close" onclick="closeProfileModal()">✕</button>
-    <div class="m-title">PROFILE</div>
-
-    
-    <div class="profile-icon-wrap">
-      <div class="profile-icon-display" id="profile-icon-display">🎮</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="profile-icon-change-btn" onclick="toggleIconPicker()">絵文字アイコン</button>
-        <button class="profile-icon-change-btn" onclick="triggerImageUpload()">📷 画像をアップロード</button>
-        <button class="profile-icon-change-btn" id="btn-reset-icon" onclick="resetIconToDefault()" style="display:none;color:var(--red);border-color:rgba(239,68,68,0.4);">🗑 画像を削除</button>
-        <input type="file" id="icon-image-file" accept="image/*" style="display:none;" onchange="onIconImageSelected(event)">
-      </div>
-    </div>
-    <div class="icon-picker" id="icon-picker" style="display:none;"></div>
-
-    
-    <div id="icon-crop-wrap" style="display:none;margin-bottom:16px;">
-      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">ドラッグ＆ピンチで位置・拡大を調整</div>
-      <div id="icon-crop-stage" style="width:200px;height:200px;border-radius:50%;overflow:hidden;position:relative;background:#000;margin:0 auto 12px;border:2px solid var(--cyan);touch-action:none;cursor:grab;">
-        <img id="icon-crop-img" style="position:absolute;transform-origin:0 0;user-select:none;-webkit-user-drag:none;" draggable="false">
-      </div>
-      <div style="display:flex;gap:8px;justify-content:center;">
-        <button class="profile-icon-change-btn" onclick="cropIconAndSave()" style="color:var(--cyan);border-color:rgba(6,182,212,0.5);">✅ この位置で保存</button>
-        <button class="profile-icon-change-btn" onclick="cancelCrop()">キャンセル</button>
-      </div>
-    </div>
-
-    
-    <div class="field" style="margin-top:16px;">
-      <label>NAME <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
-      <input type="text" id="profile-name-input" maxlength="20" placeholder="あなたの名前">
-    </div>
-    <div class="field">
-      <label>称号 <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
-      <input type="text" id="profile-title-input" maxlength="20" placeholder="クイズ王">
-    </div>
-    <button class="btn btn-pri" onclick="saveProfile()" style="margin-bottom:12px;">SAVE</button>
-
-    <hr style="margin:0 0 14px;">
-
-    
-    <div style="margin-bottom:12px;">
-      <button onclick="toggleAccountSettings()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-family:var(--font-en);font-size:0.82rem;font-weight:700;letter-spacing:0.1em;padding:0;margin-bottom:12px;" id="account-settings-toggle">
-        ⚙️ ACCOUNT SETTINGS <span id="account-settings-arrow" style="margin-left:4px;">▼</span>
-      </button>
-      <div id="account-settings-body" style="display:none;">
-
-        
-        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
-          <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">USER ID</div>
-          <div class="profile-static" id="profile-uid-display" style="margin-bottom:10px;">—</div>
-          <input type="text" id="new-uid-input" placeholder="新しいユーザーID（3〜20文字）" maxlength="20" autocomplete="off" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')" style="margin-bottom:8px;">
-          <button class="btn btn-sec" onclick="updateUserId()" style="padding:10px;">USER ID を変更</button>
-          <div id="uid-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
-        </div>
-
-        
-        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
-          <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">EMAIL</div>
-          <div class="profile-static" id="profile-email-display" style="margin-bottom:10px;">—</div>
-          <input type="email" id="new-email-input" placeholder="新しいメールアドレス" autocomplete="email" style="margin-bottom:8px;">
-          <input type="password" id="reauth-pw-email" placeholder="現在のパスワード（確認用）" autocomplete="current-password" style="margin-bottom:8px;">
-          <button class="btn btn-sec" onclick="updateEmail()" style="padding:10px;">メールアドレスを変更</button>
-          <div id="email-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
-        </div>
-
-        
-        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;">
-          <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">PASSWORD</div>
-          <input type="password" id="reauth-pw-current" placeholder="現在のパスワード" autocomplete="current-password" style="margin-bottom:8px;">
-          <input type="password" id="new-pw-input" placeholder="新しいパスワード（英字+数字+記号 8文字以上）" autocomplete="new-password" style="margin-bottom:8px;">
-          <input type="password" id="new-pw-confirm" placeholder="新しいパスワード（確認）" autocomplete="new-password" style="margin-bottom:8px;">
-          <button class="btn btn-sec" onclick="updatePassword()" style="padding:10px;">パスワードを変更</button>
-          <div id="pw-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <hr style="margin:0 0 14px;">
-    <div class="m-title" style="font-size:1rem;margin-bottom:16px;">📊 STATS</div>
-    <div class="stats-grid" id="stats-grid"></div>
-    <hr style="margin:14px 0;">
-    <button class="btn" onclick="openFriendModal()" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.35);color:var(--cyan);margin-bottom:12px;">👥 フレンド管理</button>
-    <button class="btn btn-warn" onclick="logoutAccount()">LOGOUT</button>
-  </div>
-</div>
-
-
-<div class="notif-overlay" id="notif-overlay" onclick="toggleNotifPanel()"></div>
-<div class="notif-drawer" id="notif-drawer">
-  <div class="chat-handle"></div>
-  <div class="notif-drawer-header">
-    <span class="notif-drawer-title">NOTIFICATIONS</span>
-    <button class="notif-readall-btn" onclick="markAllNotifRead()">すべて既読</button>
-    <button class="chat-close" onclick="toggleNotifPanel()">✕</button>
-  </div>
-  <div class="notif-list" id="notif-list"></div>
-</div>
 
 
 <div id="modal-friend" class="modal" onclick="if(event.target===this)closeFriendModal()">
