@@ -73,7 +73,7 @@ function getMyId() {
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
-function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+function toast(m, dur=2500){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),dur); }
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
@@ -272,21 +272,26 @@ function dismissDevNotice() {
 
 let _topNotifRef = null, _topNotifCb = null;
 function initTopNotifCenter(user) {
-  if(_topNotifRef && _topNotifCb) _topNotifRef.off('value', _topNotifCb);
-  // limitToLast を 50 に統一
-  _topNotifRef = firebase.database().ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(50);
-  _topNotifCb = _topNotifRef.on('value', snap => {
-    const items = [];
-    snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
-    unreadNotifCount = items.filter(n => !n.read).length;
-    updateHeroAccountBtn();
-    // アカウント画面の通知リストを更新
-    renderAccountNotifList(items);
-    // 通知ドロワーが開いていれば中身を更新
-    if(_topNotifDrawerOpen) renderTopNotifDrawer(items);
-    // ルーム内通知パネルが開いていれば更新
-    if(_notifOpen) renderNotifList(items);
-  });
+  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; _topNotifCb = null; }
+  if(!user || !user.uid) return;
+  try {
+    const fbdb = db || firebase.database();
+    _topNotifRef = fbdb.ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(50);
+    _topNotifCb = snap => {
+      const items = [];
+      snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+      unreadNotifCount = items.filter(n => !n.read).length;
+      updateHeroAccountBtn();
+      renderAccountNotifList(items);
+      if(_topNotifDrawerOpen) renderTopNotifDrawer(items);
+      if(_notifOpen) renderNotifList(items);
+    };
+    _topNotifRef.on('value', _topNotifCb, err => {
+      console.error('[notif] listener error:', err.message);
+    });
+  } catch(e) {
+    console.error('[notif] initTopNotifCenter error:', e);
+  }
 }
 function hideTopNotifCenter() {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; }
@@ -1484,13 +1489,6 @@ async function joinFromTopDrawer(notifId, roomId) {
 function showAccountPage() {
   show('account');
   renderAccountPage();
-  // ログイン済みの場合、少し後に通知セクションが見えるようにスムーズスクロール
-  if(currentUser && unreadNotifCount > 0) {
-    setTimeout(() => {
-      const notifSection = document.querySelector('#screen-account .acct-notif-list');
-      if(notifSection) notifSection.closest('.acct-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-  }
 }
 
 async function renderAccountPage() {
@@ -1610,7 +1608,12 @@ async function registerAccount() {
 
     currentUserProfile = profile;
     show('top');
-    toast('✅ アカウントを作成しました！確認メールを送信しました。');
+    toast('✅ アカウントを作成しました！');
+    // メール確認案内を表示
+    setTimeout(() => {
+      const email = currentUserProfile.email || '';
+      toast(`📧 ${email} に確認メールを送信しました。メール内のリンクをクリックして認証を完了してください。`, 6000);
+    }, 2000);
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに登録されています'
       : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
@@ -1708,6 +1711,39 @@ async function logoutAccount() {
   await auth.signOut();
   show('top');
   toast('ログアウトしました');
+}
+
+async function deleteAccount() {
+  if(!currentUser || !currentUserProfile) return;
+  const confirmed = prompt('退会すると全データが削除されます。\n\n本当に退会する場合は「退会する」と入力してください。');
+  if(confirmed !== '退会する') { toast('退会をキャンセルしました'); return; }
+  const pw = prompt('本人確認のため現在のパスワードを入力してください。');
+  if(!pw) return;
+  try {
+    // 再認証
+    const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, pw);
+    await currentUser.reauthenticateWithCredential(cred);
+    const uid = currentUser.uid;
+    const displayId = currentUserProfile.displayId;
+    // Firebaseデータ削除
+    await Promise.all([
+      db.ref(`users/${uid}`).remove(),
+      db.ref(`stats/${uid}`).remove(),
+      db.ref(`friends/${uid}`).remove(),
+      db.ref(`notifications/${uid}`).remove(),
+      db.ref(`friendRequests/${uid}`).remove(),
+      displayId ? db.ref(`userIndex/${displayId}`).remove() : Promise.resolve(),
+    ]);
+    // Firebase Auth ユーザー削除
+    await currentUser.delete();
+    show('top');
+    toast('退会処理が完了しました。ご利用ありがとうございました。', 4000);
+  } catch(e) {
+    const msg = e.code === 'auth/wrong-password' ? 'パスワードが正しくありません'
+      : e.code === 'auth/too-many-requests' ? 'しばらく時間をおいてからお試しください'
+      : '退会に失敗しました: ' + e.message;
+    toast('❌ ' + msg, 4000);
+  }
 }
 
 
