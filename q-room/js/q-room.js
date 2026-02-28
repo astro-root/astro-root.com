@@ -1341,23 +1341,24 @@ async function registerAccount() {
     const pwErr = validatePassword(pw);
     if(pwErr) return showAuthErr('reg', pwErr);
 
-    // displayId重複チェック（未認証で読めるようにルール設定が必要）
     const idSnap = await db.ref(`userIndex/${displayId}`).once('value');
     if(idSnap.exists()) return showAuthErr('reg', 'そのユーザーIDはすでに使われています');
 
     const cred = await auth.createUserWithEmailAndPassword(email, pw);
     const uid = cred.user.uid;
 
-    // DBへの書き込み前にトークンを強制取得してFirebase Auth状態を確定させる
     await cred.user.getIdToken(true);
 
-    const profile = { displayId, icon: '🎮', title: '', createdAt: Date.now() };
+    const profile = { displayId, email, icon: '🎮', title: '', name: '', createdAt: Date.now() };
     await db.ref(`users/${uid}`).set(profile);
     await db.ref(`userIndex/${displayId}`).set(uid);
     await db.ref(`stats/${uid}`).set({ totalGames:0, totalCorrect:0, totalWrong:0, wins:0 });
+
+    await cred.user.sendEmailVerification();
+
     currentUserProfile = profile;
     closeAuthModal();
-    toast('✅ アカウントを作成しました！');
+    toast('✅ アカウントを作成しました！確認メールを送信しました。');
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに登録されています'
       : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
@@ -1370,29 +1371,50 @@ async function registerAccount() {
 async function loginAccount() {
   try {
     if(!auth) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); if(!db) db = firebase.database(); }
-    const email = document.getElementById('auth-email-login').value.trim();
+    const emailOrId = document.getElementById('auth-email-login').value.trim();
     const pw = document.getElementById('auth-pw-login').value;
-    if(!email) return showAuthErr('login', 'メールアドレスを入力してください');
+    if(!emailOrId) return showAuthErr('login', 'メールアドレスまたはユーザーIDを入力してください');
     if(!pw) return showAuthErr('login', 'パスワードを入力してください');
+
+    let email = emailOrId;
+    if(!emailOrId.includes('@')) {
+      const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
+      if(!uidSnap.exists()) return showAuthErr('login', 'ユーザーIDが見つかりません');
+      const uid = uidSnap.val();
+      const userSnap = await db.ref(`users/${uid}/email`).once('value');
+      if(!userSnap.exists()) return showAuthErr('login', 'メールアドレスの取得に失敗しました');
+      email = userSnap.val();
+    }
+
     await auth.signInWithEmailAndPassword(email, pw);
     closeAuthModal();
     toast('✅ ログインしました');
   } catch(e) {
     const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
-      ? 'メールアドレスまたはパスワードが正しくありません'
+      ? 'メールアドレス/ユーザーIDまたはパスワードが正しくありません'
       : 'ログインに失敗しました: ' + e.message;
     showAuthErr('login', msg);
   }
 }
 
 async function forgotPassword() {
-  const email = document.getElementById('auth-email-login').value.trim();
-  if(!email) return showAuthErr('login', 'まずメールアドレスを入力してください');
+  const emailOrId = document.getElementById('auth-email-login').value.trim();
+  if(!emailOrId) return showAuthErr('login', 'まずメールアドレスまたはユーザーIDを入力してください');
   try {
+    let email = emailOrId;
+    if(!emailOrId.includes('@')) {
+      if(!db) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); db = firebase.database(); }
+      const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
+      if(!uidSnap.exists()) return showAuthErr('login', 'ユーザーIDが見つかりません');
+      const uid = uidSnap.val();
+      const userSnap = await db.ref(`users/${uid}/email`).once('value');
+      if(!userSnap.exists()) return showAuthErr('login', 'メールアドレスの取得に失敗しました');
+      email = userSnap.val();
+    }
     await auth.sendPasswordResetEmail(email);
     toast('📧 パスワードリセットメールを送信しました');
   } catch(e) {
-    showAuthErr('login', 'メール送信に失敗しました');
+    showAuthErr('login', 'メール送信に失敗しました: ' + e.message);
   }
 }
 
@@ -1412,6 +1434,7 @@ function openProfileModal() {
   document.getElementById('profile-icon-display').textContent = _selectedIcon;
   document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
   document.getElementById('profile-email-display').textContent = currentUser.email || '—';
+  document.getElementById('profile-name-input').value = currentUserProfile.name || '';
   document.getElementById('profile-title-input').value = currentUserProfile.title || '';
   document.getElementById('icon-picker').style.display = 'none';
   renderStatsGrid();
@@ -1439,11 +1462,11 @@ function selectIcon(ic) {
 async function saveProfile() {
   if(!currentUser || !currentUserProfile) return;
   const title = document.getElementById('profile-title-input').value.trim();
-  const updates = { icon: _selectedIcon, title };
+  const name = document.getElementById('profile-name-input').value.trim();
+  const updates = { icon: _selectedIcon, title, name };
   await db.ref(`users/${currentUser.uid}`).update(updates);
   currentUserProfile = { ...currentUserProfile, ...updates };
   updateAccountBar(true);
-  // キャッシュも更新
   accountProfileCache[currentUser.uid] = { ...currentUserProfile };
   closeProfileModal();
   toast('✅ プロフィールを保存しました');
