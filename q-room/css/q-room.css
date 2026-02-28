@@ -294,6 +294,7 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
   display: flex; align-items: center; gap: 10px;
   padding: 0 14px 10px;
   border-top: 1px solid rgba(255,255,255,0.05);
+  min-width: 0;
 }
 .room-info {
   font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted);
@@ -2032,4 +2033,39 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   min-width: 16px;
   text-align: center;
   line-height: 1;
+}
+/* ============================================================
+   BUG FIXES
+   ============================================================ */
+
+/* ルール名が長い場合に枠からはみ出ないよう修正 */
+.rule-badge {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* ドロワーの×ボタンずれ修正：sticky float 組み合わせ問題を解消 */
+.m-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  float: none;
+  margin: 0;
+}
+/* m-content は relative が必要（absolute 基準として） */
+.m-content {
+  position: relative;
+}
+
+/* account 画面のヘッダーは position:sticky なので bg-color 変数名修正 */
+.acct-header {
+  background: var(--bg-color);
+}
+
+/* notif-badge 更新 */
+.notif-bell-btn .notif-badge {
+  top: -4px;
+  right: -4px;
 }
