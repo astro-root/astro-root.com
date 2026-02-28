@@ -815,6 +815,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     gap: 6px;
   }
   .rule-badge {
+    display: block !important;
     order: 3;
     width: 100%;
     max-width: 100%;
