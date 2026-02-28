@@ -1036,30 +1036,21 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   box-shadow: 0 2px 10px rgba(0,0,0,0.25);
 }
 
-#modal-profile .m-content {
-  max-height: 78vh;
-  padding: 40px 22px 24px;
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
-}
-#modal-profile .m-title {
-  font-size: 1.15rem;
-  margin-bottom: 14px;
-}
 .profile-icon-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 .profile-icon-display {
-  font-size: 1.7rem;
-  width: 44px;
-  height: 44px;
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface-highlight);
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid var(--border-color);
   flex-shrink: 0;
   line-height: 1;
@@ -1156,11 +1147,13 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   z-index: 200;
   visibility: hidden;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s, visibility 0.3s;
 }
 .notif-overlay.show {
   visibility: visible;
   opacity: 1;
+  pointer-events: auto;
 }
 .notif-drawer {
   position: fixed;
@@ -1498,9 +1491,9 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 
 @media (max-width: 400px) {
   .profile-icon-display {
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    font-size: 2rem;
   }
   .profile-icon-change-btn {
     font-size: 0.72rem;
