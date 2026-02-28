@@ -504,6 +504,7 @@ async function testSendNotif() {
 }
 
 async function sendBroadcastNotif() {
+  if (!adminUser) { alert('ログインしていません'); return; }
   const title = document.getElementById('broadcast-title').value.trim();
   const body = document.getElementById('broadcast-body').value.trim();
   const statusEl = document.getElementById('broadcast-status');
