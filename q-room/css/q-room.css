@@ -1985,12 +1985,18 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 .acct-readall-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
 .acct-notif-list {
-  max-height: 360px;
+  max-height: 260px; /* 通知が増えても画面を圧迫しないよう抑える */
   overflow-y: auto;
-  display: flex !important;
-  flex-direction: column;
-  gap: 4px;
+  -webkit-overflow-scrolling: touch;
+  /* display:flex は overflow-y:auto と相性が悪いため block に変更 */
+  display: block;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
 }
+.acct-notif-list::-webkit-scrollbar { width: 4px; }
+.acct-notif-list::-webkit-scrollbar-track { background: transparent; }
+.acct-notif-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+[data-theme="light"] .acct-notif-list { scrollbar-color: rgba(0,0,0,0.15) transparent; }
 
 /* hero アカウントボタン */
 .hero-account-btn {
@@ -2042,12 +2048,10 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 
 /* [m-close fix merged into main definition above] */
 
-/* account 画面のヘッダーは position:sticky なので bg-color 変数名修正 */
 .acct-header {
   background: var(--bg-color);
 }
 
-/* notif-badge 更新 */
 .notif-bell-btn .notif-badge {
   top: -4px;
   right: -4px;
