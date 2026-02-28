@@ -1631,6 +1631,7 @@ function onIconImageSelected(event) {
 function applyCropTransform() {
   const { img, x, y, scale } = _cropState;
   if(!img) return;
+  img.style.transformOrigin = '0 0';
   img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
 }
 
@@ -1705,8 +1706,14 @@ async function cropIconAndSave() {
   ctx.beginPath();
   ctx.arc(100, 100, 100, 0, Math.PI * 2);
   ctx.clip();
+
+  // transform-origin: 0 0 なので x/y は左上起点の座標
   const scaleX = 200 / sw, scaleY = 200 / sh;
-  ctx.drawImage(img, _cropState.x * scaleX, _cropState.y * scaleY, img.naturalWidth * _cropState.scale * scaleX, img.naturalHeight * _cropState.scale * scaleY);
+  const drawW = img.naturalWidth  * _cropState.scale * scaleX;
+  const drawH = img.naturalHeight * _cropState.scale * scaleY;
+  const drawX = _cropState.x * scaleX;
+  const drawY = _cropState.y * scaleY;
+  ctx.drawImage(img, drawX, drawY, drawW, drawH);
   ctx.restore();
 
   const prevBtn = document.querySelector('#icon-crop-wrap button');
