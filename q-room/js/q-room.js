@@ -2259,6 +2259,24 @@ async function pushNotification(toUid, type, title, body, extra={}) {
   }
 }
 
+async function debugShowAllNotifs() {
+  const el = document.getElementById('notif-debug');
+  if(!el || !currentUser) return;
+  el.textContent = '読み込み中...';
+  try {
+    const snap = await db.ref('notifications/' + currentUser.uid).once('value');
+    if(!snap.exists()) { el.textContent = 'notifications/' + currentUser.uid + ' にデータなし'; return; }
+    const rows = [];
+    snap.forEach(function(c) {
+      const v = c.val();
+      rows.push('[' + c.key + '] type=' + v.type + ' read=' + v.read + ' ts=' + v.ts);
+    });
+    el.textContent = rows.length + '件: ' + rows.join(' / ');
+  } catch(e) {
+    el.textContent = 'エラー: ' + e.message;
+  }
+}
+
 async function markAllNotifRead() {
   if(!currentUser) return;
   const snap = await db.ref(`notifications/${currentUser.uid}`).once('value');
