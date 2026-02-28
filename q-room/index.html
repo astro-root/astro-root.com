@@ -30,7 +30,7 @@
     <button class="hero-theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
       <span id="theme-icon">☀️</span>
     </button>
-    <button class="hero-account-btn" id="hero-account-btn" onclick="show('account')" title="アカウント">
+    <button class="hero-account-btn" id="hero-account-btn" onclick="handleHeroAccountBtn()" title="通知・アカウント">
       <span id="hero-account-icon">
         <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </span>
@@ -412,6 +412,30 @@
   </div>
 </div>
 
+
+<!-- トップページ用通知センタードロワー -->
+<div class="notif-overlay" id="top-notif-overlay" onclick="toggleTopNotifDrawer()"></div>
+<div class="notif-drawer" id="top-notif-drawer">
+  <div class="chat-handle"></div>
+  <div class="notif-drawer-header">
+    <div class="notif-drawer-title">🔔 NOTIFICATIONS</div>
+    <button class="notif-readall-btn" onclick="topNotifReadAll()">すべて既読</button>
+    <button class="chat-close" onclick="toggleTopNotifDrawer()" style="margin-left:8px;">✕</button>
+  </div>
+  <div class="notif-list" id="top-notif-drawer-list"></div>
+</div>
+
+<!-- 通知ドロワー（ルーム内） -->
+<div class="notif-overlay" id="notif-overlay" onclick="toggleNotifPanel()"></div>
+<div class="notif-drawer" id="notif-drawer">
+  <div class="chat-handle"></div>
+  <div class="notif-drawer-header">
+    <div class="notif-drawer-title">🔔 NOTIFICATIONS</div>
+    <button class="notif-readall-btn" onclick="markAllNotifRead()">すべて既読</button>
+    <button class="chat-close" onclick="toggleNotifPanel()" style="margin-left:8px;">✕</button>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
 
 <div class="chat-overlay" id="chat-overlay" onclick="toggleChat()"></div>
 <div class="chat-drawer" id="chat-drawer">
