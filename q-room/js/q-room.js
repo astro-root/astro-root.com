@@ -1410,7 +1410,7 @@ function updateAccountBar(loggedIn) {
 function updateHeroAccountBtn() {
   const btn = document.getElementById('hero-account-btn');
   const iconEl = document.getElementById('hero-account-icon');
-  const badge = document.getElementById('hero-account-badge');
+  const bellBtn = document.getElementById('top-bell-btn');
   if(!btn || !iconEl) return;
   if(currentUser && currentUserProfile) {
     btn.classList.add('logged-in');
@@ -1420,19 +1420,11 @@ function updateHeroAccountBtn() {
       iconEl.innerHTML = '';
       iconEl.textContent = currentUserProfile.icon || '👤';
     }
-    // unread通知バッジ
-    if(badge) {
-      if(unreadNotifCount > 0) {
-        badge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
-        badge.style.display = '';
-      } else {
-        badge.style.display = 'none';
-      }
-    }
+    if(bellBtn) bellBtn.style.display = '';
   } else {
     btn.classList.remove('logged-in');
     iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-    if(badge) badge.style.display = 'none';
+    if(bellBtn) bellBtn.style.display = 'none';
   }
 }
 
@@ -2162,6 +2154,16 @@ function stopNotifListener() {
 
 function updateNotifBadge() {
   updateHeroAccountBtn();
+  // トップページのベルバッジ
+  const topBellBadge = document.getElementById('top-bell-badge');
+  if(topBellBadge) {
+    if(unreadNotifCount > 0) {
+      topBellBadge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
+      topBellBadge.style.display = '';
+    } else {
+      topBellBadge.style.display = 'none';
+    }
+  }
   // roomヘッダーのbell badge
   const badge = document.getElementById('notif-badge');
   if(!badge) return;
