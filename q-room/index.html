@@ -20,10 +20,20 @@
 
 <!-- TOP SCREEN -->
 <div id="screen-top" class="screen active">
-  <div id="dev-notice-banner" class="dev-notice-banner" style="display:none;">
+  <div id="dev-notice-banner" class="dev-notice-banner">
     <span class="dev-notice-icon">📢</span>
     <span class="dev-notice-text" id="dev-notice-text"></span>
-    <button class="dev-notice-close" onclick="dismissDevNotice()">✕</button>
+    <button class="dev-notice-close" onclick="dismissDevNotice()" aria-label="閉じる">✕</button>
+  </div>
+  <div class="top-notif-section" id="top-notif-section">
+    <div class="top-notif-header">
+      <div class="top-notif-title">
+        NOTIFICATIONS
+        <span class="top-notif-badge" id="top-notif-badge" style="display:none;"></span>
+      </div>
+      <button class="top-notif-readall" onclick="topNotifReadAll()">すべて既読</button>
+    </div>
+    <div class="top-notif-list" id="top-notif-list"></div>
   </div>
   <div class="hero">
     <button class="hero-theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
@@ -86,26 +96,26 @@
 <div id="screen-room" class="screen">
   <div class="header">
     <div class="header-row1">
-      <button class="h-btn-icon h-btn-icon-theme-room" onclick="toggleTheme()" title="ダーク/ライトモード切替" id="theme-toggle-btn-room">
+      <button class="h-btn-icon h-btn-icon-theme-room" onclick="toggleTheme()" title="テーマ切替" id="theme-toggle-btn-room">
         <span id="theme-icon-room">☀️</span>
       </button>
       <div class="header-row1-spacer"></div>
-      <button class="h-btn-icon h-btn-icon-tweet" onclick="tweetInvite()" title="招待ツイート">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <button class="h-btn-icon h-btn-icon-tweet" onclick="tweetInvite()" title="Xに投稿">
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       </button>
       <button class="h-btn-icon notif-bell-btn" onclick="toggleNotifPanel()" title="通知" id="notif-bell-btn" style="display:none;">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         <span class="notif-badge" id="notif-badge" style="display:none;"></span>
       </button>
       <button class="h-btn-icon chat-btn" onclick="toggleChat()" title="Chat" id="chat-header-btn">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span class="chat-badge" id="chat-badge"></span>
       </button>
       <button class="h-btn-icon h-btn-icon-feedback" onclick="openFeedback()" title="Feedback">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
       </button>
       <button class="h-btn-icon" onclick="openModal()" title="Settings">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
     <div class="header-row2">
@@ -194,13 +204,6 @@
       <div id="invite-friend-section" style="display:none; margin-top:20px;">
         <hr style="margin-bottom:20px;">
         <button class="btn btn-sec" onclick="openInviteFriendModal()" style="border-color:rgba(6,182,212,0.4);color:var(--cyan);">👥 フレンドを招待</button>
-      </div>
-      <div id="admin-dev-notice-section" style="display:none; margin-top:20px;">
-        <hr style="margin-bottom:20px;">
-        <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:10px;">📢 DEV NOTICE（全ユーザーに表示）</div>
-        <textarea id="dev-notice-input" placeholder="開発者からのお知らせを入力…" style="min-height:80px;margin-bottom:10px;"></textarea>
-        <button class="btn btn-sec" onclick="sendDevNotice()" style="border-color:rgba(245,158,11,0.5);color:var(--yellow);">📢 通知を送信</button>
-        <button class="btn btn-sec" onclick="clearDevNotice()" style="margin-top:8px;color:var(--text-muted);">✕ 通知をクリア</button>
       </div>
     </div>
   </div>
