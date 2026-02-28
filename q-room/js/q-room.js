@@ -116,7 +116,7 @@ async function handleCreate() {
       players: { [myId]: newPlayer(n, currentUser ? currentUser.uid : null, currentUserProfile) }
     });
     await pushSysMsg(`${n} が入室しました`);
-    notifyFriendsRoomCreated(r).catch(e => console.warn('[notif] notifyFriendsRoomCreated failed:', e));
+    notifyFriendsRoomCreated(r).catch(e => console.warn('[notif]', e));
     enterRoom(true, n);
   } catch(e) {
     console.error(e);
@@ -1419,11 +1419,7 @@ function updateHeroAccountBtn() {
 }
 
 function handleHeroAccountBtn() {
-  if(currentUser) {
-    toggleTopNotifDrawer();
-  } else {
-    showAccountPage();
-  }
+  if(currentUser) { toggleTopNotifDrawer(); } else { showAccountPage(); }
 }
 
 let _topNotifDrawerOpen = false;
@@ -2226,11 +2222,12 @@ async function pushNotification(toUid, type, title, body, extra={}) {
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
   } catch(e) {
-    const isPermDenied = e.code === 'PERMISSION_DENIED' || (e.message||'').toLowerCase().includes('permission_denied');
-    if(isPermDenied) {
-      console.error('[pushNotification] PERMISSION_DENIED uid=' + toUid + ' — Firebase Rules: notifications/$uid .write must be "auth != null"');
+    const msg = (e.message||'').toLowerCase();
+    if(e.code === 'PERMISSION_DENIED' || msg.includes('permission_denied')) {
+      console.error('[pushNotification] PERMISSION_DENIED uid=' + toUid +
+        ' — Firebase Rules: notifications/$uid .write must be auth!=null');
     } else {
-      console.error('[pushNotification] error:', e);
+      console.error('[pushNotification]', e);
     }
     throw e;
   }
@@ -2280,20 +2277,36 @@ function openFriendModal() {
 function closeFriendModal() { document.getElementById('modal-friend').classList.remove('active'); }
 
 async function loadFriendData() {
-  const [friendsSnap, reqSnap] = await Promise.all([
-    db.ref(`friends/${currentUser.uid}`).once('value'),
-    db.ref(`friendRequests/${currentUser.uid}`).once('value')
-  ]);
-
-  const reqs = [];
-  reqSnap.forEach(child => reqs.push({ uid: child.key, ...child.val() }));
+  const friendList = document.getElementById('friend-list');
   const reqSec = document.getElementById('friend-req-section');
   const reqList = document.getElementById('friend-req-list');
+  friendList.innerHTML = '<div class="friend-empty">読み込み中…</div>';
+
+  let friendsSnap, reqSnap;
+  try {
+    [friendsSnap, reqSnap] = await Promise.all([
+      db.ref(`friends/${currentUser.uid}`).once('value'),
+      db.ref(`friendRequests/${currentUser.uid}`).once('value')
+    ]);
+  } catch(e) {
+    console.error('[loadFriendData] read failed:', e);
+    friendList.innerHTML = '<div class="friend-empty">読み込みに失敗しました（ルール設定を確認してください）</div>';
+    if(reqSec) reqSec.style.display = 'none';
+    return;
+  }
+
+  // フレンド申請
+  const reqs = [];
+  reqSnap.forEach(child => reqs.push({ uid: child.key, ...child.val() }));
   if(reqs.length > 0) {
     reqSec.style.display = '';
-    reqList.innerHTML = reqs.map(r => `
+    reqList.innerHTML = reqs.map(r => {
+      const iconHtml = r.iconUrl
+        ? `<img src="${r.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : (r.icon||'👤');
+      return `
       <div class="friend-req-item">
-        <div class="friend-icon">${friendIconHtml(r)}</div>
+        <div class="friend-icon">${iconHtml}</div>
         <div class="friend-info">
           <div class="friend-displayid">${esc(r.displayId||'?')}</div>
           <div class="friend-title">${r.title ? esc(r.title) : ''}</div>
@@ -2302,27 +2315,36 @@ async function loadFriendData() {
           <button class="friend-btn friend-btn-accept" onclick="acceptFriendDirect('${r.uid}','${r.displayId||''}')">承認</button>
           <button class="friend-btn friend-btn-decline" onclick="declineFriendDirect('${r.uid}')">拒否</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } else {
     reqSec.style.display = 'none';
   }
 
-  const friendList = document.getElementById('friend-list');
+  // フレンド一覧
   const friendUids = [];
   friendsSnap.forEach(child => friendUids.push(child.key));
   if(friendUids.length === 0) {
     friendList.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
     return;
   }
-  const profiles = await Promise.all(friendUids.map(uid =>
-    db.ref(`users/${uid}`).once('value').catch(() => ({ val: () => null }))
-  ));
-  friendList.innerHTML = profiles.map((snap, i) => {
-    const p = snap.val() || {};
-    const uid = friendUids[i];
+
+  // users/$uid を個別に取得（permission_denied でも他が止まらないよう個別catch）
+  const profiles = await Promise.all(
+    friendUids.map(uid =>
+      db.ref(`users/${uid}`).once('value')
+        .then(s => ({ uid, data: s.val() || {} }))
+        .catch(e => { console.warn('[loadFriendData] users/' + uid, e); return { uid, data: {} }; })
+    )
+  );
+
+  friendList.innerHTML = profiles.map(({ uid, data: p }) => {
     accountProfileCache[uid] = p;
+    const iconHtml = p.iconUrl
+      ? `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : (p.icon||'👤');
     return `<div class="friend-item">
-      <div class="friend-icon">${friendIconHtml(p)}</div>
+      <div class="friend-icon">${iconHtml}</div>
       <div class="friend-info">
         <div class="friend-displayid">${esc(p.displayId||'?')}</div>
         <div class="friend-title">${p.title ? esc(p.title) : '称号なし'}</div>
@@ -2397,14 +2419,19 @@ async function loadInviteFriendList() {
     el.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
     return;
   }
-  const profiles = await Promise.all(friendUids.map(uid =>
-    db.ref(`users/${uid}`).once('value').catch(() => ({ val: () => null }))
-  ));
-  el.innerHTML = profiles.map((snap, i) => {
-    const p = snap.val() || {};
-    const uid = friendUids[i];
+  const profiles = await Promise.all(
+    friendUids.map(uid =>
+      db.ref(`users/${uid}`).once('value')
+        .then(s => ({ uid, data: s.val() || {} }))
+        .catch(e => { console.warn('[loadInviteFriendList] users/' + uid, e); return { uid, data: {} }; })
+    )
+  );
+  el.innerHTML = profiles.map(({ uid, data: p }) => {
+    const iconHtml = p.iconUrl
+      ? `<img src="${p.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : (p.icon||'👤');
     return `<div class="friend-item">
-      <div class="friend-icon">${friendIconHtml(p)}</div>
+      <div class="friend-icon">${iconHtml}</div>
       <div class="friend-info">
         <div class="friend-displayid">${esc(p.displayId||'?')}</div>
         <div class="friend-title">${p.title ? esc(p.title) : ''}</div>
@@ -2436,18 +2463,20 @@ async function inviteFriendToRoom(toUid, toDisplayId, btn) {
 
 async function notifyFriendsRoomCreated(roomId) {
   if(!currentUser || !currentUserProfile) return;
-  const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
-  const notifPromises = [];
-  friendsSnap.forEach(child => {
-    notifPromises.push(
-      pushNotification(child.key, 'friendRoom',
-        `${currentUserProfile.displayId} さんが部屋を作りました`,
-        `Room ID: ${roomId} に招待されました`,
-        { roomId, fromUid: currentUser.uid }
-      ).catch(e => console.warn('[notifyFriendsRoomCreated] uid=' + child.key, e))
-    );
-  });
-  await Promise.allSettled(notifPromises);
+  try {
+    const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
+    const promises = [];
+    friendsSnap.forEach(child => {
+      promises.push(
+        pushNotification(child.key, 'friendRoom',
+          `${currentUserProfile.displayId} さんが部屋を作りました`,
+          `Room ID: ${roomId} に招待されました`,
+          { roomId, fromUid: currentUser.uid }
+        ).catch(e => console.warn('[notifyFriendsRoomCreated] uid=' + child.key, e))
+      );
+    });
+    await Promise.allSettled(promises);
+  } catch(e) { console.warn('[notifyFriendsRoomCreated]', e); }
 }
 
 async function prefetchAccountProfiles(players) {
