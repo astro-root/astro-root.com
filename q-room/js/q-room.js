@@ -2493,9 +2493,11 @@ async function inviteFriendToRoom(toUid, toDisplayId, btn) {
 }
 
 async function notifyFriendsRoomCreated(roomId) {
-  if(!currentUser || !currentUserProfile) {
-    console.warn('[notifyFriendsRoomCreated] currentUser or currentUserProfile is null, skipping');
-    return;
+  if(!currentUser) { console.warn('[notifyFriendsRoomCreated] no currentUser, skipping'); return; }
+  // currentUserProfileがまだ取得されていない場合は最大3秒待つ
+  if(!currentUserProfile) {
+    await new Promise(r => setTimeout(r, 3000));
+    if(!currentUserProfile) { console.warn('[notifyFriendsRoomCreated] profile still null, skipping'); return; }
   }
   try {
     const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
@@ -2524,7 +2526,6 @@ async function prefetchAccountProfiles(players) {
       const snap = await db.ref(`users/${uid}`).once('value');
       if(snap.exists()) accountProfileCache[uid] = snap.val();
     } catch(e) {
-      // PERMISSION_DENIED for other users' profiles - expected by rules
     }
   }));
 }
