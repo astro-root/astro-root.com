@@ -236,7 +236,7 @@
   <div class="m-content">
     <button class="m-close" onclick="closeFeedback()">✕</button>
     <div class="m-title">FEEDBACK</div>
-    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:28px;">
+    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
       <a href="https://twitter.com/astro_root" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:14px; padding:14px 18px; background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:14px; color:var(--text-main); text-decoration:none; transition:0.3s; font-family:var(--font-en); font-size:0.9rem; font-weight:700;" onmouseover="this.style.borderColor='#1d9bf0';this.style.background='rgba(29,155,240,0.08)'" onmouseout="this.style.borderColor='var(--border-color)';this.style.background='rgba(255,255,255,0.04)'">
         <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#1d9bf0;flex-shrink:0;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         <div>
@@ -362,12 +362,12 @@
       <label>称号 <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
       <input type="text" id="profile-title-input" maxlength="20" placeholder="クイズ王">
     </div>
-    <button class="btn btn-pri" onclick="saveProfile()" style="margin-bottom:24px;">SAVE</button>
+    <button class="btn btn-pri" onclick="saveProfile()" style="margin-bottom:12px;">SAVE</button>
 
-    <hr style="margin:0 0 24px;">
+    <hr style="margin:0 0 14px;">
 
     
-    <div style="margin-bottom:24px;">
+    <div style="margin-bottom:12px;">
       <button onclick="toggleAccountSettings()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-family:var(--font-en);font-size:0.82rem;font-weight:700;letter-spacing:0.1em;padding:0;margin-bottom:12px;" id="account-settings-toggle">
         ⚙️ ACCOUNT SETTINGS <span id="account-settings-arrow" style="margin-left:4px;">▼</span>
       </button>
@@ -405,10 +405,10 @@
       </div>
     </div>
 
-    <hr style="margin:0 0 24px;">
+    <hr style="margin:0 0 14px;">
     <div class="m-title" style="font-size:1rem;margin-bottom:16px;">📊 STATS</div>
     <div class="stats-grid" id="stats-grid"></div>
-    <hr style="margin:24px 0;">
+    <hr style="margin:14px 0;">
     <button class="btn" onclick="openFriendModal()" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.35);color:var(--cyan);margin-bottom:12px;">👥 フレンド管理</button>
     <button class="btn btn-warn" onclick="logoutAccount()">LOGOUT</button>
   </div>
@@ -449,7 +449,7 @@
   <div class="m-content">
     <button class="m-close" onclick="closeInviteFriendModal()">✕</button>
     <div class="m-title">👥 フレンドを招待</div>
-    <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:20px;">フレンドに部屋の招待通知を送ります</div>
+    <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">フレンドに部屋の招待通知を送ります</div>
     <div id="invite-friend-list"></div>
   </div>
 </div>
