@@ -288,18 +288,13 @@ function dismissDevNotice() {
 let _topNotifRef = null, _topNotifCb = null, _topNotifUid = null;
 function initTopNotifCenter(user) {
   if(!user || !user.uid) return;
-  // 同じユーザーのリスナーが既に生きていればスキップ（onAuthStateChangedの多重発火対策）
-  if(_topNotifUid === user.uid && _topNotifRef && _topNotifCb) {
-    console.log('[initTopNotifCenter] listener already active for uid=' + user.uid + ', skipping');
-    return;
-  }
-  // 別ユーザー or 初回: 既存リスナーをクリア
+  // 同一ユーザーのリスナーが既に動いていれば張り直さない
+  if(_topNotifUid === user.uid && _topNotifRef && _topNotifCb) return;
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
   _topNotifRef = null; _topNotifCb = null; _topNotifUid = null;
-
   console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
-  const ref = fbdb.ref(`notifications/${user.uid}`);
+  const ref = fbdb.ref('notifications/' + user.uid);
   const cb = snap => {
     const items = [];
     snap.forEach(c => items.push({ id: c.key, ...c.val() }));
@@ -312,7 +307,7 @@ function initTopNotifCenter(user) {
     if(_notifOpen) renderNotifList(items);
   };
   ref.on('value', cb, err => {
-    console.error('[initTopNotifCenter] ❌ Firebase listener error:', err.code, err.message);
+    console.error('[initTopNotifCenter] ❌ Firebase listener error:', err && err.code, err && err.message);
   });
   _topNotifRef = ref;
   _topNotifCb = cb;
@@ -1416,7 +1411,6 @@ function updateHeroAccountBtn() {
   const btn = document.getElementById('hero-account-btn');
   const iconEl = document.getElementById('hero-account-icon');
   const badge = document.getElementById('hero-account-badge');
-  const bellBtn = document.getElementById('top-bell-btn');
   if(!btn || !iconEl) return;
   if(currentUser && currentUserProfile) {
     btn.classList.add('logged-in');
@@ -1426,16 +1420,24 @@ function updateHeroAccountBtn() {
       iconEl.innerHTML = '';
       iconEl.textContent = currentUserProfile.icon || '👤';
     }
-    // unread通知バッジ（アカウントボタン側は非表示に変更、ベルボタンに移譲）
-    if(badge) badge.style.display = 'none';
-    // ベルボタンを表示
-    if(bellBtn) bellBtn.style.display = '';
+    // unread通知バッジ
+    if(badge) {
+      if(unreadNotifCount > 0) {
+        badge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
   } else {
     btn.classList.remove('logged-in');
     iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
     if(badge) badge.style.display = 'none';
-    if(bellBtn) bellBtn.style.display = 'none';
   }
+}
+
+function handleHeroAccountBtn() {
+  if(currentUser) { toggleTopNotifDrawer(); } else { showAccountPage(); }
 }
 
 let _topNotifDrawerOpen = false;
@@ -1454,7 +1456,7 @@ async function loadTopNotifDrawer() {
   const listEl = document.getElementById('top-notif-drawer-list');
   if(!listEl) return;
   listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
-  const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).once('value');
+  const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
   const items = [];
   snap.forEach(c => items.push({ id: c.key, ...c.val() }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
@@ -1544,24 +1546,16 @@ async function renderAccountPage() {
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
     await renderStatsGrid();
-    // 通知はinitTopNotifCenterのリアルタイムリスナーが管理しているため、
-    // ここでonce()を叩くと競合・二重更新が起きる。
-    // リスナーが既に最新データを持っている場合はそのまま再描画する。
-    if(currentUser && _topNotifRef) {
-      _topNotifRef.once('value').then(snap => {
+    if(currentUser) {
+      try {
+        const snap = await db.ref('notifications/' + currentUser.uid).once('value');
         const items = [];
         snap.forEach(c => items.push({ id: c.key, ...c.val() }));
         items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
         renderAccountNotifList(items);
-      }).catch(() => renderAccountNotifList([]));
-    } else if(currentUser) {
-      db.ref(`notifications/${currentUser.uid}`).once('value')
-        .then(snap => {
-          const items = [];
-          snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-          items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-          renderAccountNotifList(items);
-        }).catch(() => renderAccountNotifList([]));
+      } catch(e) {
+        renderAccountNotifList([]);
+      }
     }
   } else {
     guestSec.style.display = '';
@@ -2168,16 +2162,6 @@ function stopNotifListener() {
 
 function updateNotifBadge() {
   updateHeroAccountBtn();
-  // トップページのベルバッジ
-  const topBellBadge = document.getElementById('top-bell-badge');
-  if(topBellBadge) {
-    if(unreadNotifCount > 0) {
-      topBellBadge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
-      topBellBadge.style.display = '';
-    } else {
-      topBellBadge.style.display = 'none';
-    }
-  }
   // roomヘッダーのbell badge
   const badge = document.getElementById('notif-badge');
   if(!badge) return;
@@ -2201,7 +2185,7 @@ function toggleNotifPanel() {
 
 async function loadAndRenderNotifs() {
   if(!currentUser) return;
-  const snap = await db.ref(`notifications/${currentUser.uid}`).once('value');
+  const snap = await db.ref('notifications/' + currentUser.uid).once('value');
   const items = [];
   snap.forEach(child => items.push({ id: child.key, ...child.val() }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
@@ -2493,11 +2477,9 @@ async function inviteFriendToRoom(toUid, toDisplayId, btn) {
 }
 
 async function notifyFriendsRoomCreated(roomId) {
-  if(!currentUser) { console.warn('[notifyFriendsRoomCreated] no currentUser, skipping'); return; }
-  // currentUserProfileがまだ取得されていない場合は最大3秒待つ
-  if(!currentUserProfile) {
-    await new Promise(r => setTimeout(r, 3000));
-    if(!currentUserProfile) { console.warn('[notifyFriendsRoomCreated] profile still null, skipping'); return; }
+  if(!currentUser || !currentUserProfile) {
+    console.warn('[notifyFriendsRoomCreated] currentUser or currentUserProfile is null, skipping');
+    return;
   }
   try {
     const friendsSnap = await db.ref(`friends/${currentUser.uid}`).once('value');
@@ -2526,6 +2508,7 @@ async function prefetchAccountProfiles(players) {
       const snap = await db.ref(`users/${uid}`).once('value');
       if(snap.exists()) accountProfileCache[uid] = snap.val();
     } catch(e) {
+      // PERMISSION_DENIED for other users' profiles - expected by rules
     }
   }));
 }
