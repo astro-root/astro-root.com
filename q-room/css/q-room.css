@@ -1778,8 +1778,13 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 .top-notif-list {
   overflow-y: auto; -webkit-overflow-scrolling: touch;
   border-top: 1px solid rgba(255,255,255,0.06);
-  max-height: 280px;
+  max-height: 360px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
 }
+.top-notif-list::-webkit-scrollbar { width: 4px; }
+.top-notif-list::-webkit-scrollbar-track { background: transparent; }
+.top-notif-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 [data-theme="light"] .top-notif-list { border-top-color: rgba(0,0,0,0.07); }
 .top-notif-item {
   display: flex; align-items: flex-start; gap: 10px;
