@@ -249,7 +249,7 @@
         <div class="acct-section-title">🔔 NOTIFICATIONS</div>
         <button class="acct-readall-btn" onclick="topNotifReadAll()">すべて既読</button>
       </div>
-      <div class="top-notif-list acct-notif-list" id="top-notif-list" style="max-height:360px;overflow-y:auto;"></div>
+      <div class="acct-notif-list" id="top-notif-list"></div>
     </div>
 
     <!-- スタッツ -->
@@ -675,7 +675,6 @@ function _applyNotifPatch() {
   console.log('[patch] all patches applied ✅');
 }
 
-// q-room.jsのDOMContentLoaded等が終わった後に確実に実行
 if(document.readyState === 'complete') {
   _applyNotifPatch();
 } else {
