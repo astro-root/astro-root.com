@@ -1527,7 +1527,9 @@ async function registerAccount() {
 
 async function loginAccount() {
   try {
-    if(!auth) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); if(!db) db = firebase.database(); }
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!auth) auth = firebase.auth();
+    if(!db) db = firebase.database();
     const emailOrId = document.getElementById('auth-email-login').value.trim();
     const pw = document.getElementById('auth-pw-login').value;
     if(!emailOrId) return showAuthErr('login', 'メールアドレスまたはユーザーIDを入力してください');
