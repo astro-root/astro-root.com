@@ -18,7 +18,7 @@
 </head>
 <body>
 
-<!-- TOP SCREEN -->
+
 <div id="screen-top" class="screen active">
   <div id="dev-notice-banner" class="dev-notice-banner">
     <span class="dev-notice-icon">📢</span>
@@ -89,7 +89,7 @@
   </div>
 </div>
 
-<!-- ROOM SCREEN -->
+
 <div id="screen-room" class="screen">
   <div class="header">
     <div class="header-row1">
@@ -142,7 +142,7 @@
   </div>
 </div>
 
-<!-- RESULT SCREEN -->
+
 <div id="screen-result" class="screen">
   <div class="r-header">
     <div class="r-title">RESULT</div>
@@ -156,7 +156,7 @@
   <div class="scroll-area"><div id="rlist" class="plist"></div></div>
 </div>
 
-<!-- SETTINGS MODAL -->
+
 <div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeModal()">✕</button>
@@ -206,7 +206,7 @@
   </div>
 </div>
 
-<!-- ROOM INFO MODAL -->
+
 <div id="modal-room-info" class="modal room-share-modal" onclick="if(event.target===this)closeRoomInfo()">
   <div class="m-content">
     <button class="m-close" onclick="closeRoomInfo()">✕</button>
@@ -231,7 +231,7 @@
   </div>
 </div>
 
-<!-- FEEDBACK MODAL -->
+
 <div id="modal-feedback" class="modal" onclick="if(event.target===this)closeFeedback()">
   <div class="m-content">
     <button class="m-close" onclick="closeFeedback()">✕</button>
@@ -267,7 +267,7 @@
   </div>
 </div>
 
-<!-- CHAT -->
+
 <div class="chat-overlay" id="chat-overlay" onclick="toggleChat()"></div>
 <div class="chat-drawer" id="chat-drawer">
   <div class="chat-handle"></div>
@@ -285,7 +285,7 @@
   </div>
 </div>
 
-<!-- COUNTDOWN -->
+
 <div class="countdown-overlay" id="countdown-overlay">
   <div class="countdown-num" id="countdown-num">5</div>
   <div class="countdown-label">GET READY</div>
@@ -293,7 +293,7 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- AUTH MODAL -->
+
 <div id="modal-auth" class="modal" onclick="if(event.target===this)closeAuthModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeAuthModal()">✕</button>
@@ -324,13 +324,13 @@
   </div>
 </div>
 
-<!-- PROFILE MODAL -->
+
 <div id="modal-profile" class="modal" onclick="if(event.target===this)closeProfileModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeProfileModal()">✕</button>
     <div class="m-title">PROFILE</div>
 
-    <!-- アイコン -->
+    
     <div class="profile-icon-wrap">
       <div class="profile-icon-display" id="profile-icon-display">🎮</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -341,7 +341,7 @@
     </div>
     <div class="icon-picker" id="icon-picker" style="display:none;"></div>
 
-    <!-- 画像クロップUI -->
+    
     <div id="icon-crop-wrap" style="display:none;margin-bottom:16px;">
       <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">ドラッグ＆ピンチで位置・拡大を調整</div>
       <div id="icon-crop-stage" style="width:200px;height:200px;border-radius:50%;overflow:hidden;position:relative;background:#000;margin:0 auto 12px;border:2px solid var(--cyan);touch-action:none;cursor:grab;">
@@ -353,7 +353,7 @@
       </div>
     </div>
 
-    <!-- 基本情報 -->
+    
     <div class="field" style="margin-top:16px;">
       <label>NAME <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">（20文字以内）</span></label>
       <input type="text" id="profile-name-input" maxlength="20" placeholder="あなたの名前">
@@ -366,14 +366,14 @@
 
     <hr style="margin:0 0 24px;">
 
-    <!-- アカウント設定（折りたたみ） -->
+    
     <div style="margin-bottom:24px;">
       <button onclick="toggleAccountSettings()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-muted);font-family:var(--font-en);font-size:0.82rem;font-weight:700;letter-spacing:0.1em;padding:0;margin-bottom:12px;" id="account-settings-toggle">
         ⚙️ ACCOUNT SETTINGS <span id="account-settings-arrow" style="margin-left:4px;">▼</span>
       </button>
       <div id="account-settings-body" style="display:none;">
 
-        <!-- USER ID変更 -->
+        
         <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
           <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">USER ID</div>
           <div class="profile-static" id="profile-uid-display" style="margin-bottom:10px;">—</div>
@@ -382,7 +382,7 @@
           <div id="uid-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
         </div>
 
-        <!-- メールアドレス変更 -->
+        
         <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;margin-bottom:12px;">
           <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">EMAIL</div>
           <div class="profile-static" id="profile-email-display" style="margin-bottom:10px;">—</div>
@@ -392,7 +392,7 @@
           <div id="email-change-err" class="err" style="margin-bottom:0;margin-top:8px;"></div>
         </div>
 
-        <!-- パスワード変更 -->
+        
         <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:14px;padding:16px;">
           <div style="font-family:var(--font-en);font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:12px;">PASSWORD</div>
           <input type="password" id="reauth-pw-current" placeholder="現在のパスワード" autocomplete="current-password" style="margin-bottom:8px;">
@@ -414,7 +414,7 @@
   </div>
 </div>
 
-<!-- NOTIFICATION DRAWER -->
+
 <div class="notif-overlay" id="notif-overlay" onclick="toggleNotifPanel()"></div>
 <div class="notif-drawer" id="notif-drawer">
   <div class="chat-handle"></div>
@@ -426,7 +426,7 @@
   <div class="notif-list" id="notif-list"></div>
 </div>
 
-<!-- FRIEND MODAL -->
+
 <div id="modal-friend" class="modal" onclick="if(event.target===this)closeFriendModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeFriendModal()">✕</button>
@@ -444,7 +444,7 @@
   </div>
 </div>
 
-<!-- INVITE FRIEND MODAL (ルーム内から) -->
+
 <div id="modal-invite-friend" class="modal" onclick="if(event.target===this)closeInviteFriendModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeInviteFriendModal()">✕</button>
