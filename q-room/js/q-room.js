@@ -261,6 +261,14 @@ function dismissDevNotice() {
 }
 
 
+let _topNotifOpen = false;
+function toggleTopNotif() {
+  _topNotifOpen = !_topNotifOpen;
+  const body = document.getElementById('top-notif-body');
+  const chevron = document.getElementById('top-notif-chevron');
+  if(body) body.style.display = _topNotifOpen ? '' : 'none';
+  if(chevron) chevron.classList.toggle('open', _topNotifOpen);
+}
 let _topNotifRef = null, _topNotifCb = null;
 function initTopNotifCenter(user) {
   if(_topNotifRef && _topNotifCb) _topNotifRef.off('value', _topNotifCb);
@@ -279,10 +287,13 @@ function hideTopNotifCenter() {
 function renderTopNotifCenter(items) {
   const sec = document.getElementById('top-notif-section');
   const list = document.getElementById('top-notif-list');
-  const unreadEl = document.getElementById('top-notif-unread');
+  const badge = document.getElementById('top-notif-badge');
   if(!sec || !list) return;
   const unread = items.filter(n => !n.read).length;
-  if(unreadEl) { unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; unreadEl.style.display = unread > 0 ? '' : 'none'; }
+  if(badge) {
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.style.display = unread > 0 ? 'inline-flex' : 'none';
+  }
   sec.classList.add('visible');
   if(!items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
