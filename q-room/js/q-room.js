@@ -331,8 +331,25 @@ function changeRuleUI(skipRender=false) {
 
   if(!skipRender && roomData && r !== roomData.rule) {
     const ruleName = document.getElementById('sel-rule').options[document.getElementById('sel-rule').selectedIndex].text;
-    db.ref('rooms/'+rId).update({rule: r, conf: DEF_CONF[r]});
+    const newConf = DEF_CONF[r];
+    db.ref('rooms/'+rId).update({rule: r, conf: newConf});
     pushSysMsg(`ルールが「${ruleName}」に変更されました`);
+
+    // ルール変更時に全員のスコアを自動リセット
+    if(roomData.players) {
+      const pData = JSON.parse(JSON.stringify(roomData.players));
+      const sc = r === 'divide' ? (newConf.init || 10) : r === 'attack_surv' ? (newConf.life || 20) : 0;
+      Object.keys(pData).forEach(k => {
+        pData[k] = { ...pData[k], c:0, w:0, sc:sc, rst:0, str:0, adv:0, hist:[], winAt:0, statsAt:Date.now() };
+        if(pData[k].st !== 'spec') pData[k].st = 'active';
+        pData[k].board_ans = '';
+        pData[k].board_btn = false;
+        pData[k].board_judged = null;
+      });
+      db.ref(`rooms/${rId}/players`).set(pData);
+      pushSysMsg('ルール変更のためスコアをリセットしました');
+    }
+
     if(r === 'time_race') {
       const lm = (DEF_CONF.time_race.limit) * 60 * 1000;
       db.ref(`rooms/${rId}/timer`).set({state:'idle', limitMs:lm, remaining:lm, startAt:null, cdStartAt:null});
@@ -971,41 +988,75 @@ function formatMs(ms) {
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
+let _prevTimerState = null;
+
+function setTimerBtn(state) {
+  const btn = document.getElementById('timer-btn-startstop');
+  if(!btn) return;
+  if(state === 'running' || state === 'countdown') {
+    btn.textContent = '⏸ STOP';
+    btn.disabled = false;
+    btn.className = 'timer-btn timer-btn-stop';
+  } else if(state === 'finished') {
+    btn.textContent = '▶ START';
+    btn.disabled = true;
+    btn.className = 'timer-btn timer-btn-start';
+  } else {
+    btn.textContent = '▶ START';
+    btn.disabled = false;
+    btn.className = 'timer-btn timer-btn-start';
+  }
+}
+
+function showGoAndHide(co) {
+  const numEl = document.getElementById('countdown-num');
+  numEl.textContent = 'GO!';
+  numEl.style.animation = 'none';
+  void numEl.offsetWidth;
+  numEl.style.animation = 'cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+  co.classList.add('show');
+  setTimeout(() => { co.classList.remove('show'); }, 800);
+}
+
 function updateTimerDisplay() {
   if(!timerData) return;
   const disp = document.getElementById('timer-display');
-  const btnStart = document.getElementById('timer-btn-start');
-  const btnStop = document.getElementById('timer-btn-stop');
   const co = document.getElementById('countdown-overlay');
   if(!disp) return;
 
   const { state, startAt, remaining, limitMs, cdStartAt } = timerData;
+  const prevState = _prevTimerState;
+  _prevTimerState = state;
 
   clearInterval(timerInterval); timerInterval = null;
   clearInterval(cdInterval); cdInterval = null;
 
+  setTimerBtn(state);
+
   if(state === 'countdown') {
     co.classList.add('show');
-    btnStart.disabled = true;
-    btnStop.disabled = false;
     disp.textContent = formatMs(remaining !== undefined ? remaining : limitMs);
     disp.className = 'timer-display';
+
+    // cdStartAtが届いた時点でどれだけ経過しているか計算し、ローカル基準時刻を補正
+    const cdReceivedAt = Date.now();
+    const serverElapsedAtReceive = cdStartAt ? Math.max(0, getServerTime() - cdStartAt) : 0;
+    // ローカルカウントダウン開始点 = 受信時刻 - すでに経過したサーバー時間
+    const localCdBase = cdReceivedAt - serverElapsedAtReceive;
+
+    let lastShown = -1;
     const tick = () => {
-      if(!cdStartAt) return;
-      const elapsed = getServerTime() - cdStartAt;
+      const elapsed = Date.now() - localCdBase;
       let left = Math.ceil((5000 - elapsed) / 1000);
       if(left > 5) left = 5;
       if(left <= 0) {
-        document.getElementById('countdown-num').textContent = 'GO!';
-        document.getElementById('countdown-num').style.animation = 'none';
-        void document.getElementById('countdown-num').offsetWidth;
-        document.getElementById('countdown-num').style.animation = 'cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
-        setTimeout(() => { co.classList.remove('show'); }, 700);
-        clearInterval(cdInterval);
+        clearInterval(cdInterval); cdInterval = null;
+        showGoAndHide(co);
         return;
       }
-      const numEl = document.getElementById('countdown-num');
-      if(numEl.textContent !== String(left)) {
+      if(left !== lastShown) {
+        lastShown = left;
+        const numEl = document.getElementById('countdown-num');
         numEl.textContent = left;
         numEl.style.animation = 'none';
         void numEl.offsetWidth;
@@ -1013,12 +1064,16 @@ function updateTimerDisplay() {
       }
     };
     tick();
-    cdInterval = setInterval(tick, 100);
+    cdInterval = setInterval(tick, 50);
 
   } else if(state === 'running') {
-    if (document.getElementById('countdown-num').textContent !== 'GO!') co.classList.remove('show');
-    btnStart.disabled = true;
-    btnStop.disabled = false;
+    // countdownから遷移してきた場合はGO!を表示
+    if(prevState === 'countdown') {
+      showGoAndHide(co);
+    } else {
+      co.classList.remove('show');
+    }
+
     const tick = () => {
       if(!startAt || remaining === undefined) return;
       const elapsed = getServerTime() - startAt;
@@ -1040,8 +1095,6 @@ function updateTimerDisplay() {
 
   } else if(state === 'paused' || state === 'idle') {
     co.classList.remove('show');
-    btnStart.disabled = false;
-    btnStop.disabled = true;
     const rem = (state === 'paused') ? (remaining !== undefined ? remaining : 0) : (limitMs || 300000);
     disp.textContent = formatMs(rem);
     if(rem <= 30000) disp.className = 'timer-display danger';
@@ -1052,23 +1105,26 @@ function updateTimerDisplay() {
     co.classList.remove('show');
     disp.textContent = '00:00';
     disp.className = 'timer-display danger';
-    btnStart.disabled = true;
-    btnStop.disabled = true;
   }
 }
 
 async function timerAction(action) {
   if(!rId || !db) return;
-  
+
+  const conf = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
+  const limitMs = (conf.limit || 5) * 60 * 1000;
+  const td = timerData || {};
+
+  if(action === 'toggle') {
+    if(td.state === 'running' || td.state === 'countdown') action = 'stop';
+    else action = 'start';
+  }
+
   let confirmMsg = '';
   if(action === 'start') confirmMsg = 'タイマーをスタート（再開）しますか？';
   else if(action === 'stop') confirmMsg = 'タイマーをストップ（一時停止）しますか？';
   else if(action === 'reset') confirmMsg = 'タイマーをリセットしますか？';
   if(!confirm(confirmMsg)) return;
-
-  const conf = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
-  const limitMs = (conf.limit || 5) * 60 * 1000;
-  const td = timerData || {};
 
   if(action === 'start') {
     if(td.state === 'running' || td.state === 'countdown') return;
@@ -1078,6 +1134,7 @@ async function timerAction(action) {
       remaining: currentRemaining, limitMs: td.limitMs || limitMs, startAt: null
     });
     clearTimeout(cdStartTimeout);
+    // カウントダウン5秒後にrunningへ遷移
     cdStartTimeout = setTimeout(async () => {
       const snap = await db.ref(`rooms/${rId}/timer/state`).once('value');
       if(snap.val() === 'countdown') {
@@ -1091,7 +1148,10 @@ async function timerAction(action) {
 
   } else if(action === 'stop') {
     clearTimeout(cdStartTimeout);
-    if(td.state === 'countdown') { await db.ref(`rooms/${rId}/timer`).update({ state: 'paused' }); return; }
+    if(td.state === 'countdown') {
+      await db.ref(`rooms/${rId}/timer`).update({ state: 'paused' });
+      return;
+    }
     if(td.state !== 'running') return;
     const elapsed = td.startAt ? getServerTime() - td.startAt : 0;
     const currentRemaining = Math.max(0, (td.remaining !== undefined ? td.remaining : limitMs) - elapsed);
