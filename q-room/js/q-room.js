@@ -1614,16 +1614,18 @@ function onIconImageSelected(event) {
   const file = event.target.files[0];
   if(!file) return;
   document.getElementById('icon-picker').style.display = 'none';
+  // display:none のまま offsetWidth を読むと 0 になるため先に表示する
+  document.getElementById('icon-crop-wrap').style.display = '';
   const reader = new FileReader();
   reader.onload = e => {
     const img = document.getElementById('icon-crop-img');
     img.onload = () => {
       const stage = document.getElementById('icon-crop-stage');
-      const sw = stage.offsetWidth, sh = stage.offsetHeight;
+      const sw = stage.offsetWidth || 200;
+      const sh = stage.offsetHeight || 200;
       const scale = Math.max(sw / img.naturalWidth, sh / img.naturalHeight);
       _cropState = { img, x: (sw - img.naturalWidth * scale) / 2, y: (sh - img.naturalHeight * scale) / 2, scale, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
       applyCropTransform();
-      document.getElementById('icon-crop-wrap').style.display = '';
       initCropEvents(stage);
     };
     img.src = e.target.result;
@@ -1634,7 +1636,12 @@ function onIconImageSelected(event) {
 function applyCropTransform() {
   const { img, x, y, scale } = _cropState;
   if(!img) return;
-  img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+  // transformは使わず left/top/width/height で直接制御
+  img.style.transform = '';
+  img.style.left   = x + 'px';
+  img.style.top    = y + 'px';
+  img.style.width  = (img.naturalWidth  * scale) + 'px';
+  img.style.height = (img.naturalHeight * scale) + 'px';
 }
 
 function initCropEvents(stage) {
@@ -1700,21 +1707,17 @@ async function cropIconAndSave() {
   const img = _cropState.img;
   if(!img) return;
   const stage = document.getElementById('icon-crop-stage');
-  const sw = stage.offsetWidth, sh = stage.offsetHeight;
+  const sw = stage.offsetWidth || 200;
+  const sh = stage.offsetHeight || 200;
   const canvas = document.createElement('canvas');
   canvas.width = 200; canvas.height = 200;
   const ctx = canvas.getContext('2d');
-
-  // ステージ上での img の表示サイズ・位置（transform-origin:0 0 前提）
-  // img左上 = (_cropState.x, _cropState.y)、表示サイズ = naturalW*scale × naturalH*scale
-  // これをcanvas(200x200)座標系にそのまま写像する
   const ratioX = 200 / sw;
   const ratioY = 200 / sh;
   const drawX = _cropState.x * ratioX;
   const drawY = _cropState.y * ratioY;
   const drawW = img.naturalWidth  * _cropState.scale * ratioX;
   const drawH = img.naturalHeight * _cropState.scale * ratioY;
-
   ctx.save();
   ctx.beginPath();
   ctx.arc(100, 100, 100, 0, Math.PI * 2);
@@ -1735,8 +1738,8 @@ async function cropIconAndSave() {
     disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
     updateAccountBar(true);
     document.getElementById('icon-crop-wrap').style.display = 'none';
-    const resetBtn = document.getElementById('btn-reset-icon');
-    if(resetBtn) resetBtn.style.display = '';
+    const resetBtnAfter = document.getElementById('btn-reset-icon');
+    if(resetBtnAfter) resetBtnAfter.style.display = '';
     toast('✅ アイコンを保存しました');
   } catch(e) {
     toast('❌ 保存に失敗しました: ' + e.message);
