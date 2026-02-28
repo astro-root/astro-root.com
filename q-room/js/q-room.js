@@ -285,13 +285,20 @@ function dismissDevNotice() {
 }
 
 
-let _topNotifRef = null, _topNotifCb = null, _topNotifUid = null;
+let _topNotifRef = null, _topNotifCb = null, _initNotifTimer = null;
 function initTopNotifCenter(user) {
   if(!user || !user.uid) return;
-  // 同一ユーザーのリスナーが既に動いていれば張り直さない
-  if(_topNotifUid === user.uid && _topNotifRef && _topNotifCb) return;
+  // 連続呼び出しをdebounce（50ms以内の多重発火を1回にまとめる）
+  if(_initNotifTimer) clearTimeout(_initNotifTimer);
+  _initNotifTimer = setTimeout(function() {
+    _initNotifTimer = null;
+    _doInitTopNotifCenter(user);
+  }, 50);
+}
+function _doInitTopNotifCenter(user) {
+  // 既存リスナーをクリアしてから張り直す
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
-  _topNotifRef = null; _topNotifCb = null; _topNotifUid = null;
+  _topNotifRef = null; _topNotifCb = null;
   console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
   const ref = fbdb.ref('notifications/' + user.uid);
@@ -311,11 +318,10 @@ function initTopNotifCenter(user) {
   });
   _topNotifRef = ref;
   _topNotifCb = cb;
-  _topNotifUid = user.uid;
 }
 function hideTopNotifCenter() {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
-  _topNotifRef = null; _topNotifCb = null; _topNotifUid = null;
+  _topNotifRef = null; _topNotifCb = null;
 }
 function toggleTopNotif() {}
 
@@ -324,6 +330,7 @@ function renderTopNotifCenter(items) { renderAccountNotifList(items); }
 function renderAccountNotifList(items = []) {
   const list = document.getElementById('top-notif-list');
   if(!list) return;
+  console.log('[renderAccountNotifList] items=' + items.length);
   if(!items || !items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
     const icon = {invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢'}[n.type] || '🔔';
