@@ -332,6 +332,14 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
   max-width: 480px;
   height: auto;
   max-height: 90vh;
+  padding-top: 56px;
+}
+.room-share-modal .m-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  float: none;
+  margin: 0;
 }
 .room-share-modal .share-row {
   display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.04);
@@ -1986,8 +1994,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 /* hero アカウントボタン */
 .hero-account-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: max(20px, env(safe-area-inset-top));
+  left: 20px;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--border-color);
   border-radius: 50%;
