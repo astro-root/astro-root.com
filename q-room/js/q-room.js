@@ -113,7 +113,7 @@ async function handleCreate() {
       status: 'playing', rule: 'survival', conf: DEF_CONF.survival,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
       lastActiveAt: firebase.database.ServerValue.TIMESTAMP,
-      players: { [myId]: newPlayer(n, currentUser ? currentUser.uid : null) }
+      players: { [myId]: newPlayer(n, currentUser ? currentUser.uid : null, currentUserProfile) }
     });
     await pushSysMsg(`${n} が入室しました`);
     enterRoom(true, n);
@@ -146,7 +146,7 @@ async function handleJoin() {
 
     localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
-    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n, currentUser ? currentUser.uid : null));
+    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n, currentUser ? currentUser.uid : null, currentUserProfile));
     await pushSysMsg(`${n} が入室しました`);
     enterRoom(false, n);
   } catch(e) {
@@ -155,8 +155,14 @@ async function handleJoin() {
   }
 }
 
-function newPlayer(name, accountUid=null) {
-  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [], ...(accountUid ? {accountUid} : {}) };
+function newPlayer(name, accountUid=null, profile=null) {
+  const profData = {};
+  if(profile) {
+    if(profile.iconUrl) profData.iconUrl = profile.iconUrl;
+    profData.icon = profile.icon || '👤';
+    if(profile.title) profData.title = profile.title;
+  }
+  return { name, st: 'active', c:0, w:0, sc:0, rst:0, str:0, adv:0, joined: Date.now(), statsAt: Date.now(), winAt: 0, hist: [], ...(accountUid ? {accountUid} : {}), ...profData };
 }
 
 
@@ -280,7 +286,7 @@ function initTopNotifCenter(user) {
     const items = [];
     snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
     unreadNotifCount = items.filter(n => !n.read).length;
-    updateHeroAccountBtn();
+    updateNotifBadge();
     renderAccountNotifList(items);
     if(_topNotifDrawerOpen) renderTopNotifDrawer(items);
     if(_notifOpen) renderNotifList(items);
@@ -574,13 +580,10 @@ function renderPlayers() {
     if(p.adv > 0) sub += `<span style="color:var(--red)">DAdv!</span> `;
     if(r==='board_quiz' && roomData.board_host===id) sub += `<span style="color:var(--magenta)">🎙HOST</span> `;
 
-    const prof = accountProfileCache[p.accountUid] || null;
-    const pIcon = prof
-      ? (prof.iconUrl
-          ? `<img src="${prof.iconUrl}" style="width:1rem;height:1rem;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;">`
-          : `<span class="pcard-account-icon">${prof.icon||'👤'}</span>`)
-      : '';
-    const pTitle = prof && prof.title ? `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:6px;">${esc(prof.title)}</span>` : '';
+    const pIcon = p.iconUrl
+      ? `<img src="${p.iconUrl}" style="width:1.1rem;height:1.1rem;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;">`
+      : (p.icon ? `<span class="pcard-account-icon">${p.icon}</span>` : '');
+    const pTitle = p.title ? `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:6px;">${esc(p.title)}</span>` : '';
     
     let boardSection = '';
     if(r === 'board_quiz') {
@@ -1924,6 +1927,7 @@ async function cropIconAndSave() {
           await db.ref(`users/${currentUser.uid}`).update({ iconUrl: result, icon: '' });
           currentUserProfile = { ...currentUserProfile, iconUrl: result, icon: '' };
           accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+          if(rId && myId) db.ref(`rooms/${rId}/players/${myId}`).update({ iconUrl: result, icon: '' }).catch(() => {});
 
           const disp = document.getElementById('profile-icon-display');
           if(disp) disp.innerHTML = `<img src="${result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
@@ -1956,6 +1960,7 @@ async function resetIconToDefault() {
     await db.ref(`users/${currentUser.uid}`).update({ iconUrl: null, icon });
     currentUserProfile = { ...currentUserProfile, iconUrl: null, icon };
     accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+    if(rId && myId) db.ref(`rooms/${rId}/players/${myId}`).update({ iconUrl: null, icon }).catch(() => {});
     // UI更新
     const disp = document.getElementById('profile-icon-display');
     if(disp) { disp.innerHTML = ''; disp.textContent = icon; }
@@ -1991,6 +1996,14 @@ async function saveProfile() {
   await db.ref(`users/${currentUser.uid}`).update(updates);
   updateHeroAccountBtn();
   accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+  // ルーム参加中の場合、プロフィールカードに反映する
+  if(rId && myId) {
+    const roomUpdates = { icon: updates.icon || currentUserProfile.icon || '👤' };
+    if(updates.iconUrl === null) roomUpdates.iconUrl = null;
+    else if(currentUserProfile.iconUrl) roomUpdates.iconUrl = currentUserProfile.iconUrl;
+    if(updates.title !== undefined) roomUpdates.title = updates.title;
+    db.ref(`rooms/${rId}/players/${myId}`).update(roomUpdates).catch(() => {});
+  }
   renderAccountPage();
   toast('✅ プロフィールを保存しました');
 }
@@ -2004,7 +2017,18 @@ async function renderStatsGrid() {
     <div class="stat-card"><div class="stat-card-val">${winRate}%</div><div class="stat-card-label">WIN RATE</div></div>
     <div class="stat-card"><div class="stat-card-val">${s.totalCorrect||0}</div><div class="stat-card-label">CORRECT</div></div>
     <div class="stat-card"><div class="stat-card-val">${s.totalWrong||0}</div><div class="stat-card-label">WRONG</div></div>
+    <div style="grid-column:1/-1;margin-top:4px;">
+      <button onclick="confirmResetStats()" style="background:none;border:1px solid rgba(239,68,68,0.35);border-radius:10px;color:rgba(239,68,68,0.7);font-size:0.75rem;padding:7px 16px;cursor:pointer;font-family:var(--font-en);letter-spacing:0.08em;transition:0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='none'">🔄 統計をリセット</button>
+    </div>
   `;
+}
+
+async function confirmResetStats() {
+  if(!currentUser) return;
+  if(!confirm('統計データをリセットしますか？\nGAMES・WIN RATE・CORRECT・WRONG がすべて 0 になります。\nこの操作は取り消せません。')) return;
+  await db.ref(`stats/${currentUser.uid}`).set({ totalGames:0, totalCorrect:0, totalWrong:0, wins:0 });
+  toast('✅ 統計をリセットしました');
+  renderStatsGrid();
 }
 
 function showFieldErr(fieldId, msg) {
@@ -2153,24 +2177,24 @@ function renderNotifList(items) {
     el.innerHTML = '<div class="notif-empty">通知はありません</div>';
     return;
   }
-  const typeIcon = { invite:'🎮', friendReq:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢' };
+  const typeIcon = { invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢' };
   el.innerHTML = items.map(n => {
     const ts = n.ts ? formatNotifTs(n.ts) : '';
     const icon = typeIcon[n.type] || '🔔';
     let actionBtn = '';
-    if(n.type === 'invite' && n.roomId && !n.read) {
-      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
+    if((n.type === 'invite' || n.type === 'roomInvite') && n.roomId && !n.read) {
+      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="event.stopPropagation();joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
     }
-    if(n.type === 'friendReq' && n.fromUid && !n.read) {
+    if((n.type === 'friendReq' || n.type === 'friendRequest') && n.fromUid && !n.read) {
       actionBtn = `<div class="notif-actions">
-        <button class="notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button>
-        <button class="notif-action-btn notif-action-btn-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button>
+        <button class="notif-action-btn" onclick="event.stopPropagation();acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button>
+        <button class="notif-action-btn notif-action-btn-decline" onclick="event.stopPropagation();declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button>
       </div>`;
     }
     if(n.type === 'friendRoom' && n.roomId && !n.read) {
-      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
+      actionBtn = `<div class="notif-actions"><button class="notif-action-btn" onclick="event.stopPropagation();joinFromNotif('${n.id}','${n.roomId}')">▶ 部屋に入る</button></div>`;
     }
-    return `<div class="notif-item ${n.read?'':'unread'}">
+    return `<div class="notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}');this.classList.remove('unread')">
       <div class="notif-item-icon">${icon}</div>
       <div class="notif-item-body">
         <div class="notif-item-title">${esc(n.title||'')}</div>
@@ -2399,7 +2423,11 @@ async function notifyFriendsRoomCreated(roomId) {
 async function prefetchAccountProfiles(players) {
   const uids = Object.values(players).map(p => p.accountUid).filter(uid => uid && !accountProfileCache[uid]);
   await Promise.all(uids.map(async uid => {
-    const snap = await db.ref(`users/${uid}`).once('value');
-    if(snap.exists()) accountProfileCache[uid] = snap.val();
+    try {
+      const snap = await db.ref(`users/${uid}`).once('value');
+      if(snap.exists()) accountProfileCache[uid] = snap.val();
+    } catch(e) {
+      // PERMISSION_DENIED for other users' profiles - expected by rules
+    }
   }));
 }
