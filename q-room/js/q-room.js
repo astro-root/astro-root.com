@@ -1537,15 +1537,25 @@ async function renderAccountPage() {
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
     await renderStatsGrid();
-    if(currentUser) {
-      try {
-        const snap = await db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value');
+    // 通知はinitTopNotifCenterのリアルタイムリスナーが管理しているため、
+    // ここでonce()を叩くと競合・二重更新が起きる。
+    // リスナーが既に最新データを持っている場合はそのまま再描画する。
+    if(currentUser && _topNotifRef) {
+      // リスナーが既に動いているなら最後に受け取ったデータで再描画
+      // （_topNotifCb が renderAccountNotifList を呼ぶため、一度だけ手動トリガー）
+      _topNotifRef.once('value').then(snap => {
         const items = [];
         snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
         renderAccountNotifList(items);
-      } catch(e) {
-        renderAccountNotifList([]);
-      }
+      }).catch(() => renderAccountNotifList([]));
+    } else if(currentUser) {
+      // リスナー未初期化のフォールバック（通常は発生しない）
+      db.ref(`notifications/${currentUser.uid}`).orderByChild('ts').limitToLast(50).once('value')
+        .then(snap => {
+          const items = [];
+          snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
+          renderAccountNotifList(items);
+        }).catch(() => renderAccountNotifList([]));
     }
   } else {
     guestSec.style.display = '';
@@ -2497,7 +2507,6 @@ async function prefetchAccountProfiles(players) {
       const snap = await db.ref(`users/${uid}`).once('value');
       if(snap.exists()) accountProfileCache[uid] = snap.val();
     } catch(e) {
-      // PERMISSION_DENIED for other users' profiles - expected by rules
     }
   }));
 }
