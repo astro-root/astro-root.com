@@ -274,23 +274,49 @@ function initTopNotifCenter(user) {
 function hideTopNotifCenter() {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; }
   const sec = document.getElementById('top-notif-section');
-  if(sec) sec.classList.remove('visible');
+  if(sec) { sec.classList.remove('visible'); sec.classList.remove('expanded'); }
 }
+function toggleTopNotif() {
+  const sec = document.getElementById('top-notif-section');
+  const btn = document.getElementById('top-notif-toggle-btn');
+  const isExpanded = sec.classList.contains('expanded');
+  sec.classList.toggle('expanded', !isExpanded);
+  if(btn) btn.setAttribute('aria-expanded', String(!isExpanded));
+  if(!isExpanded) {
+    const list = document.getElementById('top-notif-list');
+    if(list && list.innerHTML === '') {
+      list.innerHTML = '<div class="top-notif-empty">読み込み中…</div>';
+    }
+  }
+}
+
 function renderTopNotifCenter(items) {
   const sec = document.getElementById('top-notif-section');
   const list = document.getElementById('top-notif-list');
   const unreadEl = document.getElementById('top-notif-unread');
   if(!sec || !list) return;
   const unread = items.filter(n => !n.read).length;
-  if(unreadEl) { unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; unreadEl.style.display = unread > 0 ? '' : 'none'; }
+  if(unreadEl) {
+    unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : '';
+    unreadEl.classList.toggle('show', unread > 0);
+  }
   sec.classList.add('visible');
+  if(unread > 0 && !sec.classList.contains('expanded')) {
+    sec.classList.add('expanded');
+    const btn = document.getElementById('top-notif-toggle-btn');
+    if(btn) btn.setAttribute('aria-expanded', 'true');
+  } else if(unread === 0 && sec.classList.contains('expanded')) {
+    sec.classList.remove('expanded');
+    const btn = document.getElementById('top-notif-toggle-btn');
+    if(btn) btn.setAttribute('aria-expanded', 'false');
+  }
   if(!items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
     const icon = {invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢'}[n.type] || '🔔';
     const ts = n.ts ? new Date(n.ts).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     let acts = '';
-    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
-    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
+    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions" onclick="event.stopPropagation()"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
+    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions" onclick="event.stopPropagation()"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
     return `<div class="top-notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}')">
       <div class="top-notif-icon">${icon}</div>
       <div class="top-notif-body">
@@ -1039,7 +1065,6 @@ function updateChatBadge() {
 function toggleChat() {
   chatOpen = !chatOpen;
   document.getElementById('chat-drawer').classList.toggle('open', chatOpen);
-  document.getElementById('chat-overlay').classList.toggle('show', chatOpen);
   if(chatOpen) {
     chatUnread = 0;
     updateChatBadge();
@@ -1329,41 +1354,27 @@ function initAccountSystem() {
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     if(!db) db = firebase.database();
     if(!auth) auth = firebase.auth();
-  } catch(e) {
-    console.error('Firebase init failed:', e);
-    return;
-  }
+  } catch(e) {}
 
   auth.onAuthStateChanged(async user => {
     currentUser = user;
     if(user) {
-      try {
-        let snap = await db.ref(`users/${user.uid}`).once('value');
-        if(!snap.exists()) {
-          await new Promise(r => setTimeout(r, 1500));
-          snap = await db.ref(`users/${user.uid}`).once('value');
-        }
-        if(!currentUserProfile || currentUserProfile.displayId !== (snap.val() || {}).displayId) {
-          currentUserProfile = snap.val();
-        }
-        updateAccountBar(true);
-        const nameInput = document.getElementById('in-name');
-        if(nameInput && currentUserProfile && currentUserProfile.name) {
-          nameInput.value = currentUserProfile.name;
-        }
-        if(rId) {
-          listenNotifications();
-          const bellBtn = document.getElementById('notif-bell-btn');
-          if(bellBtn) bellBtn.style.display = '';
-          const invSec = document.getElementById('invite-friend-section');
-          if(invSec) invSec.style.display = '';
-        }
-        if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
-        initTopNotifCenter(user);
-      } catch(e) {
-        console.error('onAuthStateChanged error:', e);
-        updateAccountBar(true);
+      const snap = await db.ref(`users/${user.uid}`).once('value');
+      currentUserProfile = snap.val();
+      updateAccountBar(true);
+      const nameInput = document.getElementById('in-name');
+      if(nameInput && currentUserProfile && currentUserProfile.name) {
+        nameInput.value = currentUserProfile.name;
       }
+      if(rId) {
+        listenNotifications();
+        const bellBtn = document.getElementById('notif-bell-btn');
+        if(bellBtn) bellBtn.style.display = '';
+        const invSec = document.getElementById('invite-friend-section');
+        if(invSec) invSec.style.display = '';
+      }
+      if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
+      initTopNotifCenter(user);
     } else {
       currentUserProfile = null;
       updateAccountBar(false);
@@ -1454,23 +1465,22 @@ async function registerAccount() {
     const cred = await auth.createUserWithEmailAndPassword(email, pw);
     const uid = cred.user.uid;
 
+    await cred.user.getIdToken(true);
+
     const profile = { displayId, email, icon: '🎮', title: '', name: '', createdAt: Date.now() };
     await db.ref(`users/${uid}`).set(profile);
     await db.ref(`userIndex/${displayId}`).set(uid);
     await db.ref(`stats/${uid}`).set({ totalGames:0, totalCorrect:0, totalWrong:0, wins:0 });
 
-    try { await cred.user.sendEmailVerification(); } catch(e) { console.warn('sendEmailVerification failed:', e); }
+    await cred.user.sendEmailVerification();
 
     currentUserProfile = profile;
-    updateAccountBar(true);
-    initTopNotifCenter(cred.user);
     closeAuthModal();
     toast('✅ アカウントを作成しました！確認メールを送信しました。');
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに登録されています'
       : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
       : e.code === 'auth/weak-password' ? 'パスワードが弱すぎます'
-      : e.message && e.message.includes('PERMISSION_DENIED') ? 'データベースへの書き込みが拒否されました。しばらく待ってから再試行してください'
       : 'エラーが発生しました: ' + e.message;
     showAuthErr('reg', msg);
   }
@@ -1478,10 +1488,7 @@ async function registerAccount() {
 
 async function loginAccount() {
   try {
-    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    if(!auth) auth = firebase.auth();
-    if(!db) db = firebase.database();
-
+    if(!auth) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); if(!db) db = firebase.database(); }
     const emailOrId = document.getElementById('auth-email-login').value.trim();
     const pw = document.getElementById('auth-pw-login').value;
     if(!emailOrId) return showAuthErr('login', 'メールアドレスまたはユーザーIDを入力してください');
@@ -1501,12 +1508,8 @@ async function loginAccount() {
     closeAuthModal();
     toast('✅ ログインしました');
   } catch(e) {
-    const msg = (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')
+    const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
       ? 'メールアドレス/ユーザーIDまたはパスワードが正しくありません'
-      : e.code === 'auth/too-many-requests' ? '試行回数が多すぎます。しばらく待ってから再試行してください'
-      : e.code === 'auth/network-request-failed' ? 'ネットワークエラーが発生しました。通信状態を確認してください'
-      : e.code === 'auth/user-disabled' ? 'このアカウントは無効化されています'
-      : e.message && e.message.includes('PERMISSION_DENIED') ? 'データベースへのアクセスが拒否されました。しばらく待ってから再試行してください'
       : 'ログインに失敗しました: ' + e.message;
     showAuthErr('login', msg);
   }
@@ -1516,12 +1519,9 @@ async function forgotPassword() {
   const emailOrId = document.getElementById('auth-email-login').value.trim();
   if(!emailOrId) return showAuthErr('login', 'まずメールアドレスまたはユーザーIDを入力してください');
   try {
-    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    if(!auth) auth = firebase.auth();
-    if(!db) db = firebase.database();
-
     let email = emailOrId;
     if(!emailOrId.includes('@')) {
+      if(!db) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); db = firebase.database(); }
       const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
       if(!uidSnap.exists()) return showAuthErr('login', 'ユーザーIDが見つかりません');
       const uid = uidSnap.val();
@@ -1805,10 +1805,9 @@ async function updateEmail() {
     document.getElementById('reauth-pw-email').value = '';
     toast('✅ メールアドレスを変更しました');
   } catch(e) {
-    const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' ? 'パスワードが正しくありません'
+    const msg = e.code === 'auth/wrong-password' ? 'パスワードが正しくありません'
       : e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに使われています'
       : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
-      : e.code === 'auth/requires-recent-login' ? '再ログインが必要です。一度ログアウトして再度ログインしてください'
       : 'エラー: ' + e.message;
     showFieldErr('email-change-err', msg);
   }
@@ -1832,9 +1831,8 @@ async function updatePassword() {
     document.getElementById('new-pw-confirm').value = '';
     toast('✅ パスワードを変更しました');
   } catch(e) {
-    const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' ? '現在のパスワードが正しくありません'
+    const msg = e.code === 'auth/wrong-password' ? '現在のパスワードが正しくありません'
       : e.code === 'auth/weak-password' ? 'パスワードが弱すぎます'
-      : e.code === 'auth/requires-recent-login' ? '再ログインが必要です。一度ログアウトして再度ログインしてください'
       : 'エラー: ' + e.message;
     showFieldErr('pw-change-err', msg);
   }
