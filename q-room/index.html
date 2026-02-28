@@ -249,7 +249,7 @@
         <div class="acct-section-title">🔔 NOTIFICATIONS</div>
         <button class="acct-readall-btn" onclick="topNotifReadAll()">すべて既読</button>
       </div>
-      <div class="top-notif-list acct-notif-list" id="top-notif-list"></div>
+      <div class="top-notif-list acct-notif-list" id="top-notif-list" style="max-height:360px;overflow-y:auto;"></div>
     </div>
 
     <!-- スタッツ -->
@@ -293,9 +293,10 @@
       </div>
     </div>
 
-    <!-- ログアウト -->
-    <div class="acct-section" style="padding-bottom:40px;">
+    <!-- ログアウト・退会 -->
+    <div class="acct-section" style="padding-bottom:40px;display:flex;flex-direction:column;gap:12px;">
       <button class="btn btn-warn" onclick="logoutAccount()">LOGOUT</button>
+      <button onclick="deleteAccount()" style="background:none;border:none;cursor:pointer;color:rgba(239,68,68,0.5);font-size:0.78rem;text-decoration:underline;padding:4px;align-self:center;">退会する</button>
     </div>
 
   </div>
