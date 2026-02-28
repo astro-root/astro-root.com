@@ -292,6 +292,9 @@ async function loadAllUsers() {
     document.getElementById('gs-wins').textContent = tw;
     renderTable(allUsers);
   } catch(e) {
+    // ユーザー一覧が取れなくてもブロードキャストはuserIndex経由で送れる旨を表示
+    document.getElementById('broadcast-status').style.color = 'var(--yellow)';
+    document.getElementById('broadcast-status').textContent = '⚠️ ユーザー一覧の読み込みに失敗しましたが、通知送信はuserIndex経由で実行できます';
     let errMsg = esc(e.message);
     if (e.message && e.message.includes('permission_denied')) {
       errMsg = `
@@ -451,36 +454,72 @@ async function sendBroadcastNotif() {
 
   if (!title) { statusEl.style.color = 'var(--red)'; statusEl.textContent = 'タイトルを入力してください'; return; }
   if (!body) { statusEl.style.color = 'var(--red)'; statusEl.textContent = '本文を入力してください'; return; }
-  if (allUsers.length === 0) { statusEl.style.color = 'var(--red)'; statusEl.textContent = 'ユーザーが読み込まれていません。まず更新してください'; return; }
 
-  if (!confirm(`${allUsers.length} 人全員に通知を送信しますか？\n\nタイトル: ${title}\n本文: ${body}`)) return;
+  // 送信対象UIDの収集：allUsersが読み込み済みならそこから、なければuserIndexから取得
+  let targetUids = allUsers.map(u => u.uid);
+
+  if (targetUids.length === 0) {
+    statusEl.style.color = 'var(--muted)';
+    statusEl.textContent = 'ユーザー一覧をuserIndexから取得中…';
+    try {
+      const idxSnap = await db.ref('userIndex').once('value');
+      idxSnap.forEach(child => {
+        const val = child.val();
+        const uid = typeof val === 'object' ? val.uid : val;
+        if (uid && !targetUids.includes(uid)) targetUids.push(uid);
+      });
+    } catch (e) {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '❌ ユーザー一覧の取得に失敗しました: ' + e.message;
+      return;
+    }
+  }
+
+  if (targetUids.length === 0) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '送信対象ユーザーが見つかりません';
+    return;
+  }
+
+  if (!confirm(`${targetUids.length} 人全員に通知を送信しますか？\n\nタイトル: ${title}\n本文: ${body}`)) return;
 
   btn.disabled = true;
   statusEl.style.color = 'var(--muted)';
-  statusEl.textContent = '送信中…';
+  statusEl.textContent = `送信中… (0 / ${targetUids.length})`;
 
-  try {
-    const ts = firebase.database.ServerValue.TIMESTAMP;
-    const promises = allUsers.map(u =>
-      db.ref(`notifications/${u.uid}`).push({
-        type: 'devAnnounce',
-        title,
-        body,
-        read: false,
-        ts
-      })
+  const ts = firebase.database.ServerValue.TIMESTAMP;
+  let successCount = 0;
+  let failCount = 0;
+
+  // 一度に大量送信するとタイムアウトするため、バッチ処理（20件ずつ）
+  const BATCH = 20;
+  for (let i = 0; i < targetUids.length; i += BATCH) {
+    const batch = targetUids.slice(i, i + BATCH);
+    const results = await Promise.allSettled(
+      batch.map(uid =>
+        db.ref(`notifications/${uid}`).push({
+          type: 'devAnnounce',
+          title,
+          body,
+          read: false,
+          ts
+        })
+      )
     );
-    await Promise.all(promises);
-    statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✅ ${allUsers.length} 人に送信完了`;
-    document.getElementById('broadcast-title').value = '';
-    document.getElementById('broadcast-body').value = '';
-  } catch (e) {
-    statusEl.style.color = 'var(--red)';
-    statusEl.textContent = '❌ 送信エラー: ' + e.message;
-  } finally {
-    btn.disabled = false;
+    results.forEach(r => r.status === 'fulfilled' ? successCount++ : failCount++);
+    statusEl.textContent = `送信中… (${successCount} / ${targetUids.length})`;
   }
+
+  if (failCount === 0) {
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = `✅ ${successCount} 人に送信完了`;
+  } else {
+    statusEl.style.color = 'var(--yellow)';
+    statusEl.textContent = `⚠️ ${successCount} 人に送信完了 / ${failCount} 件失敗`;
+  }
+  document.getElementById('broadcast-title').value = '';
+  document.getElementById('broadcast-body').value = '';
+  btn.disabled = false;
 }
 </script>
 </body>
