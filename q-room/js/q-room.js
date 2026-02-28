@@ -283,14 +283,14 @@ function renderTopNotifCenter(items) {
   if(!sec || !list) return;
   const unread = items.filter(n => !n.read).length;
   if(unreadEl) { unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; unreadEl.style.display = unread > 0 ? '' : 'none'; }
-  sec.classList.toggle('visible', items.length > 0);
+  sec.classList.add('visible');
   if(!items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
-    const icon = {roomInvite:'🎮', friendRequest:'👥', friendAccepted:'✅', devAnnounce:'📢'}[n.type] || '🔔';
+    const icon = {invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢'}[n.type] || '🔔';
     const ts = n.ts ? new Date(n.ts).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     let acts = '';
-    if(n.type==='roomInvite') acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
-    if(n.type==='friendRequest') acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
+    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
+    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
     return `<div class="top-notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}')">
       <div class="top-notif-icon">${icon}</div>
       <div class="top-notif-body">
