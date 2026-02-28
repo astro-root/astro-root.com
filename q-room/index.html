@@ -23,14 +23,11 @@
   <div id="dev-notice-banner" class="dev-notice-banner">
     <span class="dev-notice-icon">📢</span>
     <span class="dev-notice-text" id="dev-notice-text"></span>
-    <button class="dev-notice-close" onclick="dismissDevNotice()" aria-label="閉じる">✕</button>
+    <button class="dev-notice-close" onclick="dismissDevNotice()">✕</button>
   </div>
   <div class="top-notif-section" id="top-notif-section">
     <div class="top-notif-header">
-      <div class="top-notif-title">
-        NOTIFICATIONS
-        <span class="top-notif-badge" id="top-notif-badge" style="display:none;"></span>
-      </div>
+      <div class="top-notif-title">🔔 NOTIFICATIONS<span class="top-notif-unread" id="top-notif-unread"></span></div>
       <button class="top-notif-readall" onclick="topNotifReadAll()">すべて既読</button>
     </div>
     <div class="top-notif-list" id="top-notif-list"></div>
