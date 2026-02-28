@@ -137,7 +137,12 @@ async function handleJoin() {
 
     localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
-    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n, currentUser ? currentUser.uid : null));
+    if(!players[myId]) {
+      const p = newPlayer(n, currentUser ? currentUser.uid : null);
+      if(d.rule === 'attack_surv') p.sc = (d.conf && d.conf.life) ? d.conf.life : 20;
+      else if(d.rule === 'divide') p.sc = (d.conf && d.conf.init) ? d.conf.init : 10;
+      await db.ref(`rooms/${r}/players/${myId}`).set(p);
+    }
     await pushSysMsg(`${n} が入室しました`);
     enterRoom(false, n);
   } catch(e) {
@@ -261,14 +266,6 @@ function dismissDevNotice() {
 }
 
 
-let _topNotifOpen = false;
-function toggleTopNotif() {
-  _topNotifOpen = !_topNotifOpen;
-  const body = document.getElementById('top-notif-body');
-  const chevron = document.getElementById('top-notif-chevron');
-  if(body) body.style.display = _topNotifOpen ? '' : 'none';
-  if(chevron) chevron.classList.toggle('open', _topNotifOpen);
-}
 let _topNotifRef = null, _topNotifCb = null;
 function initTopNotifCenter(user) {
   if(_topNotifRef && _topNotifCb) _topNotifRef.off('value', _topNotifCb);
@@ -287,21 +284,18 @@ function hideTopNotifCenter() {
 function renderTopNotifCenter(items) {
   const sec = document.getElementById('top-notif-section');
   const list = document.getElementById('top-notif-list');
-  const badge = document.getElementById('top-notif-badge');
+  const unreadEl = document.getElementById('top-notif-unread');
   if(!sec || !list) return;
   const unread = items.filter(n => !n.read).length;
-  if(badge) {
-    badge.textContent = unread > 9 ? '9+' : unread;
-    badge.style.display = unread > 0 ? 'inline-flex' : 'none';
-  }
+  if(unreadEl) { unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; unreadEl.style.display = unread > 0 ? '' : 'none'; }
   sec.classList.add('visible');
   if(!items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
     const icon = {invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢'}[n.type] || '🔔';
     const ts = n.ts ? new Date(n.ts).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     let acts = '';
-    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
-    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
+    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions" onclick="event.stopPropagation()"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
+    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions" onclick="event.stopPropagation()"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
     return `<div class="top-notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}')">
       <div class="top-notif-icon">${icon}</div>
       <div class="top-notif-body">
@@ -516,7 +510,8 @@ function sortPlayers(pl, rule) {
   });
 }
 
-function calcRanks(sorted) {
+function calcRanks(sorted, rule) {
+  const useCorrect = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(rule);
   const ranks = [];
   for (let i = 0; i < sorted.length; i++) {
     if (i === 0) {
@@ -524,7 +519,9 @@ function calcRanks(sorted) {
     } else {
       const prev = sorted[i-1][1];
       const cur  = sorted[i][1];
-      if (prev.st === cur.st && prev.c === cur.c && prev.w === cur.w) {
+      const prevScore = useCorrect ? prev.c : (prev.sc || 0);
+      const curScore  = useCorrect ? cur.c  : (cur.sc  || 0);
+      if (prev.st === cur.st && prevScore === curScore && prev.w === cur.w) {
         ranks.push(ranks[i-1]);
       } else {
         ranks.push(i + 1);
@@ -546,7 +543,7 @@ function renderPlayers() {
   const boardPhase = roomData.board_phase || 'input';
   
   let h = '';
-  const ranks = calcRanks(sorted);
+  const ranks = calcRanks(sorted, r);
   sorted.forEach(([id, p], idx) => {
     const isMe = id===myId;
     let cls = p.st==='win'?'win':p.st==='lose'?'lose':p.st==='spec'?'spec':'';
@@ -972,7 +969,7 @@ function renderResult() {
   const pl = roomData.players || {};
   const r = roomData.rule;
   const sorted = sortPlayers(pl, r).filter(x => x[1].st !== 'spec');
-  const ranks = calcRanks(sorted);
+  const ranks = calcRanks(sorted, r);
   let h = '';
   sorted.forEach(([id, p], idx) => {
     let sv = p.sc||0;
@@ -1620,18 +1617,23 @@ function applyCropTransform() {
 }
 
 function initCropEvents(stage) {
-  stage.onmousedown = e => {
-    _cropState.dragging = true; _cropState.startX = e.clientX; _cropState.startY = e.clientY;
-    _cropState.startImgX = _cropState.x; _cropState.startImgY = _cropState.y;
-    stage.style.cursor = 'grabbing';
-  };
-  window.onmousemove = e => {
+  if(stage._cropCleanup) stage._cropCleanup();
+
+  const onMouseMove = e => {
     if(!_cropState.dragging) return;
     _cropState.x = _cropState.startImgX + (e.clientX - _cropState.startX);
     _cropState.y = _cropState.startImgY + (e.clientY - _cropState.startY);
     applyCropTransform();
   };
-  window.onmouseup = () => { _cropState.dragging = false; stage.style.cursor = 'grab'; };
+  const onMouseUp = () => { _cropState.dragging = false; stage.style.cursor = 'grab'; };
+
+  stage.onmousedown = e => {
+    _cropState.dragging = true; _cropState.startX = e.clientX; _cropState.startY = e.clientY;
+    _cropState.startImgX = _cropState.x; _cropState.startImgY = _cropState.y;
+    stage.style.cursor = 'grabbing';
+  };
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
 
   stage.ontouchstart = e => {
     if(e.touches.length === 1) {
@@ -1675,6 +1677,12 @@ function initCropEvents(stage) {
     _cropState.scale *= ratio;
     applyCropTransform();
   };
+
+  stage._cropCleanup = () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    stage._cropCleanup = null;
+  };
 }
 
 async function cropIconAndSave() {
@@ -1704,8 +1712,10 @@ async function cropIconAndSave() {
     currentUserProfile = { ...currentUserProfile, iconUrl: dataUrl, icon: '' };
     accountProfileCache[currentUser.uid] = { ...currentUserProfile };
     const disp = document.getElementById('profile-icon-display');
-    disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+    disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
     updateAccountBar(true);
+    const stage = document.getElementById('icon-crop-stage');
+    if(stage && stage._cropCleanup) stage._cropCleanup();
     document.getElementById('icon-crop-wrap').style.display = 'none';
     toast('✅ アイコンを保存しました');
   } catch(e) {
@@ -1716,6 +1726,8 @@ async function cropIconAndSave() {
 }
 
 function cancelCrop() {
+  const stage = document.getElementById('icon-crop-stage');
+  if(stage && stage._cropCleanup) stage._cropCleanup();
   document.getElementById('icon-crop-wrap').style.display = 'none';
 }
 
@@ -1723,7 +1735,6 @@ async function saveProfile() {
   if(!currentUser || !currentUserProfile) return;
   const title = document.getElementById('profile-title-input').value.trim();
   const name = document.getElementById('profile-name-input').value.trim();
-  const iconVal = currentUserProfile.iconUrl ? currentUserProfile.icon : _selectedIcon;
   const updates = { title, name };
   if(!currentUserProfile.iconUrl) updates.icon = _selectedIcon;
   await db.ref(`users/${currentUser.uid}`).update(updates);
