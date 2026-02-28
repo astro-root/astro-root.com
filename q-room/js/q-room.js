@@ -1213,10 +1213,7 @@ function toggleTheme() {
   const newTheme = isDark ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme);
   const icon = newTheme === 'light' ? '🌙' : '☀️';
-  const setIcon = id => { const el = document.getElementById(id); if(el) el.textContent = icon; };
-  setIcon('theme-icon');
-  setIcon('theme-icon-top');
-  setIcon('theme-icon-room');
+  ['theme-icon','theme-icon-room'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = icon; });
   try { localStorage.setItem('q-room-theme', newTheme); } catch(e) {}
 }
 (function() {
@@ -1225,7 +1222,7 @@ function toggleTheme() {
     if (saved === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
       document.addEventListener('DOMContentLoaded', () => {
-        ['theme-icon','theme-icon-top','theme-icon-room'].forEach(id => {
+        ['theme-icon','theme-icon-room'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.textContent = '🌙';
         });
