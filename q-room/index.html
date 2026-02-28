@@ -469,6 +469,21 @@
 
 
 
+<div id="modal-delete-account" class="modal" onclick="if(event.target===this)closeDeleteAccountModal()">
+  <div class="m-content" style="max-width:400px;">
+    <button class="m-close" onclick="closeDeleteAccountModal()">✕</button>
+    <div class="m-title" style="color:#f87171;">⚠️ 退会確認</div>
+    <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:20px;line-height:1.6;">退会すると全てのデータ（プロフィール・スタッツ・フレンド・通知）が削除され、元に戻せません。</p>
+    <div class="field">
+      <label>パスワードを入力して本人確認</label>
+      <input type="password" id="delete-account-pw" placeholder="現在のパスワード" autocomplete="current-password">
+    </div>
+    <div id="delete-account-err" class="err" style="display:none;margin-bottom:12px;"></div>
+    <button id="delete-account-btn" class="btn btn-warn" onclick="confirmDeleteAccount()" style="width:100%;background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171;">退会を実行する</button>
+    <button class="btn btn-sec" onclick="closeDeleteAccountModal()" style="width:100%;margin-top:8px;">キャンセル</button>
+  </div>
+</div>
+
 <div id="modal-friend" class="modal" onclick="if(event.target===this)closeFriendModal()">
   <div class="m-content">
     <button class="m-close" onclick="closeFriendModal()">✕</button>
