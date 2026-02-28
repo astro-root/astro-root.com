@@ -30,11 +30,16 @@
     <button class="hero-theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
       <span id="theme-icon">☀️</span>
     </button>
-    <button class="hero-account-btn" id="hero-account-btn" onclick="handleHeroAccountBtn()" title="通知・アカウント">
+    <button class="hero-account-btn" id="hero-account-btn" onclick="showAccountPage()" title="アカウント">
       <span id="hero-account-icon">
         <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </span>
       <span class="hero-account-badge" id="hero-account-badge" style="display:none;"></span>
+    </button>
+    <!-- トップページ用ベルボタン -->
+    <button class="hero-bell-btn" id="top-bell-btn" onclick="currentUser ? toggleTopNotifDrawer() : showAccountPage()" title="通知" style="display:none;">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="hero-bell-badge" id="top-bell-badge" style="display:none;"></span>
     </button>
     <div class="logo">Q-Room</div>
     <div class="logo-sub">Online QUIZ Room</div>
