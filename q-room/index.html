@@ -18,13 +18,12 @@
 </head>
 <body>
 
-<button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
-  <span id="theme-icon">☀️</span>
-</button>
-
 <!-- TOP SCREEN -->
 <div id="screen-top" class="screen active">
   <div class="hero">
+    <button class="hero-theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="ダーク/ライトモード切替">
+      <span id="theme-icon">☀️</span>
+    </button>
     <div class="logo">Q-Room</div>
     <div class="logo-sub">Online QUIZ Room</div>
   </div>
@@ -32,9 +31,6 @@
     <button class="account-bar-btn" id="account-bar-btn" onclick="handleAccountBarClick()">
       <span id="account-bar-icon">👤</span>
       <span id="account-bar-label">LOGIN / REGISTER</span>
-    </button>
-    <button class="account-bar-theme-btn" id="theme-toggle-btn-top" onclick="toggleTheme()" title="ダーク/ライトモード切替">
-      <span id="theme-icon-top">☀️</span>
     </button>
   </div>
   <div class="form-wrap">
@@ -87,10 +83,10 @@
     <div class="room-info">ROOM<span id="game-rid">—</span></div>
     <div class="rule-badge" id="game-rule">—</div>
     <div style="display:flex; gap:10px; flex-shrink:0;">
-      <button class="h-btn-icon" onclick="toggleTheme()" title="ダーク/ライトモード切替" id="theme-toggle-btn-room">
+      <button class="h-btn-icon h-btn-icon-theme-room" onclick="toggleTheme()" title="ダーク/ライトモード切替" id="theme-toggle-btn-room">
         <span id="theme-icon-room">☀️</span>
       </button>
-      <button class="h-btn-icon" onclick="tweetInvite()" title="招待ツイート">
+      <button class="h-btn-icon h-btn-icon-tweet" onclick="tweetInvite()" title="招待ツイート">
         <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       </button>
       <button class="h-btn-icon notif-bell-btn" onclick="toggleNotifPanel()" title="通知" id="notif-bell-btn" style="display:none;">
@@ -101,7 +97,7 @@
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span class="chat-badge" id="chat-badge"></span>
       </button>
-      <button class="h-btn-icon" onclick="openFeedback()" title="Feedback">
+      <button class="h-btn-icon h-btn-icon-feedback" onclick="openFeedback()" title="Feedback">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
       </button>
       <button class="h-btn-icon" onclick="openModal()" title="Settings">
