@@ -1242,7 +1242,7 @@ let accountProfileCache = {};
 let _notifOpen = false;
 let unreadNotifCount = 0;
 
-const ICON_LIST = ['🎮','🏆','⭐','🔥','🎯','💎','🌟','👑','🚀','🎲','🧠','⚡','🌈','🦁','🐯','🦊','🐺','🦋','🌸','🍀','🎪','🎨','🎭','🎬','🎤','🏅','🥇','🎁','🌙','☀️'];
+const ICON_LIST = ['🎮','🏆','⭐','🔥','🎯','💎','🌟','👑','🚀','🎲','🧠','⚡','🌈','🦁','🐯','🦊','🐺','🦋','🌸','🍀','🎪','🎨','🎭','🎬','🎤','🏅','🥇','🎁','🌙','☀️','🍝'];
 
 function initAccountSystem() {
   try {
@@ -1257,6 +1257,10 @@ function initAccountSystem() {
       const snap = await db.ref(`users/${user.uid}`).once('value');
       currentUserProfile = snap.val();
       updateAccountBar(true);
+      const nameInput = document.getElementById('in-name');
+      if(nameInput && currentUserProfile && currentUserProfile.name) {
+        nameInput.value = currentUserProfile.name;
+      }
       if(rId) {
         listenNotifications();
         const bellBtn = document.getElementById('notif-bell-btn');
@@ -1264,7 +1268,6 @@ function initAccountSystem() {
         const invSec = document.getElementById('invite-friend-section');
         if(invSec) invSec.style.display = '';
       }
-      // 他プレイヤーのプロフィールをキャッシュ
       if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
     } else {
       currentUserProfile = null;
