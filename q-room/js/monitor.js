@@ -24,7 +24,8 @@ function initFB() {
       firebase.initializeApp(firebaseConfig);
     }
     db = firebase.database();
-
+    // /rooms読み取りにはauth必須 → 匿名ログインで対応
+    firebase.auth().signInAnonymously().catch(e => addLog('warn', '匿名auth失敗: ' + e.message));
     db.ref('.info/connected').on('value', snap => {
       isConnected = snap.val() === true;
       document.getElementById('dot').className = 'dot' + (isConnected ? '' : ' offline');
