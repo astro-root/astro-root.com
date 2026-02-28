@@ -516,142 +516,171 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="js/q-room.js"></script>
 <script>
-// ============================================================
-// 通知センター修正パッチ
-// ============================================================
+// ===== 通知センター完全修正パッチ =====
+// q-room.jsのロード後、DOMContentLoaded後に実行して確実に上書き
 
-// Fix1: orderByChild('ts') を使わずシンプルなリスナーに差し替え
-//       → ".indexOn" 未設定でも確実に動作する
-const _origInitTopNotifCenter = initTopNotifCenter;
-function initTopNotifCenter(user) {
-  if(window._patchNotifRef) {
-    window._patchNotifRef.off('value', window._patchNotifCb);
-    window._patchNotifRef = null;
-  }
-  if(!user || !user.uid) return;
-  const fbdb = db || firebase.database();
-  // orderByChild/limitToLast を外してシンプルなリスナーに
-  window._patchNotifRef = fbdb.ref('notifications/' + user.uid);
-  window._patchNotifCb = snap => {
-    const items = [];
-    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    // tsで降順ソート
-    items.sort((a, b) => (b.ts||0) - (a.ts||0));
-    const limited = items.slice(0, 50);
-    unreadNotifCount = limited.filter(n => !n.read).length;
-    updateNotifBadge();
-    renderAccountNotifList(limited);
-    if(window._topNotifDrawerOpen) renderTopNotifDrawer(limited);
-    if(window._notifOpen) renderNotifList(limited);
-  };
-  window._patchNotifRef.on('value', window._patchNotifCb, err => {
-    console.error('[notif-patch] listener error:', err.code, err.message);
-  });
-  // 元の関数は呼ばない（上書き）
-}
+function _applyNotifPatch() {
+  console.log('[patch] applying notification patch...');
 
-// Fix2: アカウントボタン → ログイン済みなら通知ドロワーを開く
-function handleHeroAccountBtn() {
-  if(currentUser) { toggleTopNotifDrawer(); } else { showAccountPage(); }
-}
-
-// Fix3: notifyFriendsRoomCreated → currentUserProfile を確認してから送信
-const _origNotifyFriendsRoomCreated = notifyFriendsRoomCreated;
-async function notifyFriendsRoomCreated(roomId) {
-  if(!currentUser) return;
-  if(!currentUserProfile) {
-    // profileがまだ取れていない場合1.5秒待って再試行
-    await new Promise(r => setTimeout(r, 1500));
-    if(!currentUserProfile) { console.warn('[notif-patch] currentUserProfile still null, skip'); return; }
-  }
-  try {
-    const snap = await db.ref('friends/' + currentUser.uid).once('value');
-    let count = 0;
-    const promises = [];
-    snap.forEach(child => {
-      count++;
-      promises.push(
-        db.ref('notifications/' + child.key).push({
-          type: 'friendRoom',
-          title: currentUserProfile.displayId + ' さんが部屋を作りました',
-          body: 'Room ID: ' + roomId + ' に招待されました',
-          roomId: roomId,
-          fromUid: currentUser.uid,
-          read: false,
-          ts: firebase.database.ServerValue.TIMESTAMP
-        }).catch(e => console.error('[notif-patch] write failed uid=' + child.key, e))
-      );
+  // ---- 1. リスナーを張り直す関数 ----
+  let _pRef = null;
+  function _startNotifListener(uid) {
+    if(_pRef) { _pRef.off('value'); _pRef = null; }
+    if(!uid) return;
+    _pRef = firebase.database().ref('notifications/' + uid);
+    _pRef.on('value', snap => {
+      const items = [];
+      snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+      items.sort((a, b) => (b.ts||0) - (a.ts||0));
+      const list = items.slice(0, 50);
+      window.unreadNotifCount = list.filter(n => !n.read).length;
+      updateNotifBadge();
+      renderAccountNotifList(list);
+      if(window._topNotifDrawerOpen) renderTopNotifDrawer(list);
+      if(window._notifOpen) renderNotifList(list);
+      console.log('[patch] notif listener fired: total=' + list.length + ' unread=' + window.unreadNotifCount);
+    }, err => {
+      console.error('[patch] notif listener error:', err.code, err.message);
     });
-    console.log('[notif-patch] notifyFriendsRoomCreated → ' + count + ' friends, roomId=' + roomId);
-    await Promise.allSettled(promises);
-  } catch(e) { console.error('[notif-patch] notifyFriendsRoomCreated error', e); }
-}
-
-// Fix4: loadFriendData → try/catch + iconUrl対応
-async function loadFriendData() {
-  const friendList = document.getElementById('friend-list');
-  const reqSec = document.getElementById('friend-req-section');
-  const reqList = document.getElementById('friend-req-list');
-  if(friendList) friendList.innerHTML = '<div class="friend-empty">読み込み中…</div>';
-
-  let friendsSnap, reqSnap;
-  try {
-    [friendsSnap, reqSnap] = await Promise.all([
-      db.ref('friends/' + currentUser.uid).once('value'),
-      db.ref('friendRequests/' + currentUser.uid).once('value')
-    ]);
-  } catch(e) {
-    console.error('[notif-patch] loadFriendData failed:', e);
-    if(friendList) friendList.innerHTML = '<div class="friend-empty">読み込みに失敗しました</div>';
-    if(reqSec) reqSec.style.display = 'none';
-    return;
+    console.log('[patch] listener started for uid=' + uid);
   }
 
-  const reqs = [];
-  reqSnap.forEach(child => reqs.push({ uid: child.key, ...child.val() }));
-  if(reqs.length > 0) {
-    if(reqSec) reqSec.style.display = '';
-    if(reqList) reqList.innerHTML = reqs.map(r => {
-      const ic = r.iconUrl ? '<img src="' + r.iconUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : (r.icon||'👤');
-      return '<div class="friend-req-item">' +
-        '<div class="friend-icon">' + ic + '</div>' +
-        '<div class="friend-info"><div class="friend-displayid">' + esc(r.displayId||'?') + '</div><div class="friend-title">' + (r.title ? esc(r.title) : '') + '</div></div>' +
-        '<div class="friend-actions">' +
-        '<button class="friend-btn friend-btn-accept" onclick="acceptFriendDirect(\'' + r.uid + '\',\'' + (r.displayId||'') + '\')">承認</button>' +
-        '<button class="friend-btn friend-btn-decline" onclick="declineFriendDirect(\'' + r.uid + '\')">拒否</button>' +
-        '</div></div>';
+  // ---- 2. onAuthStateChanged を再登録して確実にリスナーを張る ----
+  firebase.auth().onAuthStateChanged(user => {
+    if(user) {
+      console.log('[patch] auth OK uid=' + user.uid + ', starting listener');
+      _startNotifListener(user.uid);
+    } else {
+      if(_pRef) { _pRef.off('value'); _pRef = null; }
+    }
+  });
+
+  // ---- 3. 現在すでにログイン済みなら即座にリスナーを張る ----
+  const cu = firebase.auth().currentUser;
+  if(cu) {
+    console.log('[patch] already logged in, starting listener immediately uid=' + cu.uid);
+    _startNotifListener(cu.uid);
+  }
+
+  // ---- 4. アカウントボタン修正 ----
+  function handleHeroAccountBtn() {
+    if(window.currentUser) { toggleTopNotifDrawer(); } else { showAccountPage(); }
+  }
+  window.handleHeroAccountBtn = handleHeroAccountBtn;
+
+  // ---- 5. notifyFriendsRoomCreated 修正（currentUserProfile待ち） ----
+  window.notifyFriendsRoomCreated = async function(roomId) {
+    const cu2 = window.currentUser;
+    if(!cu2) return;
+    let prof = window.currentUserProfile;
+    if(!prof) {
+      await new Promise(r => setTimeout(r, 2000));
+      prof = window.currentUserProfile;
+      if(!prof) { console.warn('[patch] profile still null, abort'); return; }
+    }
+    try {
+      const snap = await firebase.database().ref('friends/' + cu2.uid).once('value');
+      const promises = [];
+      snap.forEach(child => {
+        promises.push(
+          firebase.database().ref('notifications/' + child.key).push({
+            type: 'friendRoom',
+            title: prof.displayId + ' さんが部屋を作りました',
+            body: 'Room ID: ' + roomId + ' に招待されました',
+            roomId: roomId,
+            fromUid: cu2.uid,
+            read: false,
+            ts: firebase.database.ServerValue.TIMESTAMP
+          }).catch(e => console.error('[patch] write failed uid=' + child.key, e))
+        );
+      });
+      console.log('[patch] notifyFriendsRoomCreated: ' + promises.length + ' friends');
+      await Promise.allSettled(promises);
+    } catch(e) { console.error('[patch] notifyFriendsRoomCreated error', e); }
+  };
+
+  // ---- 6. loadFriendData 修正 ----
+  window.loadFriendData = async function() {
+    const friendList = document.getElementById('friend-list');
+    const reqSec = document.getElementById('friend-req-section');
+    const reqList = document.getElementById('friend-req-list');
+    if(friendList) friendList.innerHTML = '<div class="friend-empty">読み込み中…</div>';
+    const cu3 = window.currentUser;
+    if(!cu3) return;
+
+    let friendsSnap, reqSnap;
+    try {
+      [friendsSnap, reqSnap] = await Promise.all([
+        firebase.database().ref('friends/' + cu3.uid).once('value'),
+        firebase.database().ref('friendRequests/' + cu3.uid).once('value')
+      ]);
+    } catch(e) {
+      console.error('[patch] loadFriendData error:', e);
+      if(friendList) friendList.innerHTML = '<div class="friend-empty">読み込みに失敗しました</div>';
+      if(reqSec) reqSec.style.display = 'none';
+      return;
+    }
+
+    const reqs = [];
+    reqSnap.forEach(c => reqs.push({ uid: c.key, ...c.val() }));
+    if(reqs.length > 0) {
+      if(reqSec) reqSec.style.display = '';
+      if(reqList) reqList.innerHTML = reqs.map(r => {
+        const ic = r.iconUrl
+          ? '<img src="' + esc(r.iconUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+          : (r.icon || '👤');
+        return '<div class="friend-req-item">'
+          + '<div class="friend-icon">' + ic + '</div>'
+          + '<div class="friend-info"><div class="friend-displayid">' + esc(r.displayId||'?') + '</div>'
+          + '<div class="friend-title">' + esc(r.title||'') + '</div></div>'
+          + '<div class="friend-actions">'
+          + '<button class="friend-btn friend-btn-accept" onclick="acceptFriendDirect(\'' + r.uid + '\',\'' + esc(r.displayId||'') + '\')">承認</button>'
+          + '<button class="friend-btn friend-btn-decline" onclick="declineFriendDirect(\'' + r.uid + '\')">拒否</button>'
+          + '</div></div>';
+      }).join('');
+    } else {
+      if(reqSec) reqSec.style.display = 'none';
+    }
+
+    const friendUids = [];
+    friendsSnap.forEach(c => friendUids.push(c.key));
+    if(friendUids.length === 0) {
+      if(friendList) friendList.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
+      return;
+    }
+
+    const profiles = await Promise.all(
+      friendUids.map(uid =>
+        firebase.database().ref('users/' + uid).once('value')
+          .then(s => ({ uid, data: s.val() || {} }))
+          .catch(() => ({ uid, data: {} }))
+      )
+    );
+
+    if(friendList) friendList.innerHTML = profiles.map(({ uid, data: p }) => {
+      window.accountProfileCache[uid] = p;
+      const ic = p.iconUrl
+        ? '<img src="' + esc(p.iconUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+        : (p.icon || '👤');
+      return '<div class="friend-item">'
+        + '<div class="friend-icon">' + ic + '</div>'
+        + '<div class="friend-info"><div class="friend-displayid">' + esc(p.displayId||'?') + '</div>'
+        + '<div class="friend-title">' + esc(p.title||'称号なし') + '</div></div>'
+        + '<div class="friend-actions">'
+        + '<button class="friend-btn friend-btn-remove" onclick="removeFriend(\'' + uid + '\',\'' + esc(p.displayId||'') + '\')">削除</button>'
+        + '</div></div>';
     }).join('');
-  } else {
-    if(reqSec) reqSec.style.display = 'none';
-  }
+  };
 
-  const friendUids = [];
-  friendsSnap.forEach(child => friendUids.push(child.key));
-  if(friendUids.length === 0) {
-    if(friendList) friendList.innerHTML = '<div class="friend-empty">フレンドがいません</div>';
-    return;
-  }
-
-  const profiles = await Promise.all(
-    friendUids.map(uid =>
-      db.ref('users/' + uid).once('value')
-        .then(s => ({ uid, data: s.val() || {} }))
-        .catch(() => ({ uid, data: {} }))
-    )
-  );
-
-  if(friendList) friendList.innerHTML = profiles.map(({ uid, data: p }) => {
-    accountProfileCache[uid] = p;
-    const ic = p.iconUrl ? '<img src="' + p.iconUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : (p.icon||'👤');
-    return '<div class="friend-item">' +
-      '<div class="friend-icon">' + ic + '</div>' +
-      '<div class="friend-info"><div class="friend-displayid">' + esc(p.displayId||'?') + '</div><div class="friend-title">' + (p.title ? esc(p.title) : '称号なし') + '</div></div>' +
-      '<div class="friend-actions"><button class="friend-btn friend-btn-remove" onclick="removeFriend(\'' + uid + '\',\'' + (p.displayId||'') + '\')">削除</button></div>' +
-      '</div>';
-  }).join('');
+  console.log('[patch] all patches applied ✅');
 }
 
-console.log('[notif-patch] loaded ✅');
+// q-room.jsのDOMContentLoaded等が終わった後に確実に実行
+if(document.readyState === 'complete') {
+  _applyNotifPatch();
+} else {
+  window.addEventListener('load', _applyNotifPatch);
+}
 </script>
 </body>
 </html>
