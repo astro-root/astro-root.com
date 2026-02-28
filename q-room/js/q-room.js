@@ -44,6 +44,7 @@ window.onload = () => {
   const savedName = localStorage.getItem('qr_name');
   if(savedName) document.getElementById('in-name').value = savedName;
   initAccountSystem();
+  initDevNotice();
 };
 
 function initFB() {
@@ -227,8 +228,66 @@ async function backToRoom() {
 // ── Modal ──────────────────────────────────────────────────────────────────
 function openModal(){
   document.getElementById('modal').classList.add('active');
+  if(isAdmin()) {
+    const sec = document.getElementById('admin-dev-notice-section');
+    if(sec) sec.style.display = 'block';
+  }
 }
 function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
+
+function initDevNotice() {
+  try {
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const fbDb = firebase.database();
+    fbDb.ref('devNotice').on('value', snap => {
+      const data = snap.val();
+      const banner = document.getElementById('dev-notice-banner');
+      const textEl = document.getElementById('dev-notice-text');
+      if(!banner || !textEl) return;
+      if(data && data.text && data.text.trim()) {
+        const dismissed = localStorage.getItem('devNotice_dismissed');
+        if(dismissed === data.text) {
+          banner.style.display = 'none';
+        } else {
+          textEl.textContent = data.text;
+          banner.style.display = 'flex';
+        }
+      } else {
+        banner.style.display = 'none';
+      }
+    });
+  } catch(e) { console.warn('devNotice init failed', e); }
+}
+
+function dismissDevNotice() {
+  const textEl = document.getElementById('dev-notice-text');
+  if(textEl) localStorage.setItem('devNotice_dismissed', textEl.textContent);
+  const banner = document.getElementById('dev-notice-banner');
+  if(banner) banner.style.display = 'none';
+}
+
+async function sendDevNotice() {
+  if(!isAdmin()) return;
+  const text = document.getElementById('dev-notice-input').value.trim();
+  if(!text) return toast('テキストを入力してください');
+  try {
+    if(!db) initFB();
+    await db.ref('devNotice').set({ text, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+    toast('📢 開発者通知を送信しました');
+    closeModal();
+  } catch(e) { toast('送信失敗: ' + e.message); }
+}
+
+async function clearDevNotice() {
+  if(!isAdmin()) return;
+  try {
+    if(!db) initFB();
+    await db.ref('devNotice').remove();
+    toast('通知をクリアしました');
+  } catch(e) { toast('クリア失敗: ' + e.message); }
+}
+
+
 
 
 
