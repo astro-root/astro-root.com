@@ -231,39 +231,40 @@ function openModal(){
 }
 function closeModal(){ document.getElementById('modal').classList.remove('active'); updateConf(); }
 
-// ── Dev Notice ─────────────────────────────────────────────────────────────
+// ── Dev Notice (TOPバナー) ─────────────────────────────────────────────────
+let _devNoticeRef = null;
 function initDevNotice() {
   try {
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const fbDb = firebase.database();
-    fbDb.ref('devNotice').on('value', snap => {
+    if(!_devNoticeRef) _devNoticeRef = firebase.database().ref('devNotice');
+    _devNoticeRef.on('value', snap => {
       const data = snap.val();
       const banner = document.getElementById('dev-notice-banner');
       const textEl = document.getElementById('dev-notice-text');
       if(!banner || !textEl) return;
       if(data && data.text && data.text.trim()) {
-        const dismissed = localStorage.getItem('devNotice_dismissed');
-        if(dismissed === data.text) { banner.classList.remove('show'); return; }
+        if(localStorage.getItem('devNotice_dismissed') === data.text) {
+          banner.classList.remove('show'); return;
+        }
         textEl.textContent = data.text;
         banner.classList.add('show');
       } else {
         banner.classList.remove('show');
       }
     });
-  } catch(e) { console.warn('devNotice init failed', e); }
+  } catch(e) {}
 }
 function dismissDevNotice() {
-  const textEl = document.getElementById('dev-notice-text');
-  if(textEl) localStorage.setItem('devNotice_dismissed', textEl.textContent);
-  const banner = document.getElementById('dev-notice-banner');
-  if(banner) banner.classList.remove('show');
+  const t = document.getElementById('dev-notice-text');
+  if(t) localStorage.setItem('devNotice_dismissed', t.textContent);
+  const b = document.getElementById('dev-notice-banner');
+  if(b) b.classList.remove('show');
 }
 
-// ── TOP 通知センター ────────────────────────────────────────────────────────
+// ── TOP通知センター ─────────────────────────────────────────────────────────
 let _topNotifRef = null, _topNotifCb = null;
-
 function initTopNotifCenter(user) {
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  if(_topNotifRef && _topNotifCb) _topNotifRef.off('value', _topNotifCb);
   _topNotifRef = firebase.database().ref(`notifications/${user.uid}`).orderByChild('ts').limitToLast(30);
   _topNotifCb = _topNotifRef.on('value', snap => {
     const items = [];
@@ -271,53 +272,48 @@ function initTopNotifCenter(user) {
     renderTopNotifCenter(items);
   });
 }
-
 function hideTopNotifCenter() {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; }
   const sec = document.getElementById('top-notif-section');
   if(sec) sec.classList.remove('visible');
 }
-
 function renderTopNotifCenter(items) {
   const sec = document.getElementById('top-notif-section');
   const list = document.getElementById('top-notif-list');
-  const badge = document.getElementById('top-notif-badge');
+  const unreadEl = document.getElementById('top-notif-unread');
   if(!sec || !list) return;
   const unread = items.filter(n => !n.read).length;
-  if(badge) { badge.textContent = unread > 9 ? '9+' : String(unread); badge.style.display = unread > 0 ? 'flex' : 'none'; }
+  if(unreadEl) { unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : ''; unreadEl.style.display = unread > 0 ? '' : 'none'; }
   sec.classList.toggle('visible', items.length > 0);
-  if(items.length === 0) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
+  if(!items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
-    const icon = n.type === 'roomInvite' ? '🎮' : n.type === 'friendRequest' ? '👥' : n.type === 'friendAccepted' ? '✅' : n.type === 'devAnnounce' ? '📢' : '🔔';
+    const icon = {roomInvite:'🎮', friendRequest:'👥', friendAccepted:'✅', devAnnounce:'📢'}[n.type] || '🔔';
     const ts = n.ts ? new Date(n.ts).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
-    let actions = '';
-    if(n.type === 'roomInvite') actions = `<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
-    if(n.type === 'friendRequest') actions = `<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
+    let acts = '';
+    if(n.type==='roomInvite') acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
+    if(n.type==='friendRequest') acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
     return `<div class="top-notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}')">
       <div class="top-notif-icon">${icon}</div>
       <div class="top-notif-body">
         <div class="top-notif-item-title">${esc(n.title||'')}</div>
         <div class="top-notif-item-text">${esc(n.body||'')}</div>
-        ${actions}
+        ${acts}
       </div>
       <div class="top-notif-item-ts">${ts}</div>
     </div>`;
   }).join('');
 }
-
 async function topNotifMarkRead(id) {
   if(!currentUser) return;
   await firebase.database().ref(`notifications/${currentUser.uid}/${id}/read`).set(true);
 }
-
 async function topNotifReadAll() {
   if(!currentUser) return;
   const snap = await firebase.database().ref(`notifications/${currentUser.uid}`).once('value');
   const updates = {};
   snap.forEach(c => { if(!c.val().read) updates[`${c.key}/read`] = true; });
-  if(Object.keys(updates).length > 0) await firebase.database().ref(`notifications/${currentUser.uid}`).update(updates);
+  if(Object.keys(updates).length) await firebase.database().ref(`notifications/${currentUser.uid}`).update(updates);
 }
-
 async function topNotifJoin(notifId, roomId) {
   await topNotifMarkRead(notifId);
   document.getElementById('in-room').value = roomId;
