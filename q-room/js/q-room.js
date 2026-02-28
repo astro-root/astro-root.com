@@ -74,7 +74,16 @@ function getMyId() {
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function err(m){ const e=document.getElementById('top-err'); e.innerText=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3000); }
 function toast(m){ const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
-function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  // テーマアイコン同期
+  const acctTheme = document.getElementById('theme-icon-acct');
+  if(acctTheme) {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    acctTheme.textContent = isDark ? '☀️' : '🌙';
+  }
+}
 
 
 async function handleCreate() {
@@ -268,49 +277,22 @@ function initTopNotifCenter(user) {
   _topNotifCb = _topNotifRef.on('value', snap => {
     const items = [];
     snap.forEach(c => items.unshift({ id: c.key, ...c.val() }));
-    renderTopNotifCenter(items);
+    unreadNotifCount = items.filter(n => !n.read).length;
+    updateHeroAccountBtn();
+    renderAccountNotifList(items);
   });
 }
 function hideTopNotifCenter() {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); _topNotifRef = null; }
-  const sec = document.getElementById('top-notif-section');
-  if(sec) { sec.classList.remove('visible'); sec.classList.remove('expanded'); }
 }
-function toggleTopNotif() {
-  const sec = document.getElementById('top-notif-section');
-  const btn = document.getElementById('top-notif-toggle-btn');
-  const isExpanded = sec.classList.contains('expanded');
-  sec.classList.toggle('expanded', !isExpanded);
-  if(btn) btn.setAttribute('aria-expanded', String(!isExpanded));
-  if(!isExpanded) {
-    const list = document.getElementById('top-notif-list');
-    if(list && list.innerHTML === '') {
-      list.innerHTML = '<div class="top-notif-empty">読み込み中…</div>';
-    }
-  }
-}
+function toggleTopNotif() {}
 
-function renderTopNotifCenter(items) {
-  const sec = document.getElementById('top-notif-section');
+function renderTopNotifCenter(items) { renderAccountNotifList(items); }
+
+function renderAccountNotifList(items) {
   const list = document.getElementById('top-notif-list');
-  const unreadEl = document.getElementById('top-notif-unread');
-  if(!sec || !list) return;
-  const unread = items.filter(n => !n.read).length;
-  if(unreadEl) {
-    unreadEl.textContent = unread > 0 ? (unread > 9 ? '9+' : unread) : '';
-    unreadEl.classList.toggle('show', unread > 0);
-  }
-  sec.classList.add('visible');
-  if(unread > 0 && !sec.classList.contains('expanded')) {
-    sec.classList.add('expanded');
-    const btn = document.getElementById('top-notif-toggle-btn');
-    if(btn) btn.setAttribute('aria-expanded', 'true');
-  } else if(unread === 0 && sec.classList.contains('expanded')) {
-    sec.classList.remove('expanded');
-    const btn = document.getElementById('top-notif-toggle-btn');
-    if(btn) btn.setAttribute('aria-expanded', 'false');
-  }
-  if(!items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
+  if(!list) return;
+  if(!items || !items.length) { list.innerHTML = '<div class="top-notif-empty">通知はありません</div>'; return; }
   list.innerHTML = items.map(n => {
     const icon = {invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢'}[n.type] || '🔔';
     const ts = n.ts ? new Date(n.ts).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
@@ -342,6 +324,7 @@ async function topNotifReadAll() {
 async function topNotifJoin(notifId, roomId) {
   await topNotifMarkRead(notifId);
   document.getElementById('in-room').value = roomId;
+  show('top');
   toast(`ルームID ${roomId} をセットしました`);
 }
 
@@ -1375,6 +1358,9 @@ function initAccountSystem() {
       }
       if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
       initTopNotifCenter(user);
+      // account画面が開いていれば更新
+      const acctScreen = document.getElementById('screen-account');
+      if(acctScreen && acctScreen.classList.contains('active')) renderAccountPage();
     } else {
       currentUserProfile = null;
       updateAccountBar(false);
@@ -1385,41 +1371,94 @@ function initAccountSystem() {
 }
 
 function updateAccountBar(loggedIn) {
-  const btn = document.getElementById('account-bar-btn');
-  const icon = document.getElementById('account-bar-icon');
-  const label = document.getElementById('account-bar-label');
-  if(!btn) return;
-  if(loggedIn && currentUserProfile) {
+  updateHeroAccountBtn();
+}
+
+function updateHeroAccountBtn() {
+  const btn = document.getElementById('hero-account-btn');
+  const iconEl = document.getElementById('hero-account-icon');
+  const badge = document.getElementById('hero-account-badge');
+  if(!btn || !iconEl) return;
+  if(currentUser && currentUserProfile) {
     btn.classList.add('logged-in');
     if(currentUserProfile.iconUrl) {
-      icon.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:1.3rem;height:1.3rem;border-radius:50%;object-fit:cover;vertical-align:middle;">`;
+      iconEl.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;">`;
     } else {
-      icon.textContent = currentUserProfile.icon || '👤';
+      iconEl.innerHTML = '';
+      iconEl.textContent = currentUserProfile.icon || '👤';
     }
-    label.textContent = `${currentUserProfile.displayId}  ▸ プロフィール`;
-    btn.onclick = openProfileModal;
+    // unread通知バッジ
+    if(badge) {
+      if(unreadNotifCount > 0) {
+        badge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
   } else {
     btn.classList.remove('logged-in');
-    icon.textContent = '👤';
-    label.textContent = 'LOGIN / REGISTER';
-    btn.onclick = openAuthModal;
+    iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    if(badge) badge.style.display = 'none';
   }
 }
 
-function handleAccountBarClick() {
-  if(currentUser) openProfileModal();
-  else openAuthModal();
+function showAccountPage() {
+  show('account');
+  renderAccountPage();
 }
 
+function renderAccountPage() {
+  const guestSec = document.getElementById('acct-guest-section');
+  const userSec = document.getElementById('acct-user-section');
+  if(!guestSec || !userSec) return;
+  if(currentUser && currentUserProfile) {
+    guestSec.style.display = 'none';
+    userSec.style.display = '';
+    // アイコン表示
+    _selectedIcon = currentUserProfile.icon || '🎮';
+    const disp = document.getElementById('profile-icon-display');
+    if(disp) {
+      if(currentUserProfile.iconUrl) {
+        disp.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        disp.innerHTML = '';
+        disp.textContent = _selectedIcon;
+      }
+    }
+    const resetBtn = document.getElementById('btn-reset-icon');
+    if(resetBtn) resetBtn.style.display = currentUserProfile.iconUrl ? '' : 'none';
+    document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
+    document.getElementById('profile-email-display').textContent = currentUser.email || '—';
+    document.getElementById('profile-name-input').value = currentUserProfile.name || '';
+    document.getElementById('profile-title-input').value = currentUserProfile.title || '';
+    document.getElementById('icon-picker').style.display = 'none';
+    document.getElementById('icon-crop-wrap').style.display = 'none';
+    ['uid-change-err','email-change-err','pw-change-err'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.style.display = 'none';
+    });
+    document.getElementById('new-uid-input').value = '';
+    document.getElementById('new-email-input').value = '';
+    document.getElementById('reauth-pw-email').value = '';
+    document.getElementById('reauth-pw-current').value = '';
+    document.getElementById('new-pw-input').value = '';
+    document.getElementById('new-pw-confirm').value = '';
+    renderStatsGrid();
+    if(currentUser) renderAccountNotifList();
+  } else {
+    guestSec.style.display = '';
+    userSec.style.display = 'none';
+  }
+  updateHeroAccountBtn();
+}
 
-function openAuthModal() { document.getElementById('modal-auth').classList.add('active'); }
-function closeAuthModal() { document.getElementById('modal-auth').classList.remove('active'); clearAuthErr(); }
-
-function switchAuthTab(tab) {
-  document.getElementById('auth-login-form').style.display = tab === 'login' ? '' : 'none';
-  document.getElementById('auth-register-form').style.display = tab === 'register' ? '' : 'none';
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+function switchAcctTab(tab) {
+  const loginForm = document.getElementById('acct-login-form');
+  const regForm = document.getElementById('acct-register-form');
+  if(loginForm) loginForm.style.display = tab === 'login' ? '' : 'none';
+  if(regForm) regForm.style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('acct-tab-login')?.classList.toggle('active', tab === 'login');
+  document.getElementById('acct-tab-register')?.classList.toggle('active', tab === 'register');
   clearAuthErr();
 }
 
@@ -1475,7 +1514,7 @@ async function registerAccount() {
     await cred.user.sendEmailVerification();
 
     currentUserProfile = profile;
-    closeAuthModal();
+    show('top');
     toast('✅ アカウントを作成しました！確認メールを送信しました。');
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに登録されています'
@@ -1505,7 +1544,7 @@ async function loginAccount() {
     }
 
     await auth.signInWithEmailAndPassword(email, pw);
-    closeAuthModal();
+    show('top');
     toast('✅ ログインしました');
   } catch(e) {
     const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
@@ -1539,7 +1578,7 @@ async function forgotPassword() {
 async function logoutAccount() {
   if(!confirm('ログアウトしますか？')) return;
   await auth.signOut();
-  closeProfileModal();
+  show('top');
   toast('ログアウトしました');
 }
 
@@ -1547,18 +1586,15 @@ async function logoutAccount() {
 let _selectedIcon = null;
 let _cropState = { img: null, x: 0, y: 0, scale: 1, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
 
-function openProfileModal() {
+function showAccountPage() {
   if(!currentUser || !currentUserProfile) return;
   _selectedIcon = currentUserProfile.icon || '🎮';
   const disp = document.getElementById('profile-icon-display');
   if(currentUserProfile.iconUrl) {
     disp.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
   } else {
-    disp.innerHTML = '';
     disp.textContent = _selectedIcon;
   }
-  const resetBtn = document.getElementById('btn-reset-icon');
-  if(resetBtn) resetBtn.style.display = currentUserProfile.iconUrl ? '' : 'none';
   document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
   document.getElementById('profile-email-display').textContent = currentUser.email || '—';
   document.getElementById('profile-name-input').value = currentUserProfile.name || '';
@@ -1573,10 +1609,7 @@ function openProfileModal() {
   document.getElementById('new-pw-confirm').value = '';
   ['uid-change-err','email-change-err','pw-change-err'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
   renderStatsGrid();
-  document.getElementById('modal-profile').classList.add('active');
 }
-
-function closeProfileModal() { document.getElementById('modal-profile').classList.remove('active'); }
 
 function toggleAccountSettings() {
   const body = document.getElementById('account-settings-body');
@@ -1614,21 +1647,26 @@ function onIconImageSelected(event) {
   const file = event.target.files[0];
   if(!file) return;
   document.getElementById('icon-picker').style.display = 'none';
-  // display:none のまま offsetWidth を読むと 0 になるため先に表示する
-  document.getElementById('icon-crop-wrap').style.display = '';
   const reader = new FileReader();
   reader.onload = e => {
+    const dataUrl = e.target.result;
     const img = document.getElementById('icon-crop-img');
     img.onload = () => {
       const stage = document.getElementById('icon-crop-stage');
       const sw = stage.offsetWidth || 200;
       const sh = stage.offsetHeight || 200;
       const scale = Math.max(sw / img.naturalWidth, sh / img.naturalHeight);
-      _cropState = { img, x: (sw - img.naturalWidth * scale) / 2, y: (sh - img.naturalHeight * scale) / 2, scale, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0 };
+      _cropState = {
+        img, dataUrl,
+        x: (sw - img.naturalWidth * scale) / 2,
+        y: (sh - img.naturalHeight * scale) / 2,
+        scale, dragging: false, startX: 0, startY: 0, startImgX: 0, startImgY: 0, lastDist: 0
+      };
       applyCropTransform();
+      document.getElementById('icon-crop-wrap').style.display = '';
       initCropEvents(stage);
     };
-    img.src = e.target.result;
+    img.src = dataUrl;
   };
   reader.readAsDataURL(file);
 }
@@ -1636,12 +1674,7 @@ function onIconImageSelected(event) {
 function applyCropTransform() {
   const { img, x, y, scale } = _cropState;
   if(!img) return;
-  // transformは使わず left/top/width/height で直接制御
-  img.style.transform = '';
-  img.style.left   = x + 'px';
-  img.style.top    = y + 'px';
-  img.style.width  = (img.naturalWidth  * scale) + 'px';
-  img.style.height = (img.naturalHeight * scale) + 'px';
+  img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
 }
 
 function initCropEvents(stage) {
@@ -1704,73 +1737,58 @@ function initCropEvents(stage) {
 
 async function cropIconAndSave() {
   if(!currentUser) return;
-  const img = _cropState.img;
-  if(!img) return;
-  const stage = document.getElementById('icon-crop-stage');
-  const sw = stage.offsetWidth || 200;
-  const sh = stage.offsetHeight || 200;
-  const canvas = document.createElement('canvas');
-  canvas.width = 200; canvas.height = 200;
-  const ctx = canvas.getContext('2d');
-  const ratioX = 200 / sw;
-  const ratioY = 200 / sh;
-  const drawX = _cropState.x * ratioX;
-  const drawY = _cropState.y * ratioY;
-  const drawW = img.naturalWidth  * _cropState.scale * ratioX;
-  const drawH = img.naturalHeight * _cropState.scale * ratioY;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(100, 100, 100, 0, Math.PI * 2);
-  ctx.clip();
-  ctx.drawImage(img, drawX, drawY, drawW, drawH);
-  ctx.restore();
+  // _cropState.dataUrl から新しいImageを作りcanvasに描画（DOM要素のtransform等に依存しない）
+  const { dataUrl, x, y, scale } = _cropState;
+  if(!dataUrl) { toast('❌ 画像が読み込まれていません'); return; }
 
   const prevBtn = document.querySelector('#icon-crop-wrap button');
-  const origText = prevBtn.textContent;
-  prevBtn.textContent = '保存中…'; prevBtn.disabled = true;
+  const origText = prevBtn ? prevBtn.textContent : '';
+  if(prevBtn) { prevBtn.textContent = '保存中…'; prevBtn.disabled = true; }
 
   try {
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-    await db.ref(`users/${currentUser.uid}`).update({ iconUrl: dataUrl, icon: '' });
-    currentUserProfile = { ...currentUserProfile, iconUrl: dataUrl, icon: '' };
-    accountProfileCache[currentUser.uid] = { ...currentUserProfile };
-    const disp = document.getElementById('profile-icon-display');
-    disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
-    updateAccountBar(true);
-    document.getElementById('icon-crop-wrap').style.display = 'none';
-    const resetBtnAfter = document.getElementById('btn-reset-icon');
-    if(resetBtnAfter) resetBtnAfter.style.display = '';
-    toast('✅ アイコンを保存しました');
+    await new Promise((resolve, reject) => {
+      const freshImg = new Image();
+      freshImg.onload = async () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 200; canvas.height = 200;
+          const ctx = canvas.getContext('2d');
+
+          // ステージは常に200x200なのでratioは1.0
+          // x/y/scale は transform-origin:0 0 基準の左上座標
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(100, 100, 100, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(freshImg, x, y, freshImg.naturalWidth * scale, freshImg.naturalHeight * scale);
+          ctx.restore();
+
+          const result = canvas.toDataURL('image/jpeg', 0.85);
+          await db.ref(`users/${currentUser.uid}`).update({ iconUrl: result, icon: '' });
+          currentUserProfile = { ...currentUserProfile, iconUrl: result, icon: '' };
+          accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+
+          const disp = document.getElementById('profile-icon-display');
+          if(disp) disp.innerHTML = `<img src="${result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+          updateHeroAccountBtn();
+          document.getElementById('icon-crop-wrap').style.display = 'none';
+          const resetBtn = document.getElementById('btn-reset-icon');
+          if(resetBtn) resetBtn.style.display = '';
+          toast('✅ アイコンを保存しました');
+          resolve();
+        } catch(e) { reject(e); }
+      };
+      freshImg.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      freshImg.src = dataUrl;
+    });
   } catch(e) {
     toast('❌ 保存に失敗しました: ' + e.message);
   } finally {
-    prevBtn.textContent = origText; prevBtn.disabled = false;
+    if(prevBtn) { prevBtn.textContent = origText; prevBtn.disabled = false; }
   }
 }
-
 function cancelCrop() {
   document.getElementById('icon-crop-wrap').style.display = 'none';
-}
-
-async function resetIconToDefault() {
-  if(!currentUser || !currentUserProfile) return;
-  if(!confirm('アイコン画像を削除して絵文字アイコンに戻しますか？')) return;
-  const defaultIcon = '🎮';
-  try {
-    await db.ref(`users/${currentUser.uid}`).update({ iconUrl: null, icon: defaultIcon });
-    currentUserProfile = { ...currentUserProfile, iconUrl: null, icon: defaultIcon };
-    accountProfileCache[currentUser.uid] = { ...currentUserProfile };
-    _selectedIcon = defaultIcon;
-    const disp = document.getElementById('profile-icon-display');
-    disp.innerHTML = '';
-    disp.textContent = defaultIcon;
-    const resetBtn = document.getElementById('btn-reset-icon');
-    if(resetBtn) resetBtn.style.display = 'none';
-    updateAccountBar(true);
-    toast('✅ デフォルトアイコンに戻しました');
-  } catch(e) {
-    toast('❌ リセットに失敗しました: ' + e.message);
-  }
 }
 
 async function saveProfile() {
@@ -1782,9 +1800,9 @@ async function saveProfile() {
   if(!currentUserProfile.iconUrl) updates.icon = _selectedIcon;
   await db.ref(`users/${currentUser.uid}`).update(updates);
   currentUserProfile = { ...currentUserProfile, ...updates };
-  updateAccountBar(true);
+  updateHeroAccountBtn();
   accountProfileCache[currentUser.uid] = { ...currentUserProfile };
-  closeProfileModal();
+  renderAccountPage();
   toast('✅ プロフィールを保存しました');
 }
 
@@ -1899,8 +1917,8 @@ function listenNotifications() {
     const items = [];
     snap.forEach(child => items.unshift({ id: child.key, ...child.val() }));
     unreadNotifCount = items.filter(n => !n.read).length;
-    updateNotifBadge();
-    if(_notifOpen) renderNotifList(items);
+    updateHeroAccountBtn();
+    if(document.getElementById('screen-account')?.classList.contains('active')) renderAccountNotifList(items);
   });
 }
 
@@ -1909,6 +1927,8 @@ function stopNotifListener() {
 }
 
 function updateNotifBadge() {
+  updateHeroAccountBtn();
+  // roomヘッダーのbell badge
   const badge = document.getElementById('notif-badge');
   if(!badge) return;
   if(unreadNotifCount > 0) {
@@ -1920,7 +1940,7 @@ function updateNotifBadge() {
 }
 
 function toggleNotifPanel() {
-  if(!currentUser) { openAuthModal(); return; }
+  if(!currentUser) { showAccountPage(); return; }
   const drawer = document.getElementById('notif-drawer');
   const overlay = document.getElementById('notif-overlay');
   _notifOpen = !_notifOpen;
@@ -2025,8 +2045,8 @@ async function declineFriendFromNotif(notifId, fromUid) {
 
 
 function openFriendModal() {
-  if(!currentUser) { openAuthModal(); return; }
-  closeProfileModal();
+  if(!currentUser) { showAccountPage(); return; }
+  show('top');
   document.getElementById('modal-friend').classList.add('active');
   loadFriendData();
 }
