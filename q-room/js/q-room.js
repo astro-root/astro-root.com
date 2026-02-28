@@ -137,12 +137,7 @@ async function handleJoin() {
 
     localStorage.setItem('qr_name', n);
     myId = getMyId(); rId = r;
-    if(!players[myId]) {
-      const p = newPlayer(n, currentUser ? currentUser.uid : null);
-      if(d.rule === 'attack_surv') p.sc = (d.conf && d.conf.life) ? d.conf.life : 20;
-      else if(d.rule === 'divide') p.sc = (d.conf && d.conf.init) ? d.conf.init : 10;
-      await db.ref(`rooms/${r}/players/${myId}`).set(p);
-    }
+    if(!players[myId]) await db.ref(`rooms/${r}/players/${myId}`).set(newPlayer(n, currentUser ? currentUser.uid : null));
     await pushSysMsg(`${n} が入室しました`);
     enterRoom(false, n);
   } catch(e) {
@@ -294,8 +289,8 @@ function renderTopNotifCenter(items) {
     const icon = {invite:'🎮', roomInvite:'🎮', friendReq:'👥', friendRequest:'👥', friendAccepted:'✅', friendRoom:'🚀', devAnnounce:'📢'}[n.type] || '🔔';
     const ts = n.ts ? new Date(n.ts).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     let acts = '';
-    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions" onclick="event.stopPropagation()"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
-    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions" onclick="event.stopPropagation()"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
+    if((n.type==='roomInvite'||n.type==='invite'||n.type==='friendRoom') && n.roomId && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="topNotifJoin('${n.id}','${n.roomId}')">▶ 入室</button></div>`;
+    if((n.type==='friendRequest'||n.type==='friendReq') && n.fromUid && !n.read) acts=`<div class="top-notif-actions"><button class="top-notif-action-btn" onclick="acceptFriendFromNotif('${n.id}','${n.fromUid}')">✓ 承認</button><button class="top-notif-action-btn top-notif-action-decline" onclick="declineFriendFromNotif('${n.id}','${n.fromUid}')">✕ 拒否</button></div>`;
     return `<div class="top-notif-item ${n.read?'':'unread'}" onclick="topNotifMarkRead('${n.id}')">
       <div class="top-notif-icon">${icon}</div>
       <div class="top-notif-body">
@@ -510,8 +505,7 @@ function sortPlayers(pl, rule) {
   });
 }
 
-function calcRanks(sorted, rule) {
-  const useCorrect = ['survival','free','freeze','m_n_rest','swedish','ren_wrong'].includes(rule);
+function calcRanks(sorted) {
   const ranks = [];
   for (let i = 0; i < sorted.length; i++) {
     if (i === 0) {
@@ -519,9 +513,7 @@ function calcRanks(sorted, rule) {
     } else {
       const prev = sorted[i-1][1];
       const cur  = sorted[i][1];
-      const prevScore = useCorrect ? prev.c : (prev.sc || 0);
-      const curScore  = useCorrect ? cur.c  : (cur.sc  || 0);
-      if (prev.st === cur.st && prevScore === curScore && prev.w === cur.w) {
+      if (prev.st === cur.st && prev.c === cur.c && prev.w === cur.w) {
         ranks.push(ranks[i-1]);
       } else {
         ranks.push(i + 1);
@@ -543,7 +535,7 @@ function renderPlayers() {
   const boardPhase = roomData.board_phase || 'input';
   
   let h = '';
-  const ranks = calcRanks(sorted, r);
+  const ranks = calcRanks(sorted);
   sorted.forEach(([id, p], idx) => {
     const isMe = id===myId;
     let cls = p.st==='win'?'win':p.st==='lose'?'lose':p.st==='spec'?'spec':'';
@@ -969,7 +961,7 @@ function renderResult() {
   const pl = roomData.players || {};
   const r = roomData.rule;
   const sorted = sortPlayers(pl, r).filter(x => x[1].st !== 'spec');
-  const ranks = calcRanks(sorted, r);
+  const ranks = calcRanks(sorted);
   let h = '';
   sorted.forEach(([id, p], idx) => {
     let sv = p.sc||0;
@@ -1047,6 +1039,7 @@ function updateChatBadge() {
 function toggleChat() {
   chatOpen = !chatOpen;
   document.getElementById('chat-drawer').classList.toggle('open', chatOpen);
+  document.getElementById('chat-overlay').classList.toggle('show', chatOpen);
   if(chatOpen) {
     chatUnread = 0;
     updateChatBadge();
@@ -1336,27 +1329,41 @@ function initAccountSystem() {
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     if(!db) db = firebase.database();
     if(!auth) auth = firebase.auth();
-  } catch(e) {}
+  } catch(e) {
+    console.error('Firebase init failed:', e);
+    return;
+  }
 
   auth.onAuthStateChanged(async user => {
     currentUser = user;
     if(user) {
-      const snap = await db.ref(`users/${user.uid}`).once('value');
-      currentUserProfile = snap.val();
-      updateAccountBar(true);
-      const nameInput = document.getElementById('in-name');
-      if(nameInput && currentUserProfile && currentUserProfile.name) {
-        nameInput.value = currentUserProfile.name;
+      try {
+        let snap = await db.ref(`users/${user.uid}`).once('value');
+        if(!snap.exists()) {
+          await new Promise(r => setTimeout(r, 1500));
+          snap = await db.ref(`users/${user.uid}`).once('value');
+        }
+        if(!currentUserProfile || currentUserProfile.displayId !== (snap.val() || {}).displayId) {
+          currentUserProfile = snap.val();
+        }
+        updateAccountBar(true);
+        const nameInput = document.getElementById('in-name');
+        if(nameInput && currentUserProfile && currentUserProfile.name) {
+          nameInput.value = currentUserProfile.name;
+        }
+        if(rId) {
+          listenNotifications();
+          const bellBtn = document.getElementById('notif-bell-btn');
+          if(bellBtn) bellBtn.style.display = '';
+          const invSec = document.getElementById('invite-friend-section');
+          if(invSec) invSec.style.display = '';
+        }
+        if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
+        initTopNotifCenter(user);
+      } catch(e) {
+        console.error('onAuthStateChanged error:', e);
+        updateAccountBar(true);
       }
-      if(rId) {
-        listenNotifications();
-        const bellBtn = document.getElementById('notif-bell-btn');
-        if(bellBtn) bellBtn.style.display = '';
-        const invSec = document.getElementById('invite-friend-section');
-        if(invSec) invSec.style.display = '';
-      }
-      if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
-      initTopNotifCenter(user);
     } else {
       currentUserProfile = null;
       updateAccountBar(false);
@@ -1447,22 +1454,23 @@ async function registerAccount() {
     const cred = await auth.createUserWithEmailAndPassword(email, pw);
     const uid = cred.user.uid;
 
-    await cred.user.getIdToken(true);
-
     const profile = { displayId, email, icon: '🎮', title: '', name: '', createdAt: Date.now() };
     await db.ref(`users/${uid}`).set(profile);
     await db.ref(`userIndex/${displayId}`).set(uid);
     await db.ref(`stats/${uid}`).set({ totalGames:0, totalCorrect:0, totalWrong:0, wins:0 });
 
-    await cred.user.sendEmailVerification();
+    try { await cred.user.sendEmailVerification(); } catch(e) { console.warn('sendEmailVerification failed:', e); }
 
     currentUserProfile = profile;
+    updateAccountBar(true);
+    initTopNotifCenter(cred.user);
     closeAuthModal();
     toast('✅ アカウントを作成しました！確認メールを送信しました。');
   } catch(e) {
     const msg = e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに登録されています'
       : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
       : e.code === 'auth/weak-password' ? 'パスワードが弱すぎます'
+      : e.message && e.message.includes('PERMISSION_DENIED') ? 'データベースへの書き込みが拒否されました。しばらく待ってから再試行してください'
       : 'エラーが発生しました: ' + e.message;
     showAuthErr('reg', msg);
   }
@@ -1470,7 +1478,10 @@ async function registerAccount() {
 
 async function loginAccount() {
   try {
-    if(!auth) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); if(!db) db = firebase.database(); }
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!auth) auth = firebase.auth();
+    if(!db) db = firebase.database();
+
     const emailOrId = document.getElementById('auth-email-login').value.trim();
     const pw = document.getElementById('auth-pw-login').value;
     if(!emailOrId) return showAuthErr('login', 'メールアドレスまたはユーザーIDを入力してください');
@@ -1490,8 +1501,12 @@ async function loginAccount() {
     closeAuthModal();
     toast('✅ ログインしました');
   } catch(e) {
-    const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
+    const msg = (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')
       ? 'メールアドレス/ユーザーIDまたはパスワードが正しくありません'
+      : e.code === 'auth/too-many-requests' ? '試行回数が多すぎます。しばらく待ってから再試行してください'
+      : e.code === 'auth/network-request-failed' ? 'ネットワークエラーが発生しました。通信状態を確認してください'
+      : e.code === 'auth/user-disabled' ? 'このアカウントは無効化されています'
+      : e.message && e.message.includes('PERMISSION_DENIED') ? 'データベースへのアクセスが拒否されました。しばらく待ってから再試行してください'
       : 'ログインに失敗しました: ' + e.message;
     showAuthErr('login', msg);
   }
@@ -1501,9 +1516,12 @@ async function forgotPassword() {
   const emailOrId = document.getElementById('auth-email-login').value.trim();
   if(!emailOrId) return showAuthErr('login', 'まずメールアドレスまたはユーザーIDを入力してください');
   try {
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!auth) auth = firebase.auth();
+    if(!db) db = firebase.database();
+
     let email = emailOrId;
     if(!emailOrId.includes('@')) {
-      if(!db) { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); db = firebase.database(); }
       const uidSnap = await db.ref(`userIndex/${emailOrId}`).once('value');
       if(!uidSnap.exists()) return showAuthErr('login', 'ユーザーIDが見つかりません');
       const uid = uidSnap.val();
@@ -1617,23 +1635,18 @@ function applyCropTransform() {
 }
 
 function initCropEvents(stage) {
-  if(stage._cropCleanup) stage._cropCleanup();
-
-  const onMouseMove = e => {
-    if(!_cropState.dragging) return;
-    _cropState.x = _cropState.startImgX + (e.clientX - _cropState.startX);
-    _cropState.y = _cropState.startImgY + (e.clientY - _cropState.startY);
-    applyCropTransform();
-  };
-  const onMouseUp = () => { _cropState.dragging = false; stage.style.cursor = 'grab'; };
-
   stage.onmousedown = e => {
     _cropState.dragging = true; _cropState.startX = e.clientX; _cropState.startY = e.clientY;
     _cropState.startImgX = _cropState.x; _cropState.startImgY = _cropState.y;
     stage.style.cursor = 'grabbing';
   };
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', onMouseUp);
+  window.onmousemove = e => {
+    if(!_cropState.dragging) return;
+    _cropState.x = _cropState.startImgX + (e.clientX - _cropState.startX);
+    _cropState.y = _cropState.startImgY + (e.clientY - _cropState.startY);
+    applyCropTransform();
+  };
+  window.onmouseup = () => { _cropState.dragging = false; stage.style.cursor = 'grab'; };
 
   stage.ontouchstart = e => {
     if(e.touches.length === 1) {
@@ -1677,12 +1690,6 @@ function initCropEvents(stage) {
     _cropState.scale *= ratio;
     applyCropTransform();
   };
-
-  stage._cropCleanup = () => {
-    window.removeEventListener('mousemove', onMouseMove);
-    window.removeEventListener('mouseup', onMouseUp);
-    stage._cropCleanup = null;
-  };
 }
 
 async function cropIconAndSave() {
@@ -1712,10 +1719,8 @@ async function cropIconAndSave() {
     currentUserProfile = { ...currentUserProfile, iconUrl: dataUrl, icon: '' };
     accountProfileCache[currentUser.uid] = { ...currentUserProfile };
     const disp = document.getElementById('profile-icon-display');
-    disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+    disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
     updateAccountBar(true);
-    const stage = document.getElementById('icon-crop-stage');
-    if(stage && stage._cropCleanup) stage._cropCleanup();
     document.getElementById('icon-crop-wrap').style.display = 'none';
     toast('✅ アイコンを保存しました');
   } catch(e) {
@@ -1726,8 +1731,6 @@ async function cropIconAndSave() {
 }
 
 function cancelCrop() {
-  const stage = document.getElementById('icon-crop-stage');
-  if(stage && stage._cropCleanup) stage._cropCleanup();
   document.getElementById('icon-crop-wrap').style.display = 'none';
 }
 
@@ -1735,6 +1738,7 @@ async function saveProfile() {
   if(!currentUser || !currentUserProfile) return;
   const title = document.getElementById('profile-title-input').value.trim();
   const name = document.getElementById('profile-name-input').value.trim();
+  const iconVal = currentUserProfile.iconUrl ? currentUserProfile.icon : _selectedIcon;
   const updates = { title, name };
   if(!currentUserProfile.iconUrl) updates.icon = _selectedIcon;
   await db.ref(`users/${currentUser.uid}`).update(updates);
@@ -1801,9 +1805,10 @@ async function updateEmail() {
     document.getElementById('reauth-pw-email').value = '';
     toast('✅ メールアドレスを変更しました');
   } catch(e) {
-    const msg = e.code === 'auth/wrong-password' ? 'パスワードが正しくありません'
+    const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' ? 'パスワードが正しくありません'
       : e.code === 'auth/email-already-in-use' ? 'そのメールアドレスはすでに使われています'
       : e.code === 'auth/invalid-email' ? 'メールアドレスの形式が正しくありません'
+      : e.code === 'auth/requires-recent-login' ? '再ログインが必要です。一度ログアウトして再度ログインしてください'
       : 'エラー: ' + e.message;
     showFieldErr('email-change-err', msg);
   }
@@ -1827,8 +1832,9 @@ async function updatePassword() {
     document.getElementById('new-pw-confirm').value = '';
     toast('✅ パスワードを変更しました');
   } catch(e) {
-    const msg = e.code === 'auth/wrong-password' ? '現在のパスワードが正しくありません'
+    const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' ? '現在のパスワードが正しくありません'
       : e.code === 'auth/weak-password' ? 'パスワードが弱すぎます'
+      : e.code === 'auth/requires-recent-login' ? '再ログインが必要です。一度ログアウトして再度ログインしてください'
       : 'エラー: ' + e.message;
     showFieldErr('pw-change-err', msg);
   }
