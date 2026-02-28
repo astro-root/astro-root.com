@@ -186,7 +186,7 @@ body {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 .screen.active { display: flex; }
 #screen-top, #screen-result { padding: 0 0 80px; }
-#screen-room { height: 100vh; padding: 0; overflow: hidden; }
+#screen-room { height: 100vh; height: 100dvh; padding: 0; overflow: hidden; }
 @media (max-width: 540px) {
   .screen { box-shadow: none; }
 }
@@ -293,6 +293,7 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
 .header-row2 {
   display: flex; align-items: center; gap: 10px;
   padding: 0 14px 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
 .room-info {
   font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted);
@@ -435,7 +436,7 @@ select option { background-color: var(--bg-color); color: var(--text-main); }
   width: 100%; max-width: 540px;
   height: 88vh;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 56px 28px 40px;
+  padding: 54px 28px 40px;
   padding-bottom: max(40px, env(safe-area-inset-bottom));
   position: relative;
   box-shadow: 0 -20px 60px rgba(0,0,0,0.7);
@@ -832,23 +833,84 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
    レスポンシブ修正パッチ
    ============================================= */
 
-#screen-room { height: 100vh; height: 100dvh; }
-
-/* h-btn-iconデフォルト */
-.h-btn-icon {
-  width: 40px; height: 40px; border-radius: 12px;
+/* ヘッダー：常に1行・overflow隠し */
+.header {
+  padding: 10px 14px;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
-.h-btn-icon svg { width: 18px; height: 18px; }
 
-/* 360px以下 */
+/* ROOM番号を小さく抑える */
+.room-info {
+  min-width: 0;
+  flex-shrink: 1;
+  font-size: 0.78rem;
+}
+.room-info span {
+  font-size: 0.9rem;
+}
+
+/* ルールバッジは常に1行内 */
+.rule-badge {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 80px;
+}
+
+/* ヘッダーボタン群：shrinkしない */
+.header > div:last-child {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* 480px以下：FeedbackボタンとTweetボタンを非表示 */
+@media (max-width: 480px) {
+  .header {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .h-btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+  .h-btn-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .h-btn-icon-feedback,
+  .h-btn-icon-tweet {
+    display: none !important;
+  }
+}
+
+/* 360px以下：テーマボタンも非表示、ボタンをさらに小さく */
 @media (max-width: 360px) {
-  .header-row1 { padding: 8px 10px 6px; gap: 5px; }
-  .header-row2 { padding: 0 10px 8px; gap: 8px; }
-  .h-btn-icon { width: 34px; height: 34px; border-radius: 10px; }
-  .h-btn-icon svg { width: 16px; height: 16px; }
-  .room-info { font-size: 0.74rem; }
-  .room-info span { font-size: 0.9rem; }
-  .rule-badge { font-size: 0.72rem; padding: 4px 8px; }
+  .header > div:last-child {
+    gap: 4px;
+  }
+  .h-btn-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .h-btn-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+  .h-btn-icon-theme-room {
+    display: none !important;
+  }
+  .room-info span {
+    font-size: 0.82rem;
+  }
+  .rule-badge {
+    font-size: 0.66rem;
+    padding: 4px 8px;
+    max-width: 64px;
+  }
 }
 
 /* タイマーパネル：小画面で文字縮小 */
@@ -1499,33 +1561,64 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   }
 }
 /* =============================================
-   ヘッダー2行構造 light-theme
+   ヘッダー2行 レスポンシブ
    ============================================= */
 [data-theme="light"] .header { background: rgba(238,242,247,0.94); }
-[data-theme="light"] .header-row2 { border-top: 1px solid rgba(0,0,0,0.07); }
+[data-theme="light"] .header-row2 { border-top-color: rgba(0,0,0,0.07); }
+
+@media (max-width: 380px) {
+  .header-row1 { padding: 8px 10px 6px; gap: 6px; }
+  .header-row2 { padding: 0 10px 8px; gap: 8px; }
+  .h-btn-icon { width: 36px; height: 36px; }
+  .h-btn-icon svg { width: 16px; height: 16px; }
+  .room-info { font-size: 0.74rem; }
+  .room-info span { font-size: 0.9rem; }
+  .rule-badge { font-size: 0.72rem; padding: 4px 9px; }
+}
+
+/* =============================================
+   TOPページ 開発者通知バナー
+   ============================================= */
+.dev-notice-banner {
+  display: none;
+  align-items: flex-start; gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.16), rgba(245,158,11,0.07));
+  border-bottom: 1px solid rgba(245,158,11,0.38);
+  font-size: 0.88rem; color: var(--text-main); font-family: var(--font-ja); line-height: 1.5;
+}
+.dev-notice-banner.show { display: flex; }
+.dev-notice-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+.dev-notice-text { flex: 1; word-break: break-word; }
+.dev-notice-close {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 1rem; cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+  line-height: 1; transition: color 0.2s;
+}
+.dev-notice-close:hover { color: var(--text-main); }
+[data-theme="light"] .dev-notice-banner { background: linear-gradient(135deg, rgba(245,158,11,0.12),rgba(245,158,11,0.05)); }
 
 /* =============================================
    TOPページ 通知センター
    ============================================= */
 .top-notif-section {
-  margin: 0 0 4px;
   display: none;
+  border-bottom: 1px solid var(--border-color);
 }
 .top-notif-section.visible { display: block; }
 .top-notif-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px 10px;
+  padding: 12px 20px 10px;
 }
 .top-notif-title {
   font-family: var(--font-en); font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.15em; color: var(--text-muted);
-  display: flex; align-items: center; gap: 8px;
+  letter-spacing: 0.15em; color: var(--text-muted); display: flex; align-items: center; gap: 6px;
 }
-.top-notif-badge {
+.top-notif-unread {
   background: var(--magenta); color: #fff;
-  font-size: 0.6rem; font-weight: 700; font-family: var(--font-en);
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-en);
   min-width: 16px; height: 16px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
 }
 .top-notif-readall {
   background: none; border: 1px solid var(--border-color); border-radius: 8px;
@@ -1534,25 +1627,27 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 }
 .top-notif-readall:hover { border-color: var(--cyan); color: var(--cyan); }
 .top-notif-list {
-  max-height: 240px; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  border-top: 1px solid var(--border-color);
+  max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
+[data-theme="light"] .top-notif-list { border-top-color: rgba(0,0,0,0.07); }
 .top-notif-item {
   display: flex; align-items: flex-start; gap: 10px;
-  padding: 12px 20px; border-bottom: 1px solid var(--border-color);
-  position: relative; transition: background 0.2s;
+  padding: 11px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: relative; transition: background 0.2s; cursor: default;
 }
+[data-theme="light"] .top-notif-item { border-bottom-color: rgba(0,0,0,0.06); }
 .top-notif-item.unread { background: rgba(6,182,212,0.04); }
 .top-notif-item.unread::before {
   content: ''; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
   width: 5px; height: 5px; border-radius: 50%; background: var(--cyan);
 }
-.top-notif-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; line-height: 1; }
+.top-notif-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; line-height: 1; }
 .top-notif-body { flex: 1; min-width: 0; }
-.top-notif-item-title { font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.4; }
+.top-notif-item-title { font-size: 0.84rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px; line-height: 1.4; }
 .top-notif-item-text { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
-.top-notif-item-ts { font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono); flex-shrink: 0; white-space: nowrap; margin-top: 2px; }
-.top-notif-actions { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.top-notif-item-ts { font-size: 0.64rem; color: var(--text-muted); font-family: var(--font-mono); flex-shrink: 0; white-space: nowrap; margin-top: 1px; }
+.top-notif-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
 .top-notif-action-btn {
   font-size: 0.72rem; font-family: var(--font-en); font-weight: 700; letter-spacing: 0.04em;
   color: var(--cyan); padding: 4px 10px; border: 1px solid rgba(6,182,212,0.4);
@@ -1563,29 +1658,5 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
 .top-notif-action-decline:hover { background: rgba(239,68,68,0.18); }
 .top-notif-empty {
   text-align: center; color: var(--text-muted); font-size: 0.82rem;
-  padding: 24px; font-family: var(--font-en); letter-spacing: 0.08em;
+  padding: 20px; font-family: var(--font-en); letter-spacing: 0.08em;
 }
-
-/* =============================================
-   開発者通知バナー (TOP)
-   ============================================= */
-.dev-notice-banner {
-  display: none;
-  align-items: flex-start; gap: 10px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, rgba(245,158,11,0.16), rgba(245,158,11,0.07));
-  border-bottom: 1px solid rgba(245,158,11,0.38);
-  font-size: 0.88rem; color: var(--text-main); font-family: var(--font-ja); line-height: 1.5;
-  animation: slideDown 0.4s cubic-bezier(0.16,1,0.3,1);
-}
-.dev-notice-banner.show { display: flex; }
-@keyframes slideDown { from { opacity:0; max-height:0; } to { opacity:1; max-height:200px; } }
-.dev-notice-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
-.dev-notice-text { flex: 1; word-break: break-word; }
-.dev-notice-close {
-  background: none; border: none; color: var(--text-muted);
-  font-size: 1rem; cursor: pointer; padding: 2px 4px; flex-shrink: 0;
-  line-height: 1; transition: color 0.2s;
-}
-.dev-notice-close:hover { color: var(--text-main); }
-[data-theme="light"] .dev-notice-banner { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05)); }
