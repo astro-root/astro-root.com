@@ -328,10 +328,17 @@ function renderTable(users) {
           <div><div class="det-lbl">Registered</div><div class="det-val">${fmtDate(u.createdAt)}</div></div>
           <div style="grid-column:1/-1;">
             <div class="det-lbl">Friends (${u.friendUids.length})</div>
-            <div class="friend-tags" id="ftags-${esc(u.uid)}">
+            <div class="friend-tags">
               ${u.friendUids.length===0
                 ? '<span style="color:var(--muted);font-size:0.75rem;">フレンドなし</span>'
-                : '<span style="color:var(--muted);font-size:0.75rem;">読み込み中…</span>'}
+                : u.friendUids.map(fid => {
+                    const fu = allUsers.find(x => x.uid === fid);
+                    if(fu) {
+                      const nm = fu.name ? ' (' + esc(fu.name) + ')' : '';
+                      return '<span class="ftag" title="Email: ' + esc(fu.email||'—') + '">' + esc(fu.displayId||'?') + nm + '</span>';
+                    }
+                    return '<span class="ftag" style="opacity:0.5;">' + fid.substring(0,10) + '…</span>';
+                  }).join('')}
             </div>
           </div>
         </div>
@@ -346,16 +353,6 @@ function toggleDet(uid) {
   const open = row.style.display === 'none';
   row.style.display = open ? '' : 'none';
   if (btn) btn.textContent = open ? '詳細 ▲' : '詳細 ▼';
-  if (open) loadFriendTags(uid);
-}
-
-async function loadFriendTags(uid) {
-  const u = allUsers.find(x => x.uid === uid);
-  if (!u || u.friendUids.length === 0) return;
-  const el = document.getElementById(`ftags-${uid}`);
-  if (!el) return;
-  const snaps = await Promise.all(u.friendUids.map(fid => db.ref(`users/${fid}/displayId`).once('value')));
-  el.innerHTML = snaps.map((s, i) => `<span class="ftag">${esc(s.val() || u.friendUids[i].substring(0,8))}</span>`).join('');
 }
 
 function filterUsers(q) {
