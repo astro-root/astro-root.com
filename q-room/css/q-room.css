@@ -801,10 +801,29 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   font-size: 0.95rem;
 }
 
-/* ルールバッジはスマホで隠す */
+/* スマホ：ヘッダーを2段構成にしてルールバッジを2段目に表示 */
 @media (max-width: 480px) {
+  .header {
+    flex-wrap: wrap;
+    padding: 8px 12px 6px;
+  }
+  .room-info {
+    flex: 1;
+    order: 1;
+  }
+  .header > div:last-child {
+    order: 2;
+    gap: 6px;
+  }
   .rule-badge {
-    display: none;
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    text-align: center;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 8px;
   }
 }
 
@@ -819,12 +838,9 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
     width: 16px;
     height: 16px;
   }
-  .header > div:last-child {
-    gap: 6px;
-  }
 }
 
-/* さらに小さい端末（320px）でボタンを更に縮める */
+/* さらに小さい端末（360px以下）でボタンを更に縮める */
 @media (max-width: 360px) {
   .h-btn-icon {
     width: 32px;
@@ -839,6 +855,10 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
   }
   .room-info span {
     font-size: 0.82rem;
+  }
+  .rule-badge {
+    font-size: 0.68rem;
+    padding: 3px 8px;
   }
 }
 
