@@ -1730,9 +1730,16 @@ function toggleIconPicker() {
 
 function selectIcon(ic) {
   _selectedIcon = ic;
+  // iconUrl を一時的にクリア（SAVEを押すまで確定しない）
+  // ただしUIは即時切り替え
   const disp = document.getElementById('profile-icon-display');
-  disp.textContent = ic;
+  if(disp) { disp.innerHTML = ''; disp.textContent = ic; }
+  // 削除ボタンを非表示（絵文字に切り替え中）
+  const resetBtn = document.getElementById('btn-reset-icon');
+  if(resetBtn) resetBtn.style.display = 'none';
   document.querySelectorAll('.icon-option').forEach(el => el.classList.toggle('selected', el.textContent === ic));
+  // ピッカーを閉じる
+  document.getElementById('icon-picker').style.display = 'none';
 }
 
 function triggerImageUpload() {
@@ -1888,15 +1895,47 @@ function cancelCrop() {
   document.getElementById('icon-crop-wrap').style.display = 'none';
 }
 
+async function resetIconToDefault() {
+  if(!currentUser || !currentUserProfile) return;
+  if(!confirm('アップロードした画像を削除して絵文字アイコンに戻しますか？')) return;
+  try {
+    const icon = _selectedIcon || currentUserProfile.icon || '🎮';
+    await db.ref(`users/${currentUser.uid}`).update({ iconUrl: null, icon });
+    currentUserProfile = { ...currentUserProfile, iconUrl: null, icon };
+    accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+    // UI更新
+    const disp = document.getElementById('profile-icon-display');
+    if(disp) { disp.innerHTML = ''; disp.textContent = icon; }
+    const resetBtn = document.getElementById('btn-reset-icon');
+    if(resetBtn) resetBtn.style.display = 'none';
+    updateHeroAccountBtn();
+    toast('✅ 絵文字アイコンに戻しました');
+  } catch(e) {
+    toast('❌ 失敗しました: ' + e.message);
+  }
+}
+
 async function saveProfile() {
   if(!currentUser || !currentUserProfile) return;
   const title = document.getElementById('profile-title-input').value.trim();
   const name = document.getElementById('profile-name-input').value.trim();
-  const iconVal = currentUserProfile.iconUrl ? currentUserProfile.icon : _selectedIcon;
   const updates = { title, name };
-  if(!currentUserProfile.iconUrl) updates.icon = _selectedIcon;
+
+  // 絵文字アイコンを選択中（削除ボタンが非表示 = 絵文字モード）
+  const resetBtn = document.getElementById('btn-reset-icon');
+  const isEmojiMode = !resetBtn || resetBtn.style.display === 'none';
+
+  if(_selectedIcon && isEmojiMode) {
+    // 絵文字に切り替える（iconUrlをクリア）
+    updates.icon = _selectedIcon;
+    updates.iconUrl = null;
+    currentUserProfile = { ...currentUserProfile, ...updates, iconUrl: null };
+  } else {
+    updates.icon = _selectedIcon || currentUserProfile.icon || '🎮';
+    currentUserProfile = { ...currentUserProfile, ...updates };
+  }
+
   await db.ref(`users/${currentUser.uid}`).update(updates);
-  currentUserProfile = { ...currentUserProfile, ...updates };
   updateHeroAccountBtn();
   accountProfileCache[currentUser.uid] = { ...currentUserProfile };
   renderAccountPage();
