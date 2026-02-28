@@ -155,7 +155,8 @@ tr:hover td { background: rgba(255,255,255,0.02); }
       </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <button class="btn-sm btn-sm-pri" onclick="sendBroadcastNotif()" id="broadcast-btn" style="padding:10px 24px;font-size:0.88rem;">📨 全員に送信</button>
-        <span id="broadcast-status" style="font-size:0.82rem;color:var(--muted);"></span>
+        <button class="btn-sm" onclick="testSendNotif()" style="padding:10px 18px;font-size:0.88rem;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:var(--cyan);">🧪 自分にテスト送信</button>
+        <span id="broadcast-status" style="font-size:0.82rem;color:var(--muted);display:block;margin-top:8px;width:100%;"></span>
       </div>
     </div>
     <div class="sec-head">
@@ -446,6 +447,62 @@ function filterUsers(q) {
   ));
 }
 
+async function _getTargetUids(statusEl) {
+  // allUsers から取得、なければ userIndex から取得
+  let uids = allUsers.map(u => u.uid);
+  if (uids.length === 0) {
+    if (statusEl) { statusEl.style.color = 'var(--muted)'; statusEl.textContent = 'userIndex からユーザー一覧を取得中…'; }
+    const idxSnap = await db.ref('userIndex').once('value');
+    idxSnap.forEach(child => {
+      const val = child.val();
+      const uid = (val && typeof val === 'object') ? val.uid : val;
+      if (uid && typeof uid === 'string' && !uids.includes(uid)) uids.push(uid);
+    });
+  }
+  return uids;
+}
+
+async function _sendNotifToUids(uids, title, body, statusEl) {
+  const ts = firebase.database.ServerValue.TIMESTAMP;
+  let ok = 0, fail = 0;
+  const errors = [];
+  const BATCH = 10;
+  for (let i = 0; i < uids.length; i += BATCH) {
+    const batch = uids.slice(i, i + BATCH);
+    const results = await Promise.allSettled(
+      batch.map(uid => db.ref(`notifications/${uid}`).push({ type:'devAnnounce', title, body, read:false, ts }))
+    );
+    results.forEach((r, idx) => {
+      if (r.status === 'fulfilled') { ok++; }
+      else { fail++; errors.push(`${batch[idx]}: ${r.reason?.message||r.reason}`); }
+    });
+    if (statusEl) statusEl.textContent = `送信中… (${ok} / ${uids.length})`;
+  }
+  return { ok, fail, errors };
+}
+
+async function testSendNotif() {
+  if (!adminUser) { alert('ログインしていません'); return; }
+  const title = document.getElementById('broadcast-title').value.trim() || 'テスト通知';
+  const body = document.getElementById('broadcast-body').value.trim() || '管理者からのテスト送信です。';
+  const statusEl = document.getElementById('broadcast-status');
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = `自分 (${adminUser.uid.slice(0,8)}…) にテスト送信中…`;
+  try {
+    const { ok, fail, errors } = await _sendNotifToUids([adminUser.uid], title, body, null);
+    if (ok > 0) {
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = `✅ テスト送信成功！ Q-Roomで通知を確認してください。`;
+    } else {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = `❌ テスト送信失敗: ${errors[0] || '不明なエラー'}`;
+    }
+  } catch (e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = `❌ エラー: ${e.message}`;
+  }
+}
+
 async function sendBroadcastNotif() {
   const title = document.getElementById('broadcast-title').value.trim();
   const body = document.getElementById('broadcast-body').value.trim();
@@ -455,29 +512,18 @@ async function sendBroadcastNotif() {
   if (!title) { statusEl.style.color = 'var(--red)'; statusEl.textContent = 'タイトルを入力してください'; return; }
   if (!body) { statusEl.style.color = 'var(--red)'; statusEl.textContent = '本文を入力してください'; return; }
 
-  // 送信対象UIDの収集：allUsersが読み込み済みならそこから、なければuserIndexから取得
-  let targetUids = allUsers.map(u => u.uid);
-
-  if (targetUids.length === 0) {
-    statusEl.style.color = 'var(--muted)';
-    statusEl.textContent = 'ユーザー一覧をuserIndexから取得中…';
-    try {
-      const idxSnap = await db.ref('userIndex').once('value');
-      idxSnap.forEach(child => {
-        const val = child.val();
-        const uid = typeof val === 'object' ? val.uid : val;
-        if (uid && !targetUids.includes(uid)) targetUids.push(uid);
-      });
-    } catch (e) {
-      statusEl.style.color = 'var(--red)';
-      statusEl.textContent = '❌ ユーザー一覧の取得に失敗しました: ' + e.message;
-      return;
-    }
+  let targetUids;
+  try {
+    targetUids = await _getTargetUids(statusEl);
+  } catch (e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = `❌ ユーザー一覧取得失敗: ${e.message}`;
+    return;
   }
 
   if (targetUids.length === 0) {
     statusEl.style.color = 'var(--red)';
-    statusEl.textContent = '送信対象ユーザーが見つかりません';
+    statusEl.textContent = '送信対象ユーザーが見つかりません（userIndexが空）';
     return;
   }
 
@@ -487,39 +533,26 @@ async function sendBroadcastNotif() {
   statusEl.style.color = 'var(--muted)';
   statusEl.textContent = `送信中… (0 / ${targetUids.length})`;
 
-  const ts = firebase.database.ServerValue.TIMESTAMP;
-  let successCount = 0;
-  let failCount = 0;
-
-  // 一度に大量送信するとタイムアウトするため、バッチ処理（20件ずつ）
-  const BATCH = 20;
-  for (let i = 0; i < targetUids.length; i += BATCH) {
-    const batch = targetUids.slice(i, i + BATCH);
-    const results = await Promise.allSettled(
-      batch.map(uid =>
-        db.ref(`notifications/${uid}`).push({
-          type: 'devAnnounce',
-          title,
-          body,
-          read: false,
-          ts
-        })
-      )
-    );
-    results.forEach(r => r.status === 'fulfilled' ? successCount++ : failCount++);
-    statusEl.textContent = `送信中… (${successCount} / ${targetUids.length})`;
+  try {
+    const { ok, fail, errors } = await _sendNotifToUids(targetUids, title, body, statusEl);
+    if (fail === 0) {
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = `✅ ${ok} 人に送信完了`;
+      document.getElementById('broadcast-title').value = '';
+      document.getElementById('broadcast-body').value = '';
+    } else if (ok === 0) {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = `❌ 全件失敗 (${fail}件): ${errors[0] || ''}`;
+    } else {
+      statusEl.style.color = 'var(--yellow)';
+      statusEl.textContent = `⚠️ ${ok}人成功 / ${fail}件失敗: ${errors[0] || ''}`;
+    }
+  } catch (e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = `❌ 送信エラー: ${e.message}`;
+  } finally {
+    btn.disabled = false;
   }
-
-  if (failCount === 0) {
-    statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✅ ${successCount} 人に送信完了`;
-  } else {
-    statusEl.style.color = 'var(--yellow)';
-    statusEl.textContent = `⚠️ ${successCount} 人に送信完了 / ${failCount} 件失敗`;
-  }
-  document.getElementById('broadcast-title').value = '';
-  document.getElementById('broadcast-body').value = '';
-  btn.disabled = false;
 }
 </script>
 </body>
