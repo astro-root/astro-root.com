@@ -1554,8 +1554,11 @@ function openProfileModal() {
   if(currentUserProfile.iconUrl) {
     disp.innerHTML = `<img src="${currentUserProfile.iconUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
   } else {
+    disp.innerHTML = '';
     disp.textContent = _selectedIcon;
   }
+  const resetBtn = document.getElementById('btn-reset-icon');
+  if(resetBtn) resetBtn.style.display = currentUserProfile.iconUrl ? '' : 'none';
   document.getElementById('profile-uid-display').textContent = currentUserProfile.displayId || '—';
   document.getElementById('profile-email-display').textContent = currentUser.email || '—';
   document.getElementById('profile-name-input').value = currentUserProfile.name || '';
@@ -1631,7 +1634,6 @@ function onIconImageSelected(event) {
 function applyCropTransform() {
   const { img, x, y, scale } = _cropState;
   if(!img) return;
-  img.style.transformOrigin = '0 0';
   img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
 }
 
@@ -1702,17 +1704,21 @@ async function cropIconAndSave() {
   const canvas = document.createElement('canvas');
   canvas.width = 200; canvas.height = 200;
   const ctx = canvas.getContext('2d');
+
+  // ステージ上での img の表示サイズ・位置（transform-origin:0 0 前提）
+  // img左上 = (_cropState.x, _cropState.y)、表示サイズ = naturalW*scale × naturalH*scale
+  // これをcanvas(200x200)座標系にそのまま写像する
+  const ratioX = 200 / sw;
+  const ratioY = 200 / sh;
+  const drawX = _cropState.x * ratioX;
+  const drawY = _cropState.y * ratioY;
+  const drawW = img.naturalWidth  * _cropState.scale * ratioX;
+  const drawH = img.naturalHeight * _cropState.scale * ratioY;
+
   ctx.save();
   ctx.beginPath();
   ctx.arc(100, 100, 100, 0, Math.PI * 2);
   ctx.clip();
-
-  // transform-origin: 0 0 なので x/y は左上起点の座標
-  const scaleX = 200 / sw, scaleY = 200 / sh;
-  const drawW = img.naturalWidth  * _cropState.scale * scaleX;
-  const drawH = img.naturalHeight * _cropState.scale * scaleY;
-  const drawX = _cropState.x * scaleX;
-  const drawY = _cropState.y * scaleY;
   ctx.drawImage(img, drawX, drawY, drawW, drawH);
   ctx.restore();
 
@@ -1729,6 +1735,8 @@ async function cropIconAndSave() {
     disp.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
     updateAccountBar(true);
     document.getElementById('icon-crop-wrap').style.display = 'none';
+    const resetBtn = document.getElementById('btn-reset-icon');
+    if(resetBtn) resetBtn.style.display = '';
     toast('✅ アイコンを保存しました');
   } catch(e) {
     toast('❌ 保存に失敗しました: ' + e.message);
@@ -1739,6 +1747,27 @@ async function cropIconAndSave() {
 
 function cancelCrop() {
   document.getElementById('icon-crop-wrap').style.display = 'none';
+}
+
+async function resetIconToDefault() {
+  if(!currentUser || !currentUserProfile) return;
+  if(!confirm('アイコン画像を削除して絵文字アイコンに戻しますか？')) return;
+  const defaultIcon = '🎮';
+  try {
+    await db.ref(`users/${currentUser.uid}`).update({ iconUrl: null, icon: defaultIcon });
+    currentUserProfile = { ...currentUserProfile, iconUrl: null, icon: defaultIcon };
+    accountProfileCache[currentUser.uid] = { ...currentUserProfile };
+    _selectedIcon = defaultIcon;
+    const disp = document.getElementById('profile-icon-display');
+    disp.innerHTML = '';
+    disp.textContent = defaultIcon;
+    const resetBtn = document.getElementById('btn-reset-icon');
+    if(resetBtn) resetBtn.style.display = 'none';
+    updateAccountBar(true);
+    toast('✅ デフォルトアイコンに戻しました');
+  } catch(e) {
+    toast('❌ リセットに失敗しました: ' + e.message);
+  }
 }
 
 async function saveProfile() {
