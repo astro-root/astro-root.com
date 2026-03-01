@@ -298,24 +298,26 @@ function initTopNotifCenter(user) {
 }
 function _doInitTopNotifCenter(user) {
   // 既存リスナーをクリアしてから張り直す
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  if(_topNotifRef) { _topNotifRef.off('value'); }
   _topNotifRef = null; _topNotifCb = null;
   console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
   const ref = fbdb.ref('notifications/' + user.uid);
   const cb = snap => {
-    const items = [];
-    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-    console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
-    // ドロワーの開閉状態に関わらず、常に最新データをキャッシュに保持する
-    _latestNotifItems = items;
-    unreadNotifCount = items.filter(n => !n.read).length;
-    updateNotifBadge();
-    renderAccountNotifList(items);
-    // ドロワーが開いているときは即時反映、閉じていてもキャッシュ(_latestNotifItems)に保存済み
-    renderTopNotifDrawer(items);
-    if(_notifOpen) renderNotifList(items);
+    try {
+      const items = [];
+      snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+      items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
+      _latestNotifItems = items;
+      unreadNotifCount = items.filter(n => !n.read).length;
+      updateNotifBadge();
+      renderAccountNotifList(items);
+      renderTopNotifDrawer(items);
+      if(_notifOpen) renderNotifList(items);
+    } catch(e) {
+      console.error('[initTopNotifCenter] ❌ callback error:', e);
+    }
   };
   ref.on('value', cb, err => {
     console.error('[initTopNotifCenter] ❌ Firebase listener error:', err && err.code, err && err.message);
@@ -1472,19 +1474,25 @@ async function loadTopNotifDrawer() {
     listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
   }
 
-  // サーバーから最新を取得して上書き（once()はキャッシュを返す場合があるため確実に最新化）
-  try {
-    const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
-    const items = [];
-    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-    _latestNotifItems = items;
-    unreadNotifCount = items.filter(n => !n.read).length;
-    updateHeroAccountBtn();
-    renderTopNotifDrawer(items);
-    renderAccountNotifList(items);
-  } catch(e) {
-    console.error('[loadTopNotifDrawer] fetch error:', e);
+  // on('value')リスナーが最新キャッシュを持っているのでここでは再フェッチしない
+  // キャッシュがない場合のみonce()でフォールバック
+  if(_latestNotifItems.length === 0) {
+    try {
+      const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
+      const items = [];
+      snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+      items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      _latestNotifItems = items;
+      unreadNotifCount = items.filter(n => !n.read).length;
+      updateHeroAccountBtn();
+      renderTopNotifDrawer(items);
+      renderAccountNotifList(items);
+    } catch(e) {
+      console.error('[loadTopNotifDrawer] fetch error:', e);
+    }
+  } else {
+    renderTopNotifDrawer(_latestNotifItems);
+    renderAccountNotifList(_latestNotifItems);
   }
 }
 
@@ -2277,13 +2285,10 @@ async function pushNotification(toUid, type, title, body, extra={}) {
   if(!toUid) { console.warn('[pushNotification] toUid is null/empty, skipping'); return; }
   console.log('[pushNotification] writing to uid=' + toUid + ' type=' + type);
   try {
-    const newRef = await db.ref(`notifications/${toUid}`).push({
+    await db.ref(`notifications/${toUid}`).push({
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
-    console.log('[pushNotification] ✅ success uid=' + toUid + ' newKey=' + newRef.key);
-    // 書き込み後の件数を確認
-    const snap = await db.ref('notifications/' + toUid).once('value');
-    console.log('[pushNotification] 📊 total notifications for uid=' + toUid + ': ' + snap.numChildren());
+    console.log('[pushNotification] success uid=' + toUid);
   } catch(e) {
     const msg = (e.message||'').toLowerCase();
     if(e.code === 'PERMISSION_DENIED' || msg.includes('permission_denied')) {
@@ -2558,7 +2563,6 @@ async function notifyFriendsRoomCreated(roomId) {
         ).catch(e => console.error('[notifyFriendsRoomCreated] uid=' + child.key + ' failed:', e))
       );
     });
-    if(count === 0) console.warn('[notifyFriendsRoomCreated] ⚠️ フレンドが0人のため通知を送信しませんでした');
     console.log('[notifyFriendsRoomCreated] sending to', count, 'friends');
     await Promise.allSettled(promises);
     console.log('[notifyFriendsRoomCreated] done');
