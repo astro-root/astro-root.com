@@ -330,38 +330,125 @@ function _doInitTopNotifCenter(user) {
     _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_removed error:', e));
 }
+// Service Worker登録（一度だけ）
+let _swReg = null;
+async function getSwReg() {
+  if(!('serviceWorker' in navigator)) return null;
+  if(!_swReg) {
+    try { _swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js'); } catch(e) {}
+  }
+  return _swReg;
+}
+
 async function initFCMPush(user) {
   try {
-    // Service Worker登録
     if(!('serviceWorker' in navigator) || !('Notification' in window)) return;
-    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    if(!firebase.messaging) return;
+    const reg = await getSwReg();
+    if(!reg || !firebase.messaging) return;
     if(!_fcmMessaging) _fcmMessaging = firebase.messaging();
-    // 通知許可を要求
-    const permission = await Notification.requestPermission();
-    if(permission !== 'granted') return;
-    // FCMトークン取得
-    const token = await _fcmMessaging.getToken({
-      vapidKey: 'BDsQlz0HLksc8HpdtCAI5jzNyNlUhS4OUZMyF_9KfCevbyUAw7PfPnc6Emx5aPo5qS7ivxB4o0Sp3nzBpC2VopM',
-      serviceWorkerRegistration: reg
-    });
-    if(!token) return;
-    // トークンをDBに保存（通知送信時に使用）
-    await db.ref(`users/${user.uid}/fcmToken`).set(token);
-    console.log('[FCM] token saved');
-    // フォアグラウンド通知（アプリ開いてるとき）
+    // 既に許可済みなら自動でトークン登録（ログイン時）
+    if(Notification.permission === 'granted') {
+      await _registerFCMToken(user, reg);
+    }
+    // フォアグラウンド通知はService Worker経由で表示（ロック画面対応）
     _fcmMessaging.onMessage(payload => {
       const { title, body } = payload.notification || {};
-      if(Notification.permission === 'granted') {
-        new Notification(title || '新しい通知', {
+      if(Notification.permission === 'granted' && reg) {
+        reg.showNotification(title || '新しい通知', {
           body: body || '',
-          icon: '/icon-192.png'
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          data: payload.data || {}
         });
       }
     });
   } catch(e) {
     console.warn('[FCM] init error:', e);
   }
+}
+
+async function _registerFCMToken(user, reg) {
+  try {
+    const token = await _fcmMessaging.getToken({
+      vapidKey: 'BDsQlz0HLksc8HpdtCAI5jzNyNlUhS4OUZMyF_9KfCevbyUAw7PfPnc6Emx5aPo5qS7ivxB4o0Sp3nzBpC2VopM',
+      serviceWorkerRegistration: reg
+    });
+    if(!token) return false;
+    await db.ref(`users/${user.uid}/fcmToken`).set(token);
+    console.log('[FCM] token saved');
+    return true;
+  } catch(e) {
+    console.warn('[FCM] token error:', e);
+    return false;
+  }
+}
+
+// アカウント設定の通知UIを更新
+async function refreshPushNotifUI() {
+  const statusEl = document.getElementById('push-notif-status');
+  const btn = document.getElementById('push-notif-toggle-btn');
+  const msgEl = document.getElementById('push-notif-msg');
+  if(!statusEl || !btn) return;
+  if(!('Notification' in window) || !('serviceWorker' in navigator)) {
+    statusEl.textContent = 'このブラウザはプッシュ通知に対応していません';
+    btn.style.display = 'none';
+    return;
+  }
+  const perm = Notification.permission;
+  if(perm === 'granted') {
+    statusEl.textContent = '✅ 通知が有効です（ロック画面にも表示）';
+    statusEl.style.color = 'var(--cyan)';
+    btn.textContent = '無効にする';
+    btn.style.background = 'rgba(239,68,68,0.1)';
+    btn.style.borderColor = 'rgba(239,68,68,0.4)';
+    btn.style.color = '#f87171';
+  } else if(perm === 'denied') {
+    statusEl.textContent = '🚫 ブラウザで通知がブロックされています';
+    statusEl.style.color = '#f87171';
+    btn.textContent = 'ブラウザ設定を開く';
+    btn.style.background = 'rgba(255,255,255,0.06)';
+    btn.style.borderColor = 'var(--border-color)';
+    btn.style.color = 'var(--text-muted)';
+    if(msgEl) { msgEl.textContent = 'ブラウザのサイト設定から通知を手動で許可してください。'; msgEl.style.display = ''; }
+  } else {
+    statusEl.textContent = '🔕 通知が無効です';
+    statusEl.style.color = 'var(--text-muted)';
+    btn.textContent = '有効にする';
+    btn.style.background = 'rgba(6,182,212,0.1)';
+    btn.style.borderColor = 'rgba(6,182,212,0.4)';
+    btn.style.color = 'var(--cyan)';
+    if(msgEl) { msgEl.style.display = 'none'; }
+  }
+}
+
+async function handlePushNotifToggle() {
+  const perm = Notification.permission;
+  if(perm === 'denied') {
+    // ブラウザ設定へ誘導
+    toast('ブラウザのサイト設定から通知を許可してください', 4000);
+    return;
+  }
+  if(perm === 'granted') {
+    // 無効化: FCMトークンをDBから削除
+    if(currentUser && db) {
+      await db.ref(`users/${currentUser.uid}/fcmToken`).remove();
+    }
+    toast('プッシュ通知を無効にしました');
+    refreshPushNotifUI();
+    return;
+  }
+  // 許可要求
+  const result = await Notification.requestPermission();
+  if(result === 'granted') {
+    const reg = await getSwReg();
+    if(reg && _fcmMessaging && currentUser) {
+      await _registerFCMToken(currentUser, reg);
+    }
+    toast('✅ プッシュ通知を有効にしました');
+  } else {
+    toast('通知の許可がありませんでした');
+  }
+  refreshPushNotifUI();
 }
 
 function hideTopNotifCenter() {
@@ -1591,6 +1678,8 @@ async function renderAccountPage() {
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
     await renderStatsGrid();
+    // プッシュ通知UI更新
+    refreshPushNotifUI();
     // 通知リストは initTopNotifCenter の on('value') リスナーが管理しているため
     // ここで once() による二重fetchは行わない。
     // リスナーが未発火の場合（ページ初回表示直後など）のみ手動fetchする。
