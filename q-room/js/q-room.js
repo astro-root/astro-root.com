@@ -303,7 +303,7 @@ function _applyNotifItems(items) {
   updateNotifBadge();
   renderAccountNotifList(items);
   renderTopNotifDrawer(items);
-  if(_notifOpen) renderNotifList(items);
+  renderNotifList(items);
 }
 function _doInitTopNotifCenter(user) {
   if(_topNotifRef) { _topNotifRef.off(); }
@@ -2246,6 +2246,7 @@ function renderNotifList(items) {
         ${actionBtn}
       </div>
       <div class="notif-item-ts">${ts}</div>
+      <button class="notif-delete-btn" onclick="deleteNotif('${n.id}',event)" title="削除">✕</button>
     </div>`;
   }).join('');
 }
