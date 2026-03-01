@@ -17,6 +17,7 @@ function isAdmin() { return _isAdmin; }
 function checkAdmin() { return Promise.resolve(); }
 
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
+let _fcmMessaging = null;
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
 let serverTimeOffset = 0;
@@ -329,6 +330,40 @@ function _doInitTopNotifCenter(user) {
     _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_removed error:', e));
 }
+async function initFCMPush(user) {
+  try {
+    // Service Worker登録
+    if(!('serviceWorker' in navigator) || !('Notification' in window)) return;
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    if(!firebase.messaging) return;
+    if(!_fcmMessaging) _fcmMessaging = firebase.messaging();
+    // 通知許可を要求
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted') return;
+    // FCMトークン取得
+    const token = await _fcmMessaging.getToken({
+      vapidKey: 'BDsQlz0HLksc8HpdtCAI5jzNyNlUhS4OUZMyF_9KfCevbyUAw7PfPnc6Emx5aPo5qS7ivxB4o0Sp3nzBpC2VopM',
+      serviceWorkerRegistration: reg
+    });
+    if(!token) return;
+    // トークンをDBに保存（通知送信時に使用）
+    await db.ref(`users/${user.uid}/fcmToken`).set(token);
+    console.log('[FCM] token saved');
+    // フォアグラウンド通知（アプリ開いてるとき）
+    _fcmMessaging.onMessage(payload => {
+      const { title, body } = payload.notification || {};
+      if(Notification.permission === 'granted') {
+        new Notification(title || '新しい通知', {
+          body: body || '',
+          icon: '/icon-192.png'
+        });
+      }
+    });
+  } catch(e) {
+    console.warn('[FCM] init error:', e);
+  }
+}
+
 function hideTopNotifCenter() {
   if(_topNotifRef) { _topNotifRef.off(); }
   _topNotifRef = null; _topNotifCb = null;
@@ -1415,6 +1450,7 @@ function initAccountSystem() {
       }
       if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
       initTopNotifCenter(user);
+      initFCMPush(user);
       // account画面が開いていれば更新
       const acctScreen = document.getElementById('screen-account');
       if(acctScreen && acctScreen.classList.contains('active')) renderAccountPage();
@@ -2262,20 +2298,20 @@ function formatNotifTs(ts) {
 async function pushNotification(toUid, type, title, body, extra={}) {
   if(!db) { console.warn('[pushNotification] db is null, skipping'); return; }
   if(!toUid) { console.warn('[pushNotification] toUid is null/empty, skipping'); return; }
-  console.log('[pushNotification] writing to uid=' + toUid + ' type=' + type);
   try {
     await db.ref(`notifications/${toUid}`).push({
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
-    console.log('[pushNotification] success uid=' + toUid);
-  } catch(e) {
-    const msg = (e.message||'').toLowerCase();
-    if(e.code === 'PERMISSION_DENIED' || msg.includes('permission_denied')) {
-      console.error('[pushNotification] ❌ PERMISSION_DENIED uid=' + toUid +
-        ' — Firebase Rules: notifications/$uid .write が auth!=null になっているか確認してください');
-    } else {
-      console.error('[pushNotification] ❌ error uid=' + toUid, e);
+    // FCMトークンがあればOS通知も送信
+    const tokenSnap = await db.ref(`users/${toUid}/fcmToken`).once('value');
+    const token = tokenSnap.val();
+    if(token && _fcmMessaging) {
+      try {
+        await _fcmMessaging.send({ token, notification: { title, body } });
+      } catch(fcmErr) { console.warn('[FCM send]', fcmErr); }
     }
+  } catch(e) {
+    console.error('[pushNotification] ❌ error uid=' + toUid, e);
     throw e;
   }
 }
