@@ -296,19 +296,50 @@ function initTopNotifCenter(user) {
     _doInitTopNotifCenter(user);
   }, 50);
 }
+let _notifPollTimer = null;
+let _notifPollUid = null;
+async function _notifPollFetch() {
+  if(!_notifPollUid) return;
+  try {
+    const fbdb = db || firebase.database();
+    const snap = await fbdb.ref('notifications/' + _notifPollUid).once('value');
+    const items = [];
+    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const newUnread = items.filter(n => !n.read).length;
+    const changed = items.length !== _latestNotifItems.length || newUnread !== unreadNotifCount;
+    console.log('[notifPoll] items=' + items.length + ' unread=' + newUnread + (changed ? ' [CHANGED]' : ''));
+    _latestNotifItems = items;
+    unreadNotifCount = newUnread;
+    updateNotifBadge();
+    renderAccountNotifList(items);
+    renderTopNotifDrawer(items);
+    if(_notifOpen) renderNotifList(items);
+  } catch(e) {
+    console.error('[notifPoll] error:', e);
+  }
+}
 function _doInitTopNotifCenter(user) {
-  // 既存リスナーをクリアしてから張り直す
-  if(_topNotifRef) { _topNotifRef.off('value'); }
-  _topNotifRef = null; _topNotifCb = null;
-  console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
+  // 既存ポーリングを停止
+  if(_notifPollTimer) clearInterval(_notifPollTimer);
+  _notifPollTimer = null;
+  _notifPollUid = null;
+  console.log('[initTopNotifCenter] starting poll for uid=' + user.uid);
+  _notifPollUid = user.uid;
+  // 即時1回取得
+  _notifPollFetch();
+  // 5秒ごとにポーリング
+  _notifPollTimer = setInterval(_notifPollFetch, 5000);
+  // on('value') も念のため併用（動けばラッキー）
   const fbdb = db || firebase.database();
   const ref = fbdb.ref('notifications/' + user.uid);
+  if(_topNotifRef) _topNotifRef.off('value');
   const cb = snap => {
     try {
       const items = [];
       snap.forEach(c => items.push({ id: c.key, ...c.val() }));
       items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-      console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
+      console.log('[initTopNotifCenter] on(value) fired, items=' + items.length);
       _latestNotifItems = items;
       unreadNotifCount = items.filter(n => !n.read).length;
       updateNotifBadge();
@@ -316,17 +347,17 @@ function _doInitTopNotifCenter(user) {
       renderTopNotifDrawer(items);
       if(_notifOpen) renderNotifList(items);
     } catch(e) {
-      console.error('[initTopNotifCenter] ❌ callback error:', e);
+      console.error('[initTopNotifCenter] callback error:', e);
     }
   };
-  ref.on('value', cb, err => {
-    console.error('[initTopNotifCenter] ❌ Firebase listener error:', err && err.code, err && err.message);
-  });
+  ref.on('value', cb);
   _topNotifRef = ref;
   _topNotifCb = cb;
 }
 function hideTopNotifCenter() {
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  if(_notifPollTimer) { clearInterval(_notifPollTimer); _notifPollTimer = null; }
+  _notifPollUid = null;
+  if(_topNotifRef) { _topNotifRef.off('value'); }
   _topNotifRef = null; _topNotifCb = null;
   _latestNotifItems = [];
 }
@@ -1474,25 +1505,19 @@ async function loadTopNotifDrawer() {
     listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
   }
 
-  // on('value')リスナーが最新キャッシュを持っているのでここでは再フェッチしない
-  // キャッシュがない場合のみonce()でフォールバック
-  if(_latestNotifItems.length === 0) {
-    try {
-      const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
-      const items = [];
-      snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-      items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-      _latestNotifItems = items;
-      unreadNotifCount = items.filter(n => !n.read).length;
-      updateHeroAccountBtn();
-      renderTopNotifDrawer(items);
-      renderAccountNotifList(items);
-    } catch(e) {
-      console.error('[loadTopNotifDrawer] fetch error:', e);
-    }
-  } else {
-    renderTopNotifDrawer(_latestNotifItems);
-    renderAccountNotifList(_latestNotifItems);
+  // サーバーから最新を取得して上書き（once()はキャッシュを返す場合があるため確実に最新化）
+  try {
+    const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
+    const items = [];
+    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    _latestNotifItems = items;
+    unreadNotifCount = items.filter(n => !n.read).length;
+    updateHeroAccountBtn();
+    renderTopNotifDrawer(items);
+    renderAccountNotifList(items);
+  } catch(e) {
+    console.error('[loadTopNotifDrawer] fetch error:', e);
   }
 }
 
