@@ -296,35 +296,52 @@ function initTopNotifCenter(user) {
     _doInitTopNotifCenter(user);
   }, 50);
 }
+function _applyNotifItems(items) {
+  items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  _latestNotifItems = items;
+  unreadNotifCount = items.filter(n => !n.read).length;
+  updateNotifBadge();
+  renderAccountNotifList(items);
+  renderTopNotifDrawer(items);
+  if(_notifOpen) renderNotifList(items);
+}
 function _doInitTopNotifCenter(user) {
-  // 既存リスナーをクリアしてから張り直す
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  // 既存リスナーをすべてクリア
+  if(_topNotifRef) { _topNotifRef.off(); }
   _topNotifRef = null; _topNotifCb = null;
-  console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
-  const fbdb = db || firebase.database();
-  const ref = fbdb.ref('notifications/' + user.uid);
-  const cb = snap => {
+  _latestNotifItems = [];
+  console.log('[initTopNotifCenter] starting for uid=' + user.uid);
+  const ref = (db || firebase.database()).ref('notifications/' + user.uid);
+  _topNotifRef = ref;
+  // Step1: まず once() で全件取得して表示
+  ref.once('value').then(snap => {
     const items = [];
     snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-    console.log('[initTopNotifCenter] callback fired, items=' + items.length + ' unread=' + items.filter(n=>!n.read).length);
-    // ドロワーの開閉状態に関わらず、常に最新データをキャッシュに保持する
-    _latestNotifItems = items;
-    unreadNotifCount = items.filter(n => !n.read).length;
-    updateNotifBadge();
-    renderAccountNotifList(items);
-    // ドロワーが開いているときは即時反映、閉じていてもキャッシュ(_latestNotifItems)に保存済み
-    renderTopNotifDrawer(items);
-    if(_notifOpen) renderNotifList(items);
-  };
-  ref.on('value', cb, err => {
-    console.error('[initTopNotifCenter] ❌ Firebase listener error:', err && err.code, err && err.message);
-  });
-  _topNotifRef = ref;
-  _topNotifCb = cb;
+    console.log('[initTopNotifCenter] initial load: ' + items.length + ' items');
+    _applyNotifItems(items);
+  }).catch(e => console.error('[initTopNotifCenter] initial load error:', e));
+  // Step2: child_added で新着通知を検知
+  ref.on('child_added', snap => {
+    const newItem = { id: snap.key, ...snap.val() };
+    // 既に _latestNotifItems にあれば無視（初回ロード分）
+    if(_latestNotifItems.find(n => n.id === snap.key)) return;
+    console.log('[initTopNotifCenter] child_added:', snap.key);
+    _applyNotifItems([..._latestNotifItems, newItem]);
+  }, e => console.error('[initTopNotifCenter] child_added error:', e));
+  // Step3: child_changed で既読状態変更を検知
+  ref.on('child_changed', snap => {
+    console.log('[initTopNotifCenter] child_changed:', snap.key);
+    const updated = _latestNotifItems.map(n => n.id === snap.key ? { id: snap.key, ...snap.val() } : n);
+    _applyNotifItems(updated);
+  }, e => console.error('[initTopNotifCenter] child_changed error:', e));
+  // Step4: child_removed で削除を検知
+  ref.on('child_removed', snap => {
+    console.log('[initTopNotifCenter] child_removed:', snap.key);
+    _applyNotifItems(_latestNotifItems.filter(n => n.id !== snap.key));
+  }, e => console.error('[initTopNotifCenter] child_removed error:', e));
 }
 function hideTopNotifCenter() {
-  if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
+  if(_topNotifRef) { _topNotifRef.off(); }
   _topNotifRef = null; _topNotifCb = null;
   _latestNotifItems = [];
 }
@@ -1569,18 +1586,19 @@ async function renderAccountPage() {
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
     await renderStatsGrid();
-    // 常に最新データをサーバーから取得して表示
-    try {
-      const snap = await db.ref('notifications/' + currentUser.uid).once('value');
-      const items = [];
-      snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-      items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-      _latestNotifItems = items;
-      unreadNotifCount = items.filter(n => !n.read).length;
-      updateNotifBadge();
-      renderAccountNotifList(items);
-    } catch(e) {
-      renderAccountNotifList([]);
+    // 通知リストは initTopNotifCenter の on('value') リスナーが管理しているため
+    // ここで once() による二重fetchは行わない。
+    // リスナーが未発火の場合（ページ初回表示直後など）のみ手動fetchする。
+    if(currentUser && !_topNotifRef) {
+      try {
+        const snap = await db.ref('notifications/' + currentUser.uid).once('value');
+        const items = [];
+        snap.forEach(c => items.push({ id: c.key, ...c.val() }));
+        items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        renderAccountNotifList(items);
+      } catch(e) {
+        renderAccountNotifList([]);
+      }
     }
   } else {
     guestSec.style.display = '';
