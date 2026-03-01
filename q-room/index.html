@@ -247,7 +247,15 @@
     </div>
 
     <!-- 通知センター -->
-
+    <div class="acct-section">
+      <div class="acct-section-header">
+        <div class="acct-section-title">🔔 NOTIFICATIONS</div>
+        <button class="acct-readall-btn" onclick="topNotifReadAll()">すべて既読</button>
+      </div>
+      <div class="acct-notif-list" id="top-notif-list"></div>
+      <button onclick="debugShowAllNotifs()" style="margin-top:8px;background:rgba(255,100,0,0.15);border:1px solid rgba(255,100,0,0.4);border-radius:8px;padding:6px 12px;font-size:0.72rem;color:#f90;cursor:pointer;font-family:var(--font-en);">🔍 DB上の全通知を確認</button>
+      <pre id="notif-debug" style="font-size:0.65rem;color:var(--text-muted);margin-top:6px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;"></pre>
+    </div>
 
     <!-- スタッツ -->
     <div class="acct-section">
@@ -511,6 +519,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
 <script src="js/q-room.js"></script>
 </body>
 </html>
