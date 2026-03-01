@@ -314,8 +314,10 @@ function _doInitTopNotifCenter(user) {
   _topNotifRef = ref;
   // child_added は登録時に既存の全件に対して発火するので once() は不要かつ競合の原因
   ref.on('child_added', snap => {
-    if(_latestNotifItems.find(n => n.id === snap.key)) return;
+    console.log('[child_added] key=' + snap.key + ' current count=' + _latestNotifItems.length);
+    if(_latestNotifItems.find(n => n.id === snap.key)) { console.log('[child_added] duplicate, skip'); return; }
     _latestNotifItems = [..._latestNotifItems, { id: snap.key, ...snap.val() }];
+    console.log('[child_added] added, new count=' + _latestNotifItems.length);
     _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_added error:', e));
   ref.on('child_changed', snap => {
@@ -1465,7 +1467,7 @@ function toggleTopNotifDrawer() {
 }
 
 function loadTopNotifDrawer() {
-  // child_added/changed/removed で _latestNotifItems は常に最新なのでそのまま使う
+  console.log('[loadTopNotifDrawer] _latestNotifItems.length=' + _latestNotifItems.length);
   renderTopNotifDrawer(_latestNotifItems);
   renderAccountNotifList(_latestNotifItems);
 }
