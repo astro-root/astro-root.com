@@ -306,38 +306,25 @@ function _applyNotifItems(items) {
   if(_notifOpen) renderNotifList(items);
 }
 function _doInitTopNotifCenter(user) {
-  // 既存リスナーをすべてクリア
   if(_topNotifRef) { _topNotifRef.off(); }
-  _topNotifRef = null; _topNotifCb = null;
+  _topNotifRef = null;
   _latestNotifItems = [];
   console.log('[initTopNotifCenter] starting for uid=' + user.uid);
   const ref = (db || firebase.database()).ref('notifications/' + user.uid);
   _topNotifRef = ref;
-  // Step1: まず once() で全件取得して表示
-  ref.once('value').then(snap => {
-    const items = [];
-    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    console.log('[initTopNotifCenter] initial load: ' + items.length + ' items');
-    _applyNotifItems(items);
-  }).catch(e => console.error('[initTopNotifCenter] initial load error:', e));
-  // Step2: child_added で新着通知を検知
+  // child_added は登録時に既存の全件に対して発火するので once() は不要かつ競合の原因
   ref.on('child_added', snap => {
-    const newItem = { id: snap.key, ...snap.val() };
-    // 既に _latestNotifItems にあれば無視（初回ロード分）
     if(_latestNotifItems.find(n => n.id === snap.key)) return;
-    console.log('[initTopNotifCenter] child_added:', snap.key);
-    _applyNotifItems([..._latestNotifItems, newItem]);
+    _latestNotifItems = [..._latestNotifItems, { id: snap.key, ...snap.val() }];
+    _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_added error:', e));
-  // Step3: child_changed で既読状態変更を検知
   ref.on('child_changed', snap => {
-    console.log('[initTopNotifCenter] child_changed:', snap.key);
-    const updated = _latestNotifItems.map(n => n.id === snap.key ? { id: snap.key, ...snap.val() } : n);
-    _applyNotifItems(updated);
+    _latestNotifItems = _latestNotifItems.map(n => n.id === snap.key ? { id: snap.key, ...snap.val() } : n);
+    _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_changed error:', e));
-  // Step4: child_removed で削除を検知
   ref.on('child_removed', snap => {
-    console.log('[initTopNotifCenter] child_removed:', snap.key);
-    _applyNotifItems(_latestNotifItems.filter(n => n.id !== snap.key));
+    _latestNotifItems = _latestNotifItems.filter(n => n.id !== snap.key);
+    _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_removed error:', e));
 }
 function hideTopNotifCenter() {
