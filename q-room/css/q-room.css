@@ -2105,9 +2105,9 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
-  line-height: 1;
-  opacity: 0.5;
+  opacity: 0.45;
   transition: opacity 0.15s, color 0.15s;
   align-self: flex-start;
+  margin-top: 2px;
 }
 .notif-delete-btn:hover { opacity: 1; color: var(--red, #ef4444); }
