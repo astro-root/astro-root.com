@@ -15,6 +15,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="/q-room/manifest.json">
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "bbcb0764-311f-4806-a6f0-1107d93c5b7c",
+      autoResubscribe: true,
+      notifyButton: { enable: false },
+    });
+  });
+</script>
 <meta name="theme-color" content="#0a0a0f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -89,6 +100,10 @@
       <button onclick="tweetApp()" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='#1d9bf0'" onmouseout="this.style.color='var(--text-muted)'">
         <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">TWEET</span>
+      </button>
+      <button id="top-install-btn" onclick="openInstallModal()" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-muted); transition:0.3s; padding:8px 16px; border-radius:12px;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-width="2.5" stroke-linecap="round"/><path d="M12 6v6m0 0l-2-2m2 2l2-2"/></svg>
+        <span style="font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.12em;font-weight:700;">INSTALL</span>
       </button>
     </div>
   </div>
@@ -405,6 +420,58 @@
 </div>
 
 
+<!-- ホーム画面追加モーダル -->
+<div id="modal-install" class="modal" onclick="if(event.target===this)closeInstallModal()">
+  <div class="m-content" style="max-width:380px;">
+    <button class="m-close" onclick="closeInstallModal()">✕</button>
+    <div class="m-title">📲 ホーム画面に追加</div>
+
+    <!-- Chrome/Edge: ネイティブボタン -->
+    <div id="install-native-section" style="display:none;">
+      <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.7;margin-bottom:20px;">ボタンを押すとホーム画面にアプリとして追加できます。<br>追加後はアプリと同じ感覚で使えて、通知も受け取れます。</p>
+      <button onclick="handlePwaInstall()" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(6,182,212,0.5);background:rgba(6,182,212,0.12);color:var(--cyan);font-family:var(--font-en);font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:0.08em;">📲 ホーム画面に追加する</button>
+    </div>
+
+    <!-- iOS Safari: 手順ガイド -->
+    <div id="install-ios-section" style="display:none;">
+      <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.7;margin-bottom:20px;">iPhoneの場合、以下の手順でホーム画面に追加してください。<br>追加後は通知も受け取れるようになります。</p>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:12px;">
+          <div style="font-size:1.6rem;flex-shrink:0;">①</div>
+          <div>
+            <div style="font-size:0.88rem;color:var(--text-main);font-weight:700;margin-bottom:3px;">共有ボタンをタップ</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">画面下部の <strong style="color:var(--text-main);">□↑</strong> アイコン</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:12px;">
+          <div style="font-size:1.6rem;flex-shrink:0;">②</div>
+          <div>
+            <div style="font-size:0.88rem;color:var(--text-main);font-weight:700;margin-bottom:3px;">「ホーム画面に追加」を選択</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">メニューをスクロールして見つけてください</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:12px;">
+          <div style="font-size:1.6rem;flex-shrink:0;">③</div>
+          <div>
+            <div style="font-size:0.88rem;color:var(--text-main);font-weight:700;margin-bottom:3px;">ホーム画面のアイコンから起動</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">起動後にアカウント設定から通知を有効化</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- すでにインストール済み -->
+    <div id="install-done-section" style="display:none;">
+      <p style="color:var(--cyan);font-size:0.9rem;text-align:center;padding:20px 0;">✅ すでにホーム画面に追加済みです</p>
+    </div>
+
+    <!-- 非対応ブラウザ -->
+    <div id="install-unsupported-section" style="display:none;">
+      <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.7;">ブラウザのメニューから「ホーム画面に追加」または「アプリをインストール」を選択してください。</p>
+    </div>
+  </div>
+</div>
+
 <div id="modal-feedback" class="modal" onclick="if(event.target===this)closeFeedback()">
   <div class="m-content">
     <button class="m-close" onclick="closeFeedback()">✕</button>
@@ -541,7 +608,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
 <script src="js/q-room.js"></script>
 </body>
 </html>
