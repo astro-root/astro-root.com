@@ -18,6 +18,7 @@ function checkAdmin() { return Promise.resolve(); }
 
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
 let _fcmMessaging = null;
+let _deferredInstallPrompt = null; // PWAインストールプロンプト
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
 let serverTimeOffset = 0;
@@ -330,7 +331,66 @@ function _doInitTopNotifCenter(user) {
     _applyNotifItems(_latestNotifItems);
   }, e => console.error('[initTopNotifCenter] child_removed error:', e));
 }
-// Service Worker登録（一度だけ）
+// ===== PWA インストール =====
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  _refreshPwaInstallUI();
+});
+window.addEventListener('appinstalled', () => {
+  _deferredInstallPrompt = null;
+  _refreshPwaInstallUI();
+});
+
+function _isIos() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function _isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function _refreshPwaInstallUI() {
+  const btn = document.getElementById('pwa-install-btn');
+  const iosGuide = document.getElementById('pwa-ios-guide');
+  const installedMsg = document.getElementById('pwa-installed-msg');
+  const desc = document.getElementById('pwa-install-desc');
+  if(!btn) return;
+
+  if(_isInStandaloneMode()) {
+    // すでにインストール済み
+    btn.style.display = 'none';
+    if(iosGuide) iosGuide.style.display = 'none';
+    if(installedMsg) installedMsg.style.display = '';
+    if(desc) desc.style.display = 'none';
+  } else if(_deferredInstallPrompt) {
+    // Chrome/Edge: ネイティブプロンプト使用可能
+    btn.style.display = '';
+    if(iosGuide) iosGuide.style.display = 'none';
+    if(installedMsg) installedMsg.style.display = 'none';
+    if(desc) desc.style.display = '';
+  } else if(_isIos()) {
+    // iOS Safari: 手順ガイド表示
+    btn.style.display = 'none';
+    if(iosGuide) iosGuide.style.display = '';
+    if(installedMsg) installedMsg.style.display = 'none';
+    if(desc) desc.style.display = '';
+  } else {
+    // その他（Firefox等）: 説明のみ
+    btn.style.display = 'none';
+    if(iosGuide) iosGuide.style.display = 'none';
+    if(installedMsg) installedMsg.style.display = 'none';
+    if(desc) { desc.textContent = 'ブラウザのメニューから「ホーム画面に追加」または「アプリをインストール」を選択してください。'; desc.style.display = ''; }
+  }
+}
+
+async function handlePwaInstall() {
+  if(!_deferredInstallPrompt) return;
+  _deferredInstallPrompt.prompt();
+  const { outcome } = await _deferredInstallPrompt.userChoice;
+  if(outcome === 'accepted') { _deferredInstallPrompt = null; _refreshPwaInstallUI(); }
+}
+
+// ===== Service Worker登録（一度だけ） =====
 let _swReg = null;
 async function getSwReg() {
   if(!('serviceWorker' in navigator)) return null;
@@ -389,8 +449,20 @@ async function refreshPushNotifUI() {
   const btn = document.getElementById('push-notif-toggle-btn');
   const msgEl = document.getElementById('push-notif-msg');
   if(!statusEl || !btn) return;
+
+  // iOS Safari かつ スタンドアロンでない場合 → ホーム画面追加を促す
+  if(_isIos() && !_isInStandaloneMode()) {
+    statusEl.textContent = '📲 通知にはホーム画面への追加が必要です';
+    statusEl.style.color = 'var(--text-muted)';
+    btn.style.display = 'none';
+    if(msgEl) { msgEl.textContent = '⚙️ ACCOUNT SETTINGS 内の「ADD TO HOME SCREEN」の手順でホーム画面に追加後、通知を有効にできます。'; msgEl.style.display = ''; }
+    _refreshPwaInstallUI();
+    return;
+  }
+
   if(!('Notification' in window) || !('serviceWorker' in navigator)) {
     statusEl.textContent = 'このブラウザはプッシュ通知に対応していません';
+    statusEl.style.color = 'var(--text-muted)';
     btn.style.display = 'none';
     return;
   }
@@ -1678,8 +1750,9 @@ async function renderAccountPage() {
     document.getElementById('new-pw-input').value = '';
     document.getElementById('new-pw-confirm').value = '';
     await renderStatsGrid();
-    // プッシュ通知UI更新
+    // プッシュ通知UI・PWAインストールUI更新
     refreshPushNotifUI();
+    _refreshPwaInstallUI();
     // 通知リストは initTopNotifCenter の on('value') リスナーが管理しているため
     // ここで once() による二重fetchは行わない。
     // リスナーが未発火の場合（ページ初回表示直後など）のみ手動fetchする。
