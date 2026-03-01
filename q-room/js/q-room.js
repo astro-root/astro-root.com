@@ -303,7 +303,6 @@ function _doInitTopNotifCenter(user) {
   console.log('[initTopNotifCenter] starting listener for uid=' + user.uid);
   const fbdb = db || firebase.database();
   const ref = fbdb.ref('notifications/' + user.uid);
-  // 先に参照を保存してからon()を呼ぶ（コールバックが同期実行されても参照が確定している状態にする）
   const cb = snap => {
     const items = [];
     snap.forEach(c => items.push({ id: c.key, ...c.val() }));
@@ -318,13 +317,11 @@ function _doInitTopNotifCenter(user) {
     renderTopNotifDrawer(items);
     if(_notifOpen) renderNotifList(items);
   };
-  _topNotifRef = ref;
-  _topNotifCb = cb;
   ref.on('value', cb, err => {
     console.error('[initTopNotifCenter] ❌ Firebase listener error:', err && err.code, err && err.message);
-    // リスナーエラー時はフラグをクリアして再接続できる状態にする
-    if(_topNotifRef === ref) { _topNotifRef = null; _topNotifCb = null; }
   });
+  _topNotifRef = ref;
+  _topNotifCb = cb;
 }
 function hideTopNotifCenter() {
   if(_topNotifRef && _topNotifCb) { _topNotifRef.off('value', _topNotifCb); }
@@ -1468,26 +1465,22 @@ async function loadTopNotifDrawer() {
   const listEl = document.getElementById('top-notif-drawer-list');
   if(!listEl) return;
 
-  // on('value')リスナーが既にキャッシュを持っている場合はそれを使う（once()はキャッシュ問題があるため）
+  // キャッシュがあれば即時描画（スピナーなし）
   if(_latestNotifItems.length > 0) {
     renderTopNotifDrawer(_latestNotifItems);
-    renderAccountNotifList(_latestNotifItems);
-    return;
+  } else {
+    listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
   }
 
-  // リスナーがまだデータを取得していない場合のみonce()でフォールバック
-  listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
+  // サーバーから最新を取得して上書き（once()はキャッシュを返す場合があるため確実に最新化）
   try {
     const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
     const items = [];
     snap.forEach(c => items.push({ id: c.key, ...c.val() }));
     items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-    // on('value')がまだ未発火の場合のみキャッシュを設定（リスナーの値を上書きしない）
-    if(_latestNotifItems.length === 0) {
-      _latestNotifItems = items;
-      unreadNotifCount = items.filter(n => !n.read).length;
-      updateHeroAccountBtn();
-    }
+    _latestNotifItems = items;
+    unreadNotifCount = items.filter(n => !n.read).length;
+    updateHeroAccountBtn();
     renderTopNotifDrawer(items);
     renderAccountNotifList(items);
   } catch(e) {
@@ -2228,11 +2221,6 @@ function toggleNotifPanel() {
 
 async function loadAndRenderNotifs() {
   if(!currentUser) return;
-  // on('value')のキャッシュがあればそれを使う
-  if(_latestNotifItems.length > 0) {
-    renderNotifList(_latestNotifItems);
-    return;
-  }
   const snap = await db.ref('notifications/' + currentUser.uid).once('value');
   const items = [];
   snap.forEach(child => items.push({ id: child.key, ...child.val() }));
@@ -2289,10 +2277,13 @@ async function pushNotification(toUid, type, title, body, extra={}) {
   if(!toUid) { console.warn('[pushNotification] toUid is null/empty, skipping'); return; }
   console.log('[pushNotification] writing to uid=' + toUid + ' type=' + type);
   try {
-    await db.ref(`notifications/${toUid}`).push({
+    const newRef = await db.ref(`notifications/${toUid}`).push({
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
-    console.log('[pushNotification] success uid=' + toUid);
+    console.log('[pushNotification] ✅ success uid=' + toUid + ' newKey=' + newRef.key);
+    // 書き込み後の件数を確認
+    const snap = await db.ref('notifications/' + toUid).once('value');
+    console.log('[pushNotification] 📊 total notifications for uid=' + toUid + ': ' + snap.numChildren());
   } catch(e) {
     const msg = (e.message||'').toLowerCase();
     if(e.code === 'PERMISSION_DENIED' || msg.includes('permission_denied')) {
@@ -2567,6 +2558,7 @@ async function notifyFriendsRoomCreated(roomId) {
         ).catch(e => console.error('[notifyFriendsRoomCreated] uid=' + child.key + ' failed:', e))
       );
     });
+    if(count === 0) console.warn('[notifyFriendsRoomCreated] ⚠️ フレンドが0人のため通知を送信しませんでした');
     console.log('[notifyFriendsRoomCreated] sending to', count, 'friends');
     await Promise.allSettled(promises);
     console.log('[notifyFriendsRoomCreated] done');
