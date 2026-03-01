@@ -1464,32 +1464,10 @@ function toggleTopNotifDrawer() {
   if(_topNotifDrawerOpen) loadTopNotifDrawer();
 }
 
-async function loadTopNotifDrawer() {
-  if(!currentUser) return;
-  const listEl = document.getElementById('top-notif-drawer-list');
-  if(!listEl) return;
-
-  // キャッシュがあれば即時描画（スピナーなし）
-  if(_latestNotifItems.length > 0) {
-    renderTopNotifDrawer(_latestNotifItems);
-  } else {
-    listEl.innerHTML = '<div class="notif-empty">読み込み中…</div>';
-  }
-
-  // サーバーから最新を取得して上書き（once()はキャッシュを返す場合があるため確実に最新化）
-  try {
-    const snap = await firebase.database().ref('notifications/' + currentUser.uid).once('value');
-    const items = [];
-    snap.forEach(c => items.push({ id: c.key, ...c.val() }));
-    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-    _latestNotifItems = items;
-    unreadNotifCount = items.filter(n => !n.read).length;
-    updateHeroAccountBtn();
-    renderTopNotifDrawer(items);
-    renderAccountNotifList(items);
-  } catch(e) {
-    console.error('[loadTopNotifDrawer] fetch error:', e);
-  }
+function loadTopNotifDrawer() {
+  // child_added/changed/removed で _latestNotifItems は常に最新なのでそのまま使う
+  renderTopNotifDrawer(_latestNotifItems);
+  renderAccountNotifList(_latestNotifItems);
 }
 
 function renderTopNotifDrawer(items) {
