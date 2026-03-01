@@ -17,7 +17,6 @@ function isAdmin() { return _isAdmin; }
 function checkAdmin() { return Promise.resolve(); }
 
 let db = null, myId = null, rId = null, rRef = null, rCb = null;
-let _fcmMessaging = null;
 let _deferredInstallPrompt = null; // PWAインストールプロンプト
 let roomData = null;
 let chatRef = null, chatCb = null, chatOpen = false, chatUnread = 0, lastSeenMsgTs = 0;
@@ -383,6 +382,33 @@ function _refreshPwaInstallUI() {
   }
 }
 
+function openInstallModal() {
+  const modal = document.getElementById('modal-install');
+  if(!modal) return;
+  // セクション切替
+  const native = document.getElementById('install-native-section');
+  const ios = document.getElementById('install-ios-section');
+  const done = document.getElementById('install-done-section');
+  const unsupported = document.getElementById('install-unsupported-section');
+  [native, ios, done, unsupported].forEach(el => { if(el) el.style.display = 'none'; });
+
+  if(_isInStandaloneMode()) {
+    if(done) done.style.display = '';
+  } else if(_deferredInstallPrompt) {
+    if(native) native.style.display = '';
+  } else if(_isIos()) {
+    if(ios) ios.style.display = '';
+  } else {
+    if(unsupported) unsupported.style.display = '';
+  }
+  modal.classList.add('show');
+  modal.style.display = 'flex';
+}
+function closeInstallModal() {
+  const modal = document.getElementById('modal-install');
+  if(modal) { modal.classList.remove('show'); modal.style.display = ''; }
+}
+
 async function handlePwaInstall() {
   if(!_deferredInstallPrompt) return;
   _deferredInstallPrompt.prompt();
@@ -392,54 +418,23 @@ async function handlePwaInstall() {
 
 // ===== Service Worker登録（一度だけ） =====
 let _swReg = null;
-async function getSwReg() {
-  if(!('serviceWorker' in navigator)) return null;
-  if(!_swReg) {
-    try { _swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js'); } catch(e) {}
-  }
-  return _swReg;
+// ===== OneSignal Push Notifications =====
+const _OS_APP_ID = 'bbcb0764-311f-4806-a6f0-1107d93c5b7c';
+
+function _getOneSignal() {
+  return window.OneSignal || null;
 }
 
-async function initFCMPush(user) {
+// ログイン時: OneSignalにuserIdを紐付け
+async function initOneSignalPush(user) {
   try {
-    if(!('serviceWorker' in navigator) || !('Notification' in window)) return;
-    const reg = await getSwReg();
-    if(!reg || !firebase.messaging) return;
-    if(!_fcmMessaging) _fcmMessaging = firebase.messaging();
-    // 既に許可済みなら自動でトークン登録（ログイン時）
-    if(Notification.permission === 'granted') {
-      await _registerFCMToken(user, reg);
-    }
-    // フォアグラウンド通知はService Worker経由で表示（ロック画面対応）
-    _fcmMessaging.onMessage(payload => {
-      const { title, body } = payload.notification || {};
-      if(Notification.permission === 'granted' && reg) {
-        reg.showNotification(title || '新しい通知', {
-          body: body || '',
-          icon: '/icon-192.png',
-          badge: '/icon-192.png',
-          data: payload.data || {}
-        });
-      }
-    });
+    const OS = _getOneSignal();
+    if(!OS) return;
+    // OneSignalのExternalUserIdにFirebase UIDをセット（送信先の特定に使用）
+    await OS.login(user.uid);
+    console.log('[OneSignal] login OK uid=' + user.uid);
   } catch(e) {
-    console.warn('[FCM] init error:', e);
-  }
-}
-
-async function _registerFCMToken(user, reg) {
-  try {
-    const token = await _fcmMessaging.getToken({
-      vapidKey: 'BDsQlz0HLksc8HpdtCAI5jzNyNlUhS4OUZMyF_9KfCevbyUAw7PfPnc6Emx5aPo5qS7ivxB4o0Sp3nzBpC2VopM',
-      serviceWorkerRegistration: reg
-    });
-    if(!token) return false;
-    await db.ref(`users/${user.uid}/fcmToken`).set(token);
-    console.log('[FCM] token saved');
-    return true;
-  } catch(e) {
-    console.warn('[FCM] token error:', e);
-    return false;
+    console.warn('[OneSignal] init error:', e);
   }
 }
 
@@ -460,20 +455,25 @@ async function refreshPushNotifUI() {
     return;
   }
 
-  if(!('Notification' in window) || !('serviceWorker' in navigator)) {
+  const OS = _getOneSignal();
+  if(!OS || !('Notification' in window)) {
     statusEl.textContent = 'このブラウザはプッシュ通知に対応していません';
     statusEl.style.color = 'var(--text-muted)';
     btn.style.display = 'none';
     return;
   }
+
   const perm = Notification.permission;
-  if(perm === 'granted') {
+  const isOptedIn = await OS.User.PushSubscription.optedIn.catch(() => false);
+
+  if(perm === 'granted' && isOptedIn) {
     statusEl.textContent = '✅ 通知が有効です（ロック画面にも表示）';
     statusEl.style.color = 'var(--cyan)';
     btn.textContent = '無効にする';
     btn.style.background = 'rgba(239,68,68,0.1)';
     btn.style.borderColor = 'rgba(239,68,68,0.4)';
     btn.style.color = '#f87171';
+    if(msgEl) msgEl.style.display = 'none';
   } else if(perm === 'denied') {
     statusEl.textContent = '🚫 ブラウザで通知がブロックされています';
     statusEl.style.color = '#f87171';
@@ -489,36 +489,36 @@ async function refreshPushNotifUI() {
     btn.style.background = 'rgba(6,182,212,0.1)';
     btn.style.borderColor = 'rgba(6,182,212,0.4)';
     btn.style.color = 'var(--cyan)';
-    if(msgEl) { msgEl.style.display = 'none'; }
+    if(msgEl) msgEl.style.display = 'none';
   }
 }
 
 async function handlePushNotifToggle() {
+  const OS = _getOneSignal();
   const perm = Notification.permission;
+
   if(perm === 'denied') {
-    // ブラウザ設定へ誘導
     toast('ブラウザのサイト設定から通知を許可してください', 4000);
     return;
   }
-  if(perm === 'granted') {
-    // 無効化: FCMトークンをDBから削除
-    if(currentUser && db) {
-      await db.ref(`users/${currentUser.uid}/fcmToken`).remove();
-    }
+
+  if(!OS) { toast('通知の準備ができていません'); return; }
+
+  const isOptedIn = await OS.User.PushSubscription.optedIn.catch(() => false);
+
+  if(perm === 'granted' && isOptedIn) {
+    // 無効化
+    await OS.User.PushSubscription.optOut().catch(e => console.warn(e));
     toast('プッシュ通知を無効にしました');
-    refreshPushNotifUI();
-    return;
-  }
-  // 許可要求
-  const result = await Notification.requestPermission();
-  if(result === 'granted') {
-    const reg = await getSwReg();
-    if(reg && _fcmMessaging && currentUser) {
-      await _registerFCMToken(currentUser, reg);
-    }
-    toast('✅ プッシュ通知を有効にしました');
   } else {
-    toast('通知の許可がありませんでした');
+    // 有効化（許可ダイアログ表示）
+    await OS.Notifications.requestPermission().catch(e => console.warn(e));
+    const nowOptedIn = await OS.User.PushSubscription.optedIn.catch(() => false);
+    if(nowOptedIn) {
+      toast('✅ プッシュ通知を有効にしました');
+    } else {
+      toast('通知の許可がありませんでした');
+    }
   }
   refreshPushNotifUI();
 }
@@ -1609,7 +1609,7 @@ function initAccountSystem() {
       }
       if(roomData && roomData.players) prefetchAccountProfiles(roomData.players);
       initTopNotifCenter(user);
-      initFCMPush(user);
+      initOneSignalPush(user);
       // account画面が開いていれば更新
       const acctScreen = document.getElementById('screen-account');
       if(acctScreen && acctScreen.classList.contains('active')) renderAccountPage();
@@ -2461,17 +2461,22 @@ async function pushNotification(toUid, type, title, body, extra={}) {
   if(!db) { console.warn('[pushNotification] db is null, skipping'); return; }
   if(!toUid) { console.warn('[pushNotification] toUid is null/empty, skipping'); return; }
   try {
+    // アプリ内通知をDBに書き込み
     await db.ref(`notifications/${toUid}`).push({
       type, title, body, read: false, ts: firebase.database.ServerValue.TIMESTAMP, ...extra
     });
-    // FCMトークンがあればOS通知も送信
-    const tokenSnap = await db.ref(`users/${toUid}/fcmToken`).once('value');
-    const token = tokenSnap.val();
-    if(token && _fcmMessaging) {
-      try {
-        await _fcmMessaging.send({ token, notification: { title, body } });
-      } catch(fcmErr) { console.warn('[FCM send]', fcmErr); }
-    }
+    // OneSignal REST API経由でOS通知送信（External User Id = Firebase UID）
+    fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        app_id: _OS_APP_ID,
+        filters: [{ field: 'external_user_id', value: toUid }],
+        headings: { en: title },
+        contents: { en: body },
+        web_url: 'https://astro-root.com/q-room/'
+      })
+    }).catch(e => console.warn('[OneSignal send]', e));
   } catch(e) {
     console.error('[pushNotification] ❌ error uid=' + toUid, e);
     throw e;
