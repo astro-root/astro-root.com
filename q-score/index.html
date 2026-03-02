@@ -28,9 +28,58 @@
     <link rel="icon" type="image/png" sizes="192x192" href="https://astro-root.com/q-score/icon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="https://astro-root.com/q-score/icon.png">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <script>
+      // Googleフォント接続テスト（タイムアウト2秒）
+      // 成功すればフォントを動的に読み込み、失敗ならシステムフォントにフォールバック
+      (function() {
+        var TIMEOUT = 2000;
+        var FONT_URL = 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap';
+        var FALLBACK_CSS = [
+          "body, * { font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif !important; }",
+          ".score-display, .timer, [class*='mono'] { font-family: 'Courier New', 'Lucida Console', monospace !important; }"
+        ].join('\n');
+
+        var done = false;
+        function applyFallback() {
+          if (done) return;
+          done = true;
+          var style = document.createElement('style');
+          style.textContent = FALLBACK_CSS;
+          document.head.appendChild(style);
+        }
+        function loadGoogleFonts() {
+          if (done) return;
+          done = true;
+          var preconnect1 = document.createElement('link');
+          preconnect1.rel = 'preconnect';
+          preconnect1.href = 'https://fonts.googleapis.com';
+          var preconnect2 = document.createElement('link');
+          preconnect2.rel = 'preconnect';
+          preconnect2.href = 'https://fonts.gstatic.com';
+          preconnect2.crossOrigin = '';
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = FONT_URL;
+          document.head.appendChild(preconnect1);
+          document.head.appendChild(preconnect2);
+          document.head.appendChild(link);
+        }
+
+        // タイムアウト設定
+        var timer = setTimeout(applyFallback, TIMEOUT);
+
+        // fetch で接続テスト（no-cors で十分）
+        fetch('https://fonts.googleapis.com/', { method: 'HEAD', mode: 'no-cors' })
+          .then(function() {
+            clearTimeout(timer);
+            loadGoogleFonts();
+          })
+          .catch(function() {
+            clearTimeout(timer);
+            applyFallback();
+          });
+      })();
+    </script>
     <style>
         :root {
             --bg-dark: #0f172a;
