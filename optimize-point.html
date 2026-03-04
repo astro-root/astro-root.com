@@ -864,14 +864,7 @@ function renderResult(result) {
     }
     display.appendChild(span);
 
-    // score=5が初めて出た直後にマーカーを挿入
-    if (!markerInserted && chunk.score === 5) {
-      const marker = document.createElement('span');
-      marker.className = 'push-marker';
-      marker.textContent = '⚡ ここで押す';
-      display.appendChild(marker);
-      markerInserted = true;
-    }
+
   });
 
   document.getElementById('strategyGrid').innerHTML = `
