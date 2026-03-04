@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>早押しトレーナー AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#070a12;--bg2:#0b0f1c;--bg3:#111828;--bg4:#161e30;
+  --c:#00c8f0;--c2:#0099bb;--c3:#80e8ff;--c4:rgba(0,200,240,0.07);
+  --green:#00e5a0;--amber:#f5a623;--rose:#ff5577;
+  --text:#dde8f5;--sub:#a8bdd4;--dim:#6a7a99;
+  --s5:#00c8f0;--s4:#00e5a0;--s3:#f5a623;--s2:#ff5577;
+  --daily-limit:50;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,240,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,240,0.028) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,200,240,0.05) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.scanline{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--c) 40%,var(--c3) 50%,var(--c) 60%,transparent 100%);opacity:0.2;animation:scan 10s linear infinite;pointer-events:none;z-index:10;}
+@keyframes scan{0%{top:-1px;}100%{top:100vh;}}
+.wrap{max-width:740px;margin:0 auto;padding:52px 24px 110px;position:relative;z-index:1;}
+header{margin-bottom:48px;animation:bootUp 0.7s ease both;}
+.hud-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid rgba(0,200,240,0.1);}
+.sys-id{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--c);letter-spacing:0.2em;opacity:0.9;}
+.sys-status{display:flex;align-items:center;gap:12px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--green);letter-spacing:0.12em;opacity:0.8;}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);position:relative;flex-shrink:0;}
+.pulse-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid var(--green);animation:ripple 2s ease infinite;}
+@keyframes ripple{0%{opacity:0.8;transform:scale(1);}100%{opacity:0;transform:scale(2.2);}}
+
+/* ── USAGE COUNTER ── */
+.usage-counter{display:flex;align-items:center;gap:8px;}
+.usage-bar-wrap{width:80px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}
+.usage-bar-fill{height:100%;border-radius:2px;transition:width 0.4s ease,background 0.4s ease;}
+.usage-text{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.08em;white-space:nowrap;}
+.usage-warn{color:var(--amber)!important;}
+.usage-danger{color:var(--rose)!important;}
+
+.key-btn{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--dim);background:none;border:1px solid rgba(0,200,240,0.15);padding:3px 8px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.key-btn:hover{color:var(--c);border-color:rgba(0,200,240,0.4);}
+
+.title-area{position:relative;}
+.title-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.35em;color:var(--c);text-transform:uppercase;margin-bottom:10px;opacity:0.9;}
+h1{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:clamp(30px,6.5vw,54px);letter-spacing:0.04em;line-height:1.0;text-transform:uppercase;color:#fff;}
+h1 .hi{color:var(--c);}
+.sub-title{margin-top:12px;font-size:13px;color:#b0c4d8;letter-spacing:0.04em;}
+.chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.chip{padding:4px 12px;border:1px solid rgba(0,200,240,0.2);border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:9px;color:#a8bdd4;letter-spacing:0.12em;text-transform:uppercase;background:rgba(0,200,240,0.03);}
+
+/* ── PANEL ── */
+.panel{position:relative;background:var(--bg2);border:1px solid rgba(0,200,240,0.12);padding:26px 28px;margin-bottom:12px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--c) 0%,rgba(0,200,240,0.3) 40%,transparent 70%);}
+.panel::after{content:'';position:absolute;top:0;right:0;width:18px;height:18px;border-right:1px solid rgba(0,200,240,0.35);border-bottom:1px solid rgba(0,200,240,0.35);clip-path:polygon(100% 0,100% 100%,0 100%);background:var(--bg2);}
+.panel-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.25em;color:var(--c);text-transform:uppercase;margin-bottom:16px;opacity:0.9;display:flex;align-items:center;gap:8px;}
+.panel-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,200,240,0.2),transparent);}
+.input-panel{animation:bootUp 0.7s 0.12s ease both;}
+
+textarea,.answer-input{width:100%;background:rgba(0,200,240,0.025);border:1px solid rgba(0,200,240,0.1);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.85;padding:13px 16px;outline:none;transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;resize:vertical;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);}
+textarea{min-height:105px;}
+textarea:focus,.answer-input:focus{border-color:rgba(0,200,240,0.4);background:rgba(0,200,240,0.05);box-shadow:0 0 0 2px rgba(0,200,240,0.08);}
+textarea::placeholder,.answer-input::placeholder{color:var(--dim);font-size:13px;}
+.answer-row{display:flex;gap:10px;align-items:center;margin-top:12px;}
+.answer-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--c);letter-spacing:0.14em;white-space:nowrap;opacity:0.65;}
+.answer-input{flex:1;}
+
+.btn-analyze{width:100%;margin-top:16px;padding:14px;background:transparent;border:1px solid var(--c);color:var(--c);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden;}
+.btn-bg{position:absolute;inset:0;background:var(--c);transform:translateY(101%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);z-index:0;}
+.btn-analyze:hover:not(:disabled) .btn-bg{transform:translateY(0);}
+.btn-analyze:hover:not(:disabled){color:var(--bg);}
+.btn-analyze:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-analyze .btn-text,.btn-analyze .spinner{position:relative;z-index:1;}
+.btn-analyze.loading .btn-text{display:none;}
+.btn-analyze.loading .spinner{display:block;}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,200,240,0.3);border-top-color:currentColor;border-radius:50%;animation:spin 0.6s linear infinite;display:none;}
+.hint-text{text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:#6a7a99;margin-top:8px;letter-spacing:0.12em;}
+
+.progress-wrap{display:none;margin-top:16px;}
+.progress-wrap.visible{display:block;}
+.progress-header{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:#a0b4cc;margin-bottom:7px;letter-spacing:0.1em;}
+.progress-pct{color:var(--c);}
+.progress-bar-bg{width:100%;height:2px;background:rgba(0,200,240,0.1);position:relative;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--c2),var(--c),var(--c3));background-size:200% 100%;width:0%;transition:width 0.5s ease;animation:shine 2s linear infinite;box-shadow:0 0 8px var(--c);}
+@keyframes shine{0%{background-position:0% 0;}100%{background-position:200% 0;}}
+
+.error-box{display:none;background:rgba(255,85,119,0.07);border:1px solid rgba(255,85,119,0.25);padding:12px 16px;font-size:12px;color:#ff99aa;white-space:pre-line;line-height:1.7;margin-bottom:12px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);}
+.error-box.visible{display:block;}
+.limit-note{display:none;text-align:center;font-size:10px;color:var(--sub);line-height:1.8;margin-bottom:12px;font-family:'Share Tech Mono',monospace;}
+
+/* ── RESULT ── */
+.result-section{display:none;}
+.result-section.visible{display:block;}
+.difficulty-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;animation:bootUp 0.35s ease both;}
+.badge{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.16em;padding:3px 12px;text-transform:uppercase;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));}
+.badge-easy{background:rgba(0,200,240,0.1);color:var(--c);border:1px solid rgba(0,200,240,0.3);}
+.badge-mid{background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.3);}
+.badge-hard{background:rgba(255,85,119,0.1);color:var(--rose);border:1px solid rgba(255,85,119,0.3);}
+.difficulty-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:#a8bdd4;letter-spacing:0.06em;}
+
+.best-panel{position:relative;background:linear-gradient(135deg,rgba(0,200,240,0.07) 0%,rgba(0,200,240,0.02) 100%);border:1px solid rgba(0,200,240,0.25);padding:24px 28px;margin-bottom:12px;animation:bootUp 0.35s 0.06s ease both;clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px));overflow:hidden;}
+.best-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--c),rgba(0,200,240,0.2) 60%,transparent);}
+.best-panel .deco-tr{position:absolute;top:0;right:0;width:80px;height:80px;border-right:1px solid rgba(0,200,240,0.15);border-bottom:1px solid rgba(0,200,240,0.15);pointer-events:none;}
+.best-panel .deco-bl{position:absolute;bottom:0;left:0;width:50px;height:50px;border-left:1px solid rgba(0,200,240,0.1);border-top:1px solid rgba(0,200,240,0.1);pointer-events:none;}
+.best-panel-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--c);text-transform:uppercase;margin-bottom:12px;opacity:0.9;}
+.best-phrase{font-family:'Rajdhani',sans-serif;font-size:30px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.15;letter-spacing:0.04em;}
+.best-phrase .hl{color:var(--c);text-shadow:0 0 20px rgba(0,200,240,0.4);}
+.best-reason{font-size:13px;color:#b0c8d8;line-height:1.85;}
+.best-reason-detail{margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,200,240,0.1);}
+.best-reason-detail-label{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.22em;color:var(--c);opacity:0.7;text-transform:uppercase;margin-bottom:8px;}
+.best-candidates-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.best-candidate-chip{padding:4px 13px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.08em;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px));}
+.best-candidate-chip.rank-1{background:rgba(0,200,240,0.12);border:1px solid rgba(0,200,240,0.45);color:var(--c);}
+.best-candidate-chip.rank-2{background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.3);color:var(--green);}
+.best-candidate-chip.rank-other{background:rgba(168,189,212,0.05);border:1px solid rgba(168,189,212,0.18);color:var(--sub);}
+
+.heatmap-panel{background:var(--bg2);border:1px solid rgba(0,200,240,0.1);padding:26px 28px;margin-bottom:12px;animation:bootUp 0.35s 0.1s ease both;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);position:relative;}
+.heatmap-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(0,200,240,0.4),transparent 60%);}
+.question-display{font-size:18px;line-height:3.0;word-break:break-all;letter-spacing:0.02em;}
+.chunk{display:inline;position:relative;cursor:default;padding:1px 0;}
+.chunk[data-score="5"]{color:var(--s5);font-weight:700;text-shadow:0 0 12px rgba(0,200,240,0.5);}
+.chunk[data-score="4"]{color:var(--s4);font-weight:500;text-shadow:0 0 8px rgba(0,229,160,0.35);}
+.chunk[data-score="3"]{color:var(--s3);}
+.chunk[data-score="2"]{color:var(--s2);opacity:0.9;}
+.chunk[data-score="1"]{color:#506080;}
+.chunk.push-marker{position:relative;}
+.chunk.push-marker::after{content:'▼ PUSH';position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--s4);letter-spacing:0.1em;white-space:nowrap;pointer-events:none;}
+.chunk:hover .tooltip{opacity:1;transform:translateX(-50%) translateY(-4px);pointer-events:auto;}
+.tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(0);background:var(--bg3);border:1px solid rgba(0,200,240,0.25);padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);opacity:0;transition:all 0.15s;pointer-events:none;z-index:20;white-space:normal;text-align:left;min-width:120px;max-width:220px;line-height:1.6;box-shadow:0 8px 28px rgba(0,0,0,0.6);clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);}
+.tooltip-tip{color:var(--sub);margin-bottom:5px;line-height:1.55;font-size:9px;}
+.tooltip-candidates-label{font-size:8px;color:var(--dim);letter-spacing:0.15em;margin-bottom:4px;text-transform:uppercase;}
+.tooltip-candidates{display:flex;flex-wrap:wrap;gap:3px;}
+.tooltip-candidate{padding:2px 7px;font-size:9px;border-radius:1px;letter-spacing:0.05em;}
+.tooltip-candidate.rank-1{background:rgba(0,200,240,0.15);border:1px solid rgba(0,200,240,0.4);color:var(--c);}
+.tooltip-candidate.rank-2{background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);color:var(--green);}
+.tooltip-candidate.rank-other{background:rgba(168,189,212,0.07);border:1px solid rgba(168,189,212,0.2);color:var(--sub);}
+.tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:rgba(0,200,240,0.25);}
+.legend{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(0,200,240,0.08);}
+.legend-item{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:9px;color:#a0b4cc;letter-spacing:0.1em;}
+.legend-bar{width:14px;height:2px;flex-shrink:0;}
+
+.strategy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:bootUp 0.35s 0.14s ease both;}
+@media(max-width:500px){.strategy-grid{grid-template-columns:1fr;}}
+.strategy-card{background:var(--bg2);border:1px solid rgba(0,200,240,0.1);padding:18px 20px;position:relative;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);}
+.strategy-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(0,200,240,0.35),transparent 70%);}
+.strategy-card-title{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--c);text-transform:uppercase;margin-bottom:9px;opacity:0.9;}
+.strategy-card-body{font-size:13px;line-height:1.85;color:#b0c8d8;}
+
+.candidates-table-panel{background:var(--bg2);border:1px solid rgba(0,200,240,0.12);padding:26px 28px;margin-bottom:12px;animation:bootUp 0.35s 0.14s ease both;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);position:relative;}
+.candidates-table-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(0,200,240,0.4),transparent 60%);}
+.cand-table{width:100%;border-collapse:collapse;font-size:12px;}
+.cand-table thead tr{border-bottom:1px solid rgba(0,200,240,0.15);}
+.cand-table th{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.18em;color:var(--dim);text-transform:uppercase;padding:6px 10px 8px;text-align:left;font-weight:400;}
+.cand-table td{padding:7px 10px;border-bottom:1px solid rgba(0,200,240,0.05);vertical-align:middle;}
+.cand-table tbody tr:last-child td{border-bottom:none;}
+.cand-table tbody tr:hover td{background:rgba(0,200,240,0.03);}
+.cand-table .col-phrase{font-family:'Share Tech Mono',monospace;font-size:13px;color:#fff;white-space:nowrap;width:1%;}
+.cand-table .col-score{width:1%;white-space:nowrap;}
+.cand-score-pip{display:inline-flex;align-items:center;gap:3px;}
+.cand-score-pip .pip{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.12);}
+.cand-score-pip .pip.lit-5{background:var(--s5);box-shadow:0 0 5px var(--s5);}
+.cand-score-pip .pip.lit-4{background:var(--s4);box-shadow:0 0 4px var(--s4);}
+.cand-score-pip .pip.lit-3{background:var(--s3);}
+.cand-score-pip .pip.lit-2{background:var(--s2);}
+.cand-table .col-candidates{color:var(--sub);line-height:1.7;}
+.cand-chip{display:inline-block;padding:2px 8px;margin:2px 3px 2px 0;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.06em;border-radius:1px;}
+.cand-chip.rank-1{background:rgba(0,200,240,0.13);border:1px solid rgba(0,200,240,0.4);color:var(--c);}
+.cand-chip.rank-2{background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.28);color:var(--green);}
+.cand-chip.rank-other{background:rgba(168,189,212,0.05);border:1px solid rgba(168,189,212,0.18);color:var(--sub);}
+.cand-table .col-tip{font-size:11px;color:var(--dim);line-height:1.6;max-width:200px;}
+.cand-push-row td{background:rgba(0,229,160,0.04)!important;border-top:1px solid rgba(0,229,160,0.2);border-bottom:1px solid rgba(0,229,160,0.2);}
+.cand-push-badge{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--s4);background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);padding:1px 6px;margin-left:6px;vertical-align:middle;}
+
+.submit-section{display:none;margin-top:16px;animation:bootUp 0.35s 0.18s ease both;}
+.submit-section.visible{display:block;}
+.feedback-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.22em;color:var(--c);text-transform:uppercase;margin-bottom:8px;opacity:0.85;}
+.feedback-textarea{width:100%;min-height:70px;background:rgba(0,200,240,0.025);border:1px solid rgba(0,200,240,0.1);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.85;padding:11px 14px;outline:none;resize:vertical;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);transition:border-color 0.2s,background 0.2s;}
+.feedback-textarea:focus{border-color:rgba(0,200,240,0.35);background:rgba(0,200,240,0.05);}
+.feedback-textarea::placeholder{color:var(--dim);font-size:12px;}
+.submit-row{display:flex;gap:10px;margin-top:10px;align-items:center;}
+.btn-submit{flex:1;padding:12px;background:transparent;border:1px solid var(--green);color:var(--green);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:all 0.2s;position:relative;overflow:hidden;}
+.btn-submit-bg{position:absolute;inset:0;background:var(--green);transform:translateY(101%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);z-index:0;}
+.btn-submit:hover:not(:disabled) .btn-submit-bg{transform:translateY(0);}
+.btn-submit:hover:not(:disabled){color:var(--bg);}
+.btn-submit:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-submit span{position:relative;z-index:1;}
+.submit-status{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.1em;padding:6px 14px;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);display:none;}
+.submit-status.ok{display:inline-block;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);color:var(--green);}
+.submit-status.err{display:inline-block;background:rgba(255,85,119,0.1);border:1px solid rgba(255,85,119,0.3);color:var(--rose);}
+
+/* ── API KEY OVERLAY ── */
+.apikey-overlay{position:fixed;inset:0;z-index:100;background:rgba(7,10,18,0.96);display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);}
+.apikey-overlay.hidden{display:none;}
+.apikey-box{width:100%;max-width:500px;background:var(--bg2);border:1px solid rgba(0,200,240,0.2);padding:40px 36px;clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px));position:relative;}
+.apikey-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--c),rgba(0,200,240,0.2) 50%,transparent);}
+.apikey-logo{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.3em;color:var(--c);margin-bottom:24px;opacity:0.8;}
+.apikey-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;color:#fff;letter-spacing:0.06em;margin-bottom:8px;text-transform:uppercase;}
+.apikey-title span{color:var(--c);}
+.apikey-desc{font-size:12px;color:var(--sub);line-height:1.9;margin-bottom:24px;}
+.apikey-desc a{color:var(--c);text-decoration:none;}
+.apikey-desc a:hover{text-decoration:underline;}
+.apikey-input{width:100%;padding:13px 16px;background:rgba(0,200,240,0.03);border:1px solid rgba(0,200,240,0.15);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;margin-bottom:14px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);transition:border-color 0.2s,background 0.2s;}
+.apikey-input:focus{border-color:rgba(0,200,240,0.4);background:rgba(0,200,240,0.06);}
+.apikey-input::placeholder{color:var(--dim);}
+.apikey-save-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--sub);letter-spacing:0.1em;cursor:pointer;}
+.apikey-save-row input[type=checkbox]{accent-color:var(--c);width:14px;height:14px;cursor:pointer;}
+.btn-apikey{width:100%;padding:14px;background:transparent;border:1px solid var(--c);color:var(--c);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:all 0.2s;position:relative;overflow:hidden;}
+.btn-apikey-bg{position:absolute;inset:0;background:var(--c);transform:translateY(101%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);z-index:0;}
+.btn-apikey:hover .btn-apikey-bg{transform:translateY(0);}
+.btn-apikey:hover{color:var(--bg);}
+.btn-apikey span{position:relative;z-index:1;}
+.apikey-error{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--rose);margin-top:12px;display:none;letter-spacing:0.08em;}
+
+@keyframes bootUp{from{opacity:0;transform:translateY(10px);filter:blur(3px);}to{opacity:1;transform:translateY(0);filter:blur(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:rgba(0,200,240,0.2);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- API KEY OVERLAY -->
+<div class="apikey-overlay" id="apikeyOverlay">
+  <div class="apikey-box">
+    <div class="apikey-logo">// PUSH_POINT_ANALYZER — INITIAL SETUP</div>
+    <div class="apikey-title">Gemini <span>API KEY</span></div>
+    <p class="apikey-desc">
+      Google Gemini APIキーを入力してください。<br>
+      <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> で無料取得できます（Googleアカウントのみ）。<br>
+      <span style="font-size:11px;color:var(--dim);">キーはこのブラウザにのみ保存され、外部サーバーには送信されません。</span>
+    </p>
+    <input class="apikey-input" id="apikeyInput" type="password" placeholder="AIzaSy..." autocomplete="off">
+    <label class="apikey-save-row">
+      <input type="checkbox" id="apikeyRemember" checked>
+      次回から入力を省略する（ブラウザに保存）
+    </label>
+    <button class="btn-apikey" onclick="saveApiKey()">
+      <div class="btn-apikey-bg"></div>
+      <span>▶ SET KEY &amp; LAUNCH</span>
+    </button>
+    <div class="apikey-error" id="apikeyError"></div>
+  </div>
+</div>
+
+<div class="scanline"></div>
+<div class="wrap">
+
+  <header>
+    <div class="hud-bar">
+      <div class="sys-id">PUSH_POINT_ANALYZER // v4.0</div>
+      <div class="sys-status">
+        <div class="pulse-dot"></div>
+        <span>ONLINE</span>
+        <div class="usage-counter">
+          <div class="usage-bar-wrap"><div class="usage-bar-fill" id="usageBarFill"></div></div>
+          <span class="usage-text" id="usageText">-- / 50</span>
+        </div>
+        <button class="key-btn" onclick="changeApiKey()">⚙ KEY</button>
+      </div>
+    </div>
+    <div class="title-area">
+      <div class="title-label">// AI QUIZ TRAINER — GEMINI 2.5 PRO</div>
+      <h1>早押し<span class="hi">最適化</span><br>トレーナー</h1>
+      <p class="sub-title">問題文を解析し、確定ポイントをリアルタイムで可視化する</p>
+      <div class="chip-row">
+        <div class="chip">GEMINI 2.5 PRO</div>
+        <div class="chip">YOUR OWN KEY</div>
+        <div class="chip">50 REQ / DAY FREE</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="panel input-panel">
+    <div class="panel-label">INPUT // 問題文</div>
+    <textarea id="questionText" placeholder="例：「走れメロス」の中で、メロスが人質として王のもとに残した人物の名前は何でしょう？"></textarea>
+    <div class="answer-row">
+      <span class="answer-label">ANS ›</span>
+      <input type="text" class="answer-input" id="answerText" placeholder="答えを入力（任意）">
+    </div>
+    <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+      <div class="btn-bg"></div>
+      <span class="btn-text">▶ ANALYZE PUSH POINT</span>
+      <div class="spinner"></div>
+    </button>
+    <p class="hint-text">// CTRL + ENTER TO EXECUTE</p>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span id="progressStep">STANDBY</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+
+  <p class="limit-note" id="limitNote">
+    ⚠ API LIMIT — キーを確認するか、しばらく待ってから再試行してください<br>
+    <span style="font-size:9px;opacity:0.7;">無料枠は1日50リクエストです。翌日0時（日本時間）にリセットされます。</span>
+  </p>
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="result-section" id="resultSection">
+    <div class="difficulty-row" id="difficultyRow"></div>
+    <div class="best-panel">
+      <div class="deco-tr"></div><div class="deco-bl"></div>
+      <div class="best-panel-label">// OPTIMAL PUSH POINT</div>
+      <div class="best-phrase" id="bestPointText"></div>
+      <div class="best-reason" id="bestPointReason"></div>
+    </div>
+    <div class="heatmap-panel">
+      <div class="panel-label">HEATMAP // 確定ポイント可視化</div>
+      <div class="question-display" id="questionDisplay"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s5)"></div>完全確定</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s4)"></div>▼ここで押す</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s3)"></div>やや絞れる</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s2)"></div>まだ早い</div>
+        <div class="legend-item"><div class="legend-bar" style="background:#344560"></div>情報なし</div>
+      </div>
+    </div>
+    <div class="strategy-grid" id="strategyGrid"></div>
+    <div class="candidates-table-panel" id="candidatesTablePanel" style="display:none;">
+      <div class="panel-label">CANDIDATES // 語句ごとの答え候補の変化</div>
+      <div id="candidatesTableWrap"></div>
+    </div>
+    <div class="submit-section" id="submitSection">
+      <div class="panel" style="margin-bottom:0;">
+        <div class="panel-label">MEMO // 結果をコピー</div>
+        <div class="feedback-label">COMMENT (任意)</div>
+        <textarea class="feedback-textarea" id="feedbackText" placeholder="気づいた点・メモなど（任意）"></textarea>
+        <div class="submit-row">
+          <button class="btn-submit" id="submitBtn" onclick="submitResult()">
+            <div class="btn-submit-bg"></div>
+            <span>▶ COPY TO CLIPBOARD</span>
+          </button>
+          <span class="submit-status" id="submitStatus"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────
+const STORAGE_KEY   = 'gemini_api_key_v1';
+const USAGE_KEY     = 'gemini_usage_v1';
+const DAILY_LIMIT   = 50;
+const MODEL         = 'gemini-2.5-pro-preview-06-05';
+
+// ── API KEY ────────────────────────────────────────────
+let _apiKey = '';
+
+function initApiKey() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    _apiKey = saved;
+    document.getElementById('apikeyOverlay').classList.add('hidden');
+  }
+  updateUsageDisplay();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apikeyInput').value.trim();
+  const errEl = document.getElementById('apikeyError');
+  if (!val) { errEl.style.display='block'; errEl.textContent='// キーを入力してください'; return; }
+  if (!val.startsWith('AIza')) { errEl.style.display='block'; errEl.textContent='// Gemini APIキーは "AIza" で始まります'; return; }
+  errEl.style.display = 'none';
+  _apiKey = val;
+  if (document.getElementById('apikeyRemember').checked) localStorage.setItem(STORAGE_KEY, val);
+  document.getElementById('apikeyOverlay').classList.add('hidden');
+  updateUsageDisplay();
+}
+
+function changeApiKey() {
+  document.getElementById('apikeyInput').value = _apiKey;
+  document.getElementById('apikeyOverlay').classList.remove('hidden');
+}
+
+// ── USAGE COUNTER ──────────────────────────────────────
+function getUsageData() {
+  try {
+    const raw = localStorage.getItem(USAGE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      const today = new Date().toDateString();
+      if (d.date === today) return d;
+    }
+  } catch(_) {}
+  return { date: new Date().toDateString(), count: 0 };
+}
+
+function incrementUsage() {
+  const d = getUsageData();
+  d.count++;
+  localStorage.setItem(USAGE_KEY, JSON.stringify(d));
+  updateUsageDisplay();
+  return d.count;
+}
+
+function updateUsageDisplay() {
+  const d = getUsageData();
+  const used = d.count;
+  const remaining = Math.max(0, DAILY_LIMIT - used);
+  const pct = Math.min(100, (used / DAILY_LIMIT) * 100);
+
+  const bar  = document.getElementById('usageBarFill');
+  const text = document.getElementById('usageText');
+  if (!bar || !text) return;
+
+  bar.style.width = pct + '%';
+  if (pct >= 90)      { bar.style.background = 'var(--rose)';  text.className = 'usage-text usage-danger'; }
+  else if (pct >= 70) { bar.style.background = 'var(--amber)'; text.className = 'usage-text usage-warn'; }
+  else                { bar.style.background = 'var(--green)'; text.className = 'usage-text'; }
+
+  text.textContent = `${used} / ${DAILY_LIMIT} (残${remaining})`;
+}
+
+// ── GEMINI API ─────────────────────────────────────────
+async function callGemini(prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${_apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 8192 }
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${res.status}`;
+    if (res.status === 400 && (msg.includes('API_KEY') || msg.includes('key')))
+      throw new Error('APIキーが無効です。⚙ KEYから再設定してください。');
+    if (res.status === 429) throw new Error('rate limit');
+    if (res.status === 403) throw new Error('APIキーの権限がありません。Google AI Studioで確認してください。');
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// ── ANALYZE ────────────────────────────────────────────
+async function analyze() {
+  if (!_apiKey) { document.getElementById('apikeyOverlay').classList.remove('hidden'); return; }
+
+  const question = document.getElementById('questionText').value.trim();
+  const answer   = document.getElementById('answerText').value.trim();
+  const btn      = document.getElementById('analyzeBtn');
+  const errorBox = document.getElementById('errorBox');
+
+  errorBox.classList.remove('visible');
+  if (!question) { showError('ERROR // 問題文を入力してください。'); return; }
+
+  const usage = getUsageData();
+  if (usage.count >= DAILY_LIMIT) {
+    showError(`LIMIT REACHED // 本日の無料枠（${DAILY_LIMIT}回）を使い切りました。翌日0時にリセットされます。`);
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  document.getElementById('resultSection').classList.remove('visible');
+  document.getElementById('limitNote').style.display = 'none';
+
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressStep = document.getElementById('progressStep');
+  const progressPct  = document.getElementById('progressPct');
+  progressWrap.classList.add('visible');
+
+  const steps = [
+    { pct:10, label:'PARSING INPUT...' },
+    { pct:30, label:'DETECTING PUSH POINT...' },
+    { pct:55, label:'GENERATING HEATMAP...' },
+    { pct:75, label:'BUILDING STRATEGY...' },
+    { pct:90, label:'RENDERING OUTPUT...' },
+  ];
+  let stepIdx = 0;
+  const progressTimer = setInterval(() => {
+    if (stepIdx < steps.length) {
+      const s = steps[stepIdx++];
+      progressFill.style.width = s.pct + '%';
+      progressStep.textContent = s.label;
+      progressPct.textContent  = s.pct + '%';
+    }
+  }, 900);
+
+  const prompt = `あなたは競技クイズ（早押しクイズ）の超一流プレイヤーかつ解析の専門家です。
+
+問題文: 「${question}」
+答え（分析用・問題文には絶対に含めないこと）: 「${answer || '不明'}」
+
+【絶対禁止】
+- chunksの中に答えの文字列を含めてはいけない
+- 問題文にない文字をchunksに追加してはいけない
+- chunksを全て結合すると問題文と完全に一致しなければならない
+
+【scoreの定義】
+scoreは単調増加（絶対に下がらない）。
+- 1: 答えと無関係
+- 2: 同ジャンルのキーワードが出た・連想できる程度
+- 3: 候補が数個に絞れる
+- 4: ほぼ一択・ここで押す（早押しの最適タイミング）
+- 5: 完全一意確定・以降ずっと5
+
+【score=4になる具体的な条件】
+- 答えを絞り込む決定的な修飾語・固有表現が出た時（「唯一の」「特に」「のみ」「初めて」など）
+- 候補が1〜2個まで絞られた時
+- 問題の核心フレーズが揃った時
+
+【score=5になる具体的な条件】
+- これ以上情報がなくても完全に答えが一意確定する時
+- 「何でしょう？」などの末尾疑問文（すでに確定済みなのでscore=5）
+
+【★ 助詞の厳密な解析 ★】
+固有名詞・数値・キーワードの直後の助詞と、その後続構造を必ずセットで見ること。
+助詞単体ではなく「助詞＋後続動詞・形容詞の構造」でscoreを決定する。
+
+■「や」の判定（3パターンを厳密に区別）
+
+パターンA：「AやBといった/などの/で知られる/をはじめとする 〇〇」
+  → AとBは例示・列挙。答えは〇〇の方（別の概念）。
+  → ただし、AまたはBが超有名な固有例（その概念を代表する例として広く知られている）であれば、
+    〇〇が出る前にA時点でスコアを上げてよい。
+  例（score上げない）: 「UNITED ARROWSやBEAMSで知られる」→ UA・BEAMSは答えでない、〇〇待ち
+  例（score上げる）: 「ドラえもんやクレヨンしんちゃんといった〇〇」→「ドラえもん」時点でscore=4
+  判断基準：「この例を聞いた瞬間に答えが1〜2個に絞れるか」でscore=4を判定する
+
+パターンB：「AやBに設定される/AやBを取る/AやBとなる 〇〇」
+  → AとBはその答えの性質・取りうる値を説明している。答えを強く示唆。score=4以上。
+  例: 「1%や5%に設定されることが多い〇〇」→ 有意水準が確定に近い → score=4
+
+パターンC：「AやBなど、〜のことを何という/〜を指す言葉は」
+  → AとBは答えの概念の具体例そのもの。AやBを知識として知っていれば答えが即確定。
+  → AまたはBが出た時点でscore=4以上。
+  例: 「『奏す』や『啓す』など、特定の人物にのみ使われる敬語」→「奏す」で絶対敬語がほぼ確定 score=4
+
+見分け方まとめ：
+  「や」→「など、〜のことを何という」の構造 → パターンC（A出現時点でscore=4）
+  「や」→「に〜される/を〜する/と〜なる」形 → パターンB（score上昇）
+  「や」→「といった/などの/で知られる/をはじめ」形 → パターンA
+    └ 例示が超有名（その概念の代表例として即わかる）→ score=4
+    └ 例示が無名・業界限定・一般性が低い → score上げない（〇〇待ち）
+
+■その他の助詞
+- 「〇〇で」→ 場所・手段・範囲。〇〇の中の別のものが答え
+- 「〇〇の」→ 所有・関連。〇〇ではなく〇〇に属するものが答え
+- 「〇〇が」→ 主語。〇〇とは別の何かを問う
+- 「〇〇は」→ トピック提示。〇〇について何かを問う
+- 「〇〇を」→ 目的語。文脈で判断
+- 「〇〇と」→ 並列・比較。〇〇は比較対象
+
+【分割ルール】
+- 1〜3文字単位で分割
+- 句読点「、」「。」「？」「『』」は独立したchunk
+- 助詞は単独のchunk（「が」「は」「を」「に」「で」「や」「と」等）
+- 1つのchunkに4文字以上入れない
+
+【candidatesフィールドの定義】
+各chunkについて、そのchunkが読まれた時点（累積情報）で「競技クイズの答えとして実際に成立する具体的な候補」を最大5個リストアップする。
+
+【重要ルール】
+1. 競技クイズで実際に答えになるレベルの固有名詞・専門用語のみ書く。
+   → 正しい例（人名）:「夏目漱石」「野口英世」「ナポレオン」
+   → 正しい例（作品名）:「吾輩は猫である」「春と修羅」「ゲルニカ」
+   → 正しい例（専門用語）:「コンシーラー」「有意水準」「絶対敬語」「ピタゴラスの定理」
+   → 悪い例（曖昧すぎ）:「化粧品全般」「スキンケア用品」「美容関連用語」
+
+2. 「この答えが読まれたら押せる」と感じるような具体的な固有名詞・術語レベルで書くこと。
+   カテゴリ名・ジャンル名・説明文は絶対に候補に入れない。
+
+3. 答えが既知であれば、その答えも候補に含めてよい。
+   答えが不明なら、クイズ知識に基づいて実際に出題されそうな具体名を推測して入れる。
+
+- score=1: candidates=[] （情報なし）
+- score=2: その時点で考えられる具体的な答え候補を3〜5個（広めに）
+- score=3: 絞り込まれた具体名を2〜4個
+- score=4: ほぼ一択の具体名1〜2個
+- score=5: 確定1個（答えそのもの）
+
+【tipフィールドの定義（score=3以上のchunkのみ）】
+score=3: なぜ候補が絞れたかを20文字以内で説明
+score=4: 「なぜここで押せるか」「どの助詞パターンに該当するか」「残りリスクは何か」を40文字以内で詳述
+score=5: 確定理由を20文字以内
+
+【具体例（candidatesの書き方含む）】
+- 「宮沢賢治|が|」→ score=3, candidates=["春と修羅","注文の多い料理店","銀河鉄道の夜","風の又三郎"]
+- 「生前|刊行|した」→ score=4, candidates=["春と修羅"]
+- 「唯一|の|詩集」→ score=5, candidates=["春と修羅"]
+- 「くすみ|を|隠す」→ score=2, candidates=["コンシーラー","ファンデーション","BBクリーム","CCクリーム","下地"]
+- 「カバー」→ score=3, candidates=["コンシーラー","ファンデーション","BBクリーム"]
+- 「隠す」→ score=4, candidates=["コンシーラー","ファンデーション"]
+- 「1%|や|5%|に|設定|され」→ score=3〜4, candidates=["有意水準","信頼区間"]
+- 「奏す|や|啓す|など」→ score=4, candidates=["絶対敬語","二方面敬語"]
+
+【best_push_phraseの定義】
+score=4が最初に登場するchunkのtext。
+これが実際にボタンを押すべき最速タイミング。
+early_strategyとbest_push_reasonは必ずこのタイミングを前提に書くこと。
+
+次のJSON形式だけで回答してください。説明文は一切不要です。\`\`\`jsonなどのマークダウン記法も不要です:
+
+{
+  "difficulty": "easy",
+  "difficulty_reason": "難易度の理由（30文字以内）",
+  "best_push_phrase": "score=4が最初に登場するchunkのtext",
+  "best_push_reason": "なぜそこで押せるか・助詞の解釈・残りリスク・押し逃しリスクを含む詳細な根拠（200文字以内）",
+  "best_push_candidates": ["この時点での有力候補1", "候補2"],
+  "chunks": [
+    { "text": "1〜3文字", "score": 1, "tip": "", "candidates": [] }
+  ],
+  "early_strategy": "score=4のbest_push_phraseで押すことを前提とした早押し戦略（120文字以内）",
+  "trap_warning": "助詞の読み違いによるカブりリスクや混同しやすい答えを含む注意点（100文字以内）"
+}
+
+difficultyは"easy"（有名・教養）"mid"（専門知識必要）"hard"（高難度・マニアック）のいずれか。`;
+
+  try {
+    const rawText = await callGemini(prompt);
+    incrementUsage();
+
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('PARSE ERROR — 再度お試しください。');
+    const result = JSON.parse(jsonMatch[0]);
+
+    if (result.chunks) {
+      const joined = result.chunks.map(c => c.text).join('');
+      if (joined !== question) {
+        const scoreMap = {};
+        let pos = 0;
+        for (const chunk of result.chunks) {
+          const idx = question.indexOf(chunk.text, pos);
+          if (idx !== -1) {
+            for (let i = idx; i < idx + chunk.text.length; i++)
+              scoreMap[i] = Math.max(scoreMap[i] || 1, chunk.score);
+            pos = idx + chunk.text.length;
+          }
+        }
+        result.chunks = question.split('').map((ch, i) => ({ text:ch, score:scoreMap[i]||1, tip:'', candidates:[] }));
+      }
+
+      let max = 1;
+      result.chunks = result.chunks.map(c => {
+        if (c.score > max) max = c.score;
+        return { ...c, score: max };
+      });
+
+      const pushIdx = result.chunks.findIndex(c => c.score >= 4);
+      if (pushIdx !== -1) {
+        result.best_push_phrase = result.chunks[pushIdx].text;
+        const ctxStart = Math.max(0, pushIdx - 5);
+        result.best_push_context = result.chunks.slice(ctxStart, pushIdx + 1).map(c => c.text).join('');
+        result._push_idx = pushIdx;
+      }
+    }
+
+    clearInterval(progressTimer);
+    progressFill.style.width = '100%';
+    progressStep.textContent = 'ANALYSIS COMPLETE';
+    progressPct.textContent  = '100%';
+    setTimeout(() => progressWrap.classList.remove('visible'), 700);
+    renderResult(result);
+
+  } catch(e) {
+    const msg = e.message || String(e);
+    if (msg.includes('APIキーが無効') || msg.includes('権限'))
+      showError('AUTH ERROR // ' + msg);
+    else if (msg.includes('rate limit') || msg.includes('429'))
+      showError('RATE LIMIT // しばらく待ってから再試行してください。');
+    else
+      showError('ERROR // ' + msg);
+  } finally {
+    clearInterval(progressTimer);
+    progressWrap.classList.remove('visible');
+    progressFill.style.width = '0%';
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// ── RENDER RESULT ──────────────────────────────────────
+function renderResult(result) {
+  const diffMap = {
+    easy: ['badge-easy','LV.01 EASY'],
+    mid:  ['badge-mid', 'LV.02 MID'],
+    hard: ['badge-hard','LV.03 HARD']
+  };
+  const [cls, label] = diffMap[result.difficulty] || ['badge-mid','LV.02 MID'];
+  document.getElementById('difficultyRow').innerHTML =
+    `<span class="badge ${cls}">${label}</span><span class="difficulty-label">${result.difficulty_reason||''}</span>`;
+
+  const phrase = result.best_push_phrase || '';
+  const context = result.best_push_context || phrase;
+  let displayPhrase;
+  if (context.length > phrase.length) {
+    const pre = context.slice(0, context.length - phrase.length);
+    displayPhrase = `<span style="color:var(--sub);font-size:0.85em;">${pre}</span><span class="hl">「${phrase}」</span>`;
+  } else {
+    displayPhrase = `<span class="hl">「${phrase}」</span>`;
+  }
+  document.getElementById('bestPointText').innerHTML = `${displayPhrase}で押す`;
+  document.getElementById('bestPointReason').innerHTML = (() => {
+    const reason = result.best_push_reason || '';
+    const candidates = result.best_push_candidates || [];
+    let html = `<div>${reason}</div>`;
+    if (candidates.length > 0) {
+      html += `<div class="best-reason-detail">
+        <div class="best-reason-detail-label">// CANDIDATES AT PUSH POINT</div>
+        <div class="best-candidates-row">
+          ${candidates.map((c, i) => {
+            const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : 'rank-other';
+            return `<span class="best-candidate-chip ${rankClass}">${c}</span>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+    return html;
+  })();
+
+  const display = document.getElementById('questionDisplay');
+  display.innerHTML = '';
+  const pushIdx = result._push_idx;
+  (result.chunks||[]).forEach((chunk, idx) => {
+    const span = document.createElement('span');
+    span.className = 'chunk';
+    span.setAttribute('data-score', chunk.score||1);
+    if (idx === pushIdx) span.classList.add('push-marker');
+    span.textContent = chunk.text;
+    if (chunk.tip && chunk.score >= 3) {
+      const tip = document.createElement('div');
+      tip.className = 'tooltip';
+      let tipHTML = '';
+      if (chunk.tip) tipHTML += `<div class="tooltip-tip">${chunk.tip}</div>`;
+      const candidates = chunk.candidates || [];
+      if (candidates.length > 0) {
+        tipHTML += `<div class="tooltip-candidates-label">▸ CANDIDATES</div><div class="tooltip-candidates">`;
+        candidates.forEach((c, i) => {
+          const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : 'rank-other';
+          tipHTML += `<span class="tooltip-candidate ${rankClass}">${c}</span>`;
+        });
+        tipHTML += `</div>`;
+      }
+      tip.innerHTML = tipHTML;
+      span.appendChild(tip);
+    }
+    display.appendChild(span);
+  });
+
+  const strategyPhrase = result.best_push_phrase ? `「${result.best_push_phrase}」で押す` : '';
+  document.getElementById('strategyGrid').innerHTML = `
+    <div class="strategy-card">
+      <div class="strategy-card-title">// 早押し戦略</div>
+      <div class="strategy-card-sub" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--c);letter-spacing:0.1em;margin-bottom:6px;opacity:0.8;">PUSH POINT ▸ ${strategyPhrase}</div>
+      <div class="strategy-card-body">${result.early_strategy||'-'}</div>
+    </div>
+    <div class="strategy-card">
+      <div class="strategy-card-title">// 注意ポイント</div>
+      <div class="strategy-card-body">${result.trap_warning||'-'}</div>
+    </div>`;
+
+  document.getElementById('resultSection').classList.add('visible');
+  document.getElementById('submitSection').classList.add('visible');
+  document.getElementById('submitStatus').className = 'submit-status';
+  document.getElementById('feedbackText').value = '';
+
+  const tablePanel = document.getElementById('candidatesTablePanel');
+  const tableWrap  = document.getElementById('candidatesTableWrap');
+  const tableRows = (result.chunks || []).map((c, i) => ({ ...c, _idx: i }))
+    .filter(c => c.score >= 2 && c.candidates && c.candidates.length > 0);
+
+  if (tableRows.length > 0) {
+    const deduped = [];
+    let prev = null;
+    for (const row of tableRows) {
+      const key = row.score + '|' + (row.candidates||[]).join(',');
+      if (!prev || key !== prev) { deduped.push(row); prev = key; }
+    }
+    let html = `<table class="cand-table"><thead><tr>
+      <th>語句</th><th>スコア</th><th>答えの候補</th><th>ポイント</th>
+    </tr></thead><tbody>`;
+    for (const row of deduped) {
+      const isPush = row._idx === pushIdx;
+      const pips = [1,2,3,4,5].map(n => {
+        let cls = 'pip';
+        if (n <= row.score) cls += ` lit-${row.score}`;
+        return `<span class="${cls}"></span>`;
+      }).join('');
+      const chips = (row.candidates || []).map((c, i) => {
+        const rk = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : 'rank-other';
+        return `<span class="cand-chip ${rk}">${c}</span>`;
+      }).join('');
+      const pushBadge = isPush ? `<span class="cand-push-badge">▼ PUSH</span>` : '';
+      html += `<tr class="${isPush ? 'cand-push-row' : ''}">
+        <td class="col-phrase">${row.text}${pushBadge}</td>
+        <td class="col-score"><span class="cand-score-pip">${pips}</span></td>
+        <td class="col-candidates">${chips}</td>
+        <td class="col-tip">${row.tip || ''}</td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+    tableWrap.innerHTML = html;
+    tablePanel.style.display = 'block';
+  } else {
+    tablePanel.style.display = 'none';
+  }
+
+  window._lastAnalysis = {
+    question: document.getElementById('questionText').value.trim(),
+    answer:   document.getElementById('answerText').value.trim(),
+    result
+  };
+  setTimeout(() => document.getElementById('resultSection').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+}
+
+// ── SUBMIT / COPY ──────────────────────────────────────
+function submitResult() {
+  const status = document.getElementById('submitStatus');
+  const feedback = document.getElementById('feedbackText').value.trim();
+  if (!window._lastAnalysis) return;
+  const payload = {
+    date: new Date().toISOString(),
+    question: window._lastAnalysis.question,
+    answer:   window._lastAnalysis.answer,
+    result:   window._lastAnalysis.result,
+    memo: feedback
+  };
+  navigator.clipboard.writeText(JSON.stringify(payload, null, 2))
+    .then(() => { status.textContent = '✓ COPIED'; status.className = 'submit-status ok'; })
+    .catch(() => { status.textContent = 'FAILED'; status.className = 'submit-status err'; });
+}
+
+// ── UTILS ──────────────────────────────────────────────
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.add('visible');
+  if (msg.includes('LIMIT') || msg.includes('rate') || msg.includes('429'))
+    document.getElementById('limitNote').style.display = 'block';
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') analyze();
+});
+
+initApiKey();
+</script>
+</body>
+</html>
