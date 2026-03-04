@@ -449,7 +449,7 @@
 <div class="container">
 
   <header>
-    <div class="logo-tag">AI Quiz Trainer v2.1</div>
+    <div class="logo-tag">AI Quiz Trainer v2.0</div>
     <h1>早押し<span>最適化</span>トレーナー</h1>
     <p class="subtitle">問題文を解析し、最適な押しポイントをAIが可視化する</p>
     <div class="free-badge">✓ APIキー不要 &nbsp;|&nbsp; 完全無料 &nbsp;|&nbsp; ブラウザで動く</div>
@@ -553,7 +553,7 @@ async function analyze() {
 - 引っ張り: 末尾まで読まないと確定しない構造
 - 例）「テイラー展開の中でも特に、」→ マクローリン展開が強示唆でscore=4、「x=0」でscore=5
 
-次のJSON形式だけで回答してください。\`\`\`や説明文は一切不要です:
+次のJSON形式だけで回答してください。コードブロックや説明文は一切不要です:
 
 {
   "difficulty": "easy",
@@ -568,7 +568,7 @@ async function analyze() {
 }
 
 difficultyは "easy"（有名・教養レベル）"mid"（専門知識必要）"hard"（高難度・マニアック）のいずれか。
-chunksは問題文全体を自然な文節・単語で余すことなく分割してください。\`;
+chunksは問題文全体を自然な文節・単語で余すことなく分割してください。`;
 
   try {
     const response = await puter.ai.chat(prompt, { model: 'gemini-2.0-flash' });
