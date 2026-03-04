@@ -449,10 +449,10 @@
 <div class="container">
 
   <header>
-    <div class="logo-tag">AI Quiz Trainer v2.0</div>
+    <div class="logo-tag">AI Quiz Trainer v3.0</div>
     <h1>早押し<span>最適化</span>トレーナー</h1>
     <p class="subtitle">問題文を解析し、最適な押しポイントをAIが可視化する</p>
-    <div class="free-badge">✓ APIキー不要 &nbsp;|&nbsp; 完全無料 &nbsp;|&nbsp; ブラウザで動く</div>
+    <div class="free-badge">✓ APIキー不要 &nbsp;|&nbsp; 完全無料 &nbsp;|&nbsp; Claude Sonnet 4.5搭載</div>
   </header>
 
   <div class="input-card">
@@ -575,7 +575,7 @@ score基準:
 difficultyは"easy"（有名・教養）"mid"（専門知識必要）"hard"（高難度・マニアック）のいずれか。`;
 
   try {
-    const response = await puter.ai.chat(prompt, { model: 'gemini-2.0-flash' });
+    const response = await puter.ai.chat(prompt, { model: 'claude-sonnet-4-5' });
     const rawText = typeof response === 'string' ? response : (response?.message?.content || response?.text || JSON.stringify(response));
 
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
