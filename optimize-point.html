@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>早押しトレーナー AI</title>
+<script src="https://js.puter.com/v2/"></script>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -48,10 +49,7 @@
     z-index: 1;
   }
 
-  header {
-    text-align: center;
-    margin-bottom: 48px;
-  }
+  header { text-align: center; margin-bottom: 48px; }
 
   .logo-tag {
     display: inline-block;
@@ -97,53 +95,19 @@
     animation: slideUp 0.6s ease 0.2s both;
   }
 
-  .api-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent3);
-    padding: 20px 24px;
-    margin-bottom: 28px;
+  .free-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.3);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    margin-top: 16px;
     animation: slideUp 0.6s ease 0.25s both;
   }
-
-  .api-section label {
-    display: block;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.15em;
-    color: var(--accent3);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-  }
-
-  .api-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .api-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    padding: 10px 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .api-input:focus { border-color: var(--accent3); }
-
-  .api-link {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 8px;
-  }
-
-  .api-link a { color: var(--accent); text-decoration: none; }
-  .api-link a:hover { text-decoration: underline; }
 
   .input-card {
     background: var(--surface);
@@ -231,6 +195,10 @@
     letter-spacing: 0.1em;
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
 
   .btn-analyze:hover:not(:disabled) {
@@ -239,24 +207,22 @@
     box-shadow: 0 8px 24px rgba(0,229,255,0.3);
   }
 
-  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-  .btn-analyze .spinner {
-    display: none;
-    width: 18px;
-    height: 18px;
+  .spinner {
+    width: 18px; height: 18px;
     border: 2px solid rgba(0,0,0,0.3);
     border-top-color: var(--bg);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
-    margin: 0 auto;
+    display: none;
   }
 
   .btn-analyze.loading .btn-text { display: none; }
   .btn-analyze.loading .spinner { display: block; }
 
-  .result-section { display: none; animation: slideUp 0.5s ease; }
-  .result-section.visible { display: block; }
+  .result-section { display: none; }
+  .result-section.visible { display: block; animation: slideUp 0.5s ease; }
 
   .viz-card {
     background: var(--surface);
@@ -267,7 +233,7 @@
 
   .question-display {
     font-size: 18px;
-    line-height: 2.4;
+    line-height: 2.6;
     letter-spacing: 0.02em;
   }
 
@@ -275,9 +241,9 @@
     display: inline;
     position: relative;
     cursor: default;
-    transition: all 0.15s;
     border-radius: 2px;
     padding: 2px 1px;
+    transition: filter 0.15s;
   }
 
   .chunk[data-score="5"] {
@@ -311,9 +277,9 @@
     position: absolute;
     bottom: calc(100% + 8px);
     left: 50%;
-    transform: translateX(-50%) translateY(0px);
+    transform: translateX(-50%) translateY(0);
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(0,229,255,0.3);
     padding: 8px 12px;
     font-size: 12px;
     color: var(--text);
@@ -336,7 +302,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: var(--border);
+    border-top-color: rgba(0,229,255,0.3);
   }
 
   .legend {
@@ -357,9 +323,7 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  .legend-dot {
-    width: 10px; height: 10px; border-radius: 2px;
-  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
 
   .best-point-card {
     background: var(--surface);
@@ -408,9 +372,7 @@
     margin-bottom: 20px;
   }
 
-  @media (max-width: 600px) {
-    .strategy-grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 600px) { .strategy-grid { grid-template-columns: 1fr; } }
 
   .strategy-card {
     background: var(--surface);
@@ -427,11 +389,7 @@
     margin-bottom: 10px;
   }
 
-  .strategy-card-body {
-    font-size: 14px;
-    line-height: 1.8;
-    color: var(--text);
-  }
+  .strategy-card-body { font-size: 14px; line-height: 1.8; color: var(--text); }
 
   .difficulty-row {
     display: flex;
@@ -450,7 +408,7 @@
   }
 
   .badge-easy { background: rgba(0,229,255,0.15); color: var(--accent); border: 1px solid var(--accent); }
-  .badge-mid { background: rgba(255,230,0,0.15); color: var(--accent3); border: 1px solid var(--accent3); }
+  .badge-mid  { background: rgba(255,230,0,0.15);  color: var(--accent3); border: 1px solid var(--accent3); }
   .badge-hard { background: rgba(255,61,107,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
 
   .difficulty-label { font-size: 13px; color: var(--text-muted); }
@@ -464,23 +422,18 @@
     margin-bottom: 20px;
     display: none;
     white-space: pre-line;
+    line-height: 1.7;
   }
 
   .error-box.visible { display: block; }
 
-  .toggle-key {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 10px 14px;
-    cursor: pointer;
+  .hint-text {
     font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 10px;
     font-family: 'JetBrains Mono', monospace;
-    transition: all 0.2s;
-    white-space: nowrap;
   }
-
-  .toggle-key:hover { border-color: var(--accent); color: var(--accent); }
 
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -496,22 +449,11 @@
 <div class="container">
 
   <header>
-    <div class="logo-tag">AI Quiz Trainer v1.0</div>
+    <div class="logo-tag">AI Quiz Trainer v2.0</div>
     <h1>早押し<span>最適化</span>トレーナー</h1>
     <p class="subtitle">問題文を解析し、最適な押しポイントをAIが可視化する</p>
+    <div class="free-badge">✓ APIキー不要 &nbsp;|&nbsp; 完全無料 &nbsp;|&nbsp; ブラウザで動く</div>
   </header>
-
-  <div class="api-section">
-    <label>Gemini API Key（無料）</label>
-    <div class="api-row">
-      <input type="password" class="api-input" id="apiKey" placeholder="AIzaSy..." autocomplete="off">
-      <button class="toggle-key" id="toggleBtn" onclick="toggleKey()">表示</button>
-    </div>
-    <p class="api-link">
-      取得先: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>
-      （Googleアカウントで無料・クレカ不要）
-    </p>
-  </div>
 
   <div class="input-card">
     <div class="card-label">問題文を入力</div>
@@ -524,6 +466,7 @@
       <span class="btn-text">⚡ 早押しポイントを解析する</span>
       <div class="spinner"></div>
     </button>
+    <p class="hint-text">Ctrl + Enter でも解析できます</p>
   </div>
 
   <div class="error-box" id="errorBox"></div>
@@ -558,7 +501,7 @@
           <span>まだ早い</span>
         </div>
         <div class="legend-item">
-          <div class="legend-dot" style="background:#2a2a3e"></div>
+          <div class="legend-dot" style="background:#1a1a26"></div>
           <span>情報なし</span>
         </div>
       </div>
@@ -570,40 +513,25 @@
 </div>
 
 <script>
-function toggleKey() {
-  const input = document.getElementById('apiKey');
-  const btn = document.getElementById('toggleBtn');
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '隠す';
-  } else {
-    input.type = 'password';
-    btn.textContent = '表示';
-  }
-}
-
 async function analyze() {
-  const apiKey = document.getElementById('apiKey').value.trim();
   const question = document.getElementById('questionText').value.trim();
-  const answer = document.getElementById('answerText').value.trim();
-  const btn = document.getElementById('analyzeBtn');
+  const answer   = document.getElementById('answerText').value.trim();
+  const btn      = document.getElementById('analyzeBtn');
   const errorBox = document.getElementById('errorBox');
 
   errorBox.classList.remove('visible');
-
-  if (!apiKey) { showError('APIキーを入力してください。'); return; }
   if (!question) { showError('問題文を入力してください。'); return; }
 
   btn.classList.add('loading');
   btn.disabled = true;
   document.getElementById('resultSection').classList.remove('visible');
 
-  const prompt = `あなたは競技クイズの専門家です。以下のクイズ問題を分析し、早押しクイズにおける最適な押しポイントを特定してください。
+  const prompt = `あなたは競技クイズの専門家です。以下の問題を分析し、早押しの最適な押しポイントを特定してください。
 
 問題文: 「${question}」
 答え: 「${answer || '不明'}」
 
-以下のJSON形式のみで回答してください。前後に説明文や\`\`\`は不要です:
+次のJSON形式だけで回答してください。\`\`\`や説明文は一切不要です:
 
 {
   "difficulty": "easy",
@@ -611,48 +539,34 @@ async function analyze() {
   "best_push_phrase": "最も早く押せる問題文中のフレーズ",
   "best_push_reason": "なぜここで押せるか（100文字以内）",
   "chunks": [
-    {
-      "text": "文節テキスト",
-      "score": 3,
-      "tip": "ヒント（scoreが3以上のみ、20文字以内）"
-    }
+    { "text": "文節テキスト", "score": 3, "tip": "ヒント（score3以上のみ・20文字以内）" }
   ],
   "early_strategy": "早押し戦略のコツ（100文字以内）",
   "trap_warning": "引っかかりやすいポイント（80文字以内）"
 }
 
 difficultyは "easy" "mid" "hard" のいずれか。
-chunksのscoreは1〜5の整数（5=今すぐ押せる、4=ほぼ確定、3=やや絞れる、2=まだ早い、1=情報なし）。
-chunksは問題文全体を自然な文節で余すことなく分割してください。`;
+score は1〜5の整数（5=今すぐ押せる、4=ほぼ確定、3=やや絞れる、2=まだ早い、1=情報なし）。
+chunksは問題文全体を自然な文節・単語で余すことなく分割してください。`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2 }
-        })
-      }
-    );
+    const response = await puter.ai.chat(prompt, { model: 'gemini-2.0-flash' });
+    const rawText = typeof response === 'string' ? response : (response?.message?.content || response?.text || JSON.stringify(response));
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('AIの応答を解析できませんでした。もう一度お試しください。');
+    if (!jsonMatch) throw new Error('AIの応答を解析できませんでした。再度お試しください。');
 
     const result = JSON.parse(jsonMatch[0]);
     renderResult(result);
 
   } catch (e) {
-    showError('エラー: ' + e.message + '\n※APIキーや問題文を確認してください。');
+    // Puter.jsのログインが必要な場合の案内も含む
+    const msg = e.message || String(e);
+    if (msg.includes('login') || msg.includes('auth') || msg.includes('sign')) {
+      showError('初回利用時はPuter.jsのログインが必要です。\nポップアップが表示されたらGoogleアカウントでサインインしてください。\nその後もう一度解析ボタンを押してください。');
+    } else {
+      showError('エラー: ' + msg);
+    }
   } finally {
     btn.classList.remove('loading');
     btn.disabled = false;
@@ -660,7 +574,6 @@ chunksは問題文全体を自然な文節で余すことなく分割してく�
 }
 
 function renderResult(result) {
-  // Difficulty
   const diffMap = {
     easy: ['badge-easy', '初級'],
     mid:  ['badge-mid',  '中級'],
@@ -670,11 +583,9 @@ function renderResult(result) {
   document.getElementById('difficultyRow').innerHTML =
     `<span class="badge ${cls}">${label}</span><span class="difficulty-label">${result.difficulty_reason || ''}</span>`;
 
-  // Best push
   document.getElementById('bestPointText').textContent = `「${result.best_push_phrase}」で押す`;
   document.getElementById('bestPointReason').textContent = result.best_push_reason || '';
 
-  // Heatmap
   const display = document.getElementById('questionDisplay');
   display.innerHTML = '';
   (result.chunks || []).forEach(chunk => {
@@ -691,7 +602,6 @@ function renderResult(result) {
     display.appendChild(span);
   });
 
-  // Strategy
   document.getElementById('strategyGrid').innerHTML = `
     <div class="strategy-card">
       <div class="strategy-card-title">⚡ 早押し戦略</div>
