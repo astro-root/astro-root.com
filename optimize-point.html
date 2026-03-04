@@ -3,28 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QUIZ TRAINER // PUSH POINT ANALYZER</title>
+<title>早押しトレーナー AI</title>
 <script src="https://js.puter.com/v2/"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:    #06080e;
-  --bg2:   #0a0d16;
-  --bg3:   #0e1220;
-  --cyan:  #00d4ff;
-  --cyan2: #00a8cc;
-  --cyan3: rgba(0,212,255,0.08);
-  --red:   #ff2d55;
-  --green: #00ff9d;
-  --amber: #ffb800;
-  --purple:#a855f7;
-  --text:  #ccd6f0;
-  --dim:   #4a5568;
-  --s5: #00d4ff;
-  --s4: #00ff9d;
-  --s3: #ffb800;
-  --s2: #ff6b35;
-  --grid: rgba(0,212,255,0.04);
+  --bg:    #070a12;
+  --bg2:   #0b0f1c;
+  --bg3:   #111828;
+  --bg4:   #161e30;
+  --c:     #00c8f0;
+  --c2:    #0099bb;
+  --c3:    #80e8ff;
+  --c4:    rgba(0,200,240,0.07);
+  --green: #00e5a0;
+  --amber: #f5a623;
+  --rose:  #ff5577;
+  --text:  #dde8f5;
+  --sub:   #a8bdd4;
+  --dim:   #6a7a99;
+  --s5:    #00c8f0;
+  --s4:    #00e5a0;
+  --s3:    #f5a623;
+  --s2:    #ff5577;
 }
 
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -38,269 +39,261 @@ body {
   overflow-x: hidden;
 }
 
-/* grid bg */
+/* ── subtle grid ── */
 body::before {
   content:'';
-  position: fixed; inset:0;
+  position:fixed; inset:0;
   background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none; z-index:0;
+    linear-gradient(rgba(0,200,240,0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,240,0.028) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events:none; z-index:0;
 }
 
-/* scan line animation */
+/* ── corner vignette ── */
 body::after {
   content:'';
-  position:fixed; top:0; left:0; right:0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--cyan) 50%, transparent 100%);
-  opacity: 0.15;
-  animation: scanline 8s linear infinite;
-  pointer-events:none; z-index:1;
+  position:fixed; inset:0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,200,240,0.05) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
 }
 
-@keyframes scanline {
-  0%   { top: -2px; }
-  100% { top: 100vh; }
+/* ── scan line ── */
+.scanline {
+  position:fixed; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent 0%, var(--c) 40%, var(--c3) 50%, var(--c) 60%, transparent 100%);
+  opacity: 0.2;
+  animation: scan 10s linear infinite;
+  pointer-events:none; z-index:10;
 }
+@keyframes scan { 0% { top:-1px; } 100% { top:100vh; } }
 
 .wrap {
-  max-width: 760px;
+  max-width: 740px;
   margin: 0 auto;
-  padding: 40px 20px 100px;
-  position: relative; z-index:2;
+  padding: 52px 24px 110px;
+  position:relative; z-index:1;
 }
 
-/* ══════════════════════
+/* ════════════
    HEADER
-══════════════════════ */
+════════════ */
 header {
-  margin-bottom: 40px;
-  animation: bootUp 0.8s ease both;
+  margin-bottom: 48px;
+  animation: bootUp 0.7s ease both;
 }
 
-.hud-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+.hud-bar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:32px;
+  padding-bottom:16px;
+  border-bottom:1px solid rgba(0,200,240,0.1);
 }
 
-.sys-tag {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 10px;
-  color: var(--cyan2);
-  letter-spacing: 0.15em;
-  line-height: 1.8;
-  opacity: 0.7;
+.sys-id {
+  font-family:'Share Tech Mono', monospace;
+  font-size:10px;
+  color:var(--c);
+  letter-spacing:0.2em;
+  opacity:0.9;
 }
 
-.sys-tag span { color: var(--cyan); }
-
-.status-cluster {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+.sys-status {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-family:'Share Tech Mono', monospace;
+  font-size:9px;
+  color:var(--green);
+  letter-spacing:0.12em;
+  opacity:0.8;
 }
 
-.status-dot {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
-  color: var(--dim);
-  letter-spacing: 0.1em;
+.pulse-dot {
+  width:7px; height:7px;
+  border-radius:50%;
+  background:var(--green);
+  position:relative;
 }
-
-.status-dot::before {
+.pulse-dot::after {
   content:'';
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: blink 2s ease infinite;
+  position:absolute; inset:-3px;
+  border-radius:50%;
+  border:1px solid var(--green);
+  animation:ripple 2s ease infinite;
+}
+@keyframes ripple {
+  0%   { opacity:0.8; transform:scale(1); }
+  100% { opacity:0; transform:scale(2.2); }
 }
 
-@keyframes blink {
-  0%,100% { opacity:1; }
-  50%      { opacity:0.3; }
-}
+/* title */
+.title-area { position:relative; }
 
-.title-block { position: relative; }
-
-.title-prefix {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 10px;
-  color: var(--cyan);
-  letter-spacing: 0.3em;
-  margin-bottom: 6px;
-  opacity: 0.8;
+.title-label {
+  font-family:'Share Tech Mono', monospace;
+  font-size:9px;
+  letter-spacing:0.35em;
+  color:var(--c);
+  text-transform:uppercase;
+  margin-bottom:10px;
+  opacity:0.9;
 }
 
 h1 {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: clamp(28px, 6vw, 52px);
-  letter-spacing: 0.06em;
-  line-height: 1.0;
-  color: #fff;
-  text-transform: uppercase;
-  position: relative;
+  font-family:'Rajdhani', sans-serif;
+  font-weight:700;
+  font-size:clamp(30px, 6.5vw, 54px);
+  letter-spacing:0.04em;
+  line-height:1.0;
+  text-transform:uppercase;
+  color:#fff;
 }
 
-h1 .accent { color: var(--cyan); }
+h1 .hi { color:var(--c); }
 
-/* corner brackets */
-.bracket-box {
-  position: relative;
-  display: inline-block;
-  padding: 4px 10px;
-  margin-top: 8px;
+.sub-title {
+  margin-top:12px;
+  font-size:13px;
+  color:#b0c4d8;
+  letter-spacing:0.04em;
 }
 
-.bracket-box::before, .bracket-box::after,
-.bracket-box .br-inner::before, .bracket-box .br-inner::after {
-  content: '';
-  position: absolute;
-  width: 10px; height: 10px;
-}
-.bracket-box::before      { top:0;    left:0;  border-top:1px solid var(--cyan); border-left:1px solid var(--cyan); }
-.bracket-box::after       { top:0;    right:0; border-top:1px solid var(--cyan); border-right:1px solid var(--cyan); }
-.bracket-box .br-inner::before { bottom:0; left:0;  border-bottom:1px solid var(--cyan); border-left:1px solid var(--cyan); }
-.bracket-box .br-inner::after  { bottom:0; right:0; border-bottom:1px solid var(--cyan); border-right:1px solid var(--cyan); }
-
-.bracket-text {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 10px;
-  color: var(--cyan);
-  letter-spacing: 0.2em;
-  opacity: 0.6;
+.chip-row {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px;
 }
 
-/* ══════════════════════
-   HUD PANEL
-══════════════════════ */
-.hud-panel {
-  position: relative;
+.chip {
+  padding:4px 12px;
+  border:1px solid rgba(0,200,240,0.2);
+  border-radius:2px;
+  font-family:'Share Tech Mono', monospace;
+  font-size:9px;
+  color:#a8bdd4;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  background:rgba(0,200,240,0.03);
+}
+
+/* ════════════
+   PANEL
+════════════ */
+.panel {
+  position:relative;
   background: var(--bg2);
-  border: 1px solid rgba(0,212,255,0.15);
-  padding: 24px;
-  margin-bottom: 12px;
-  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  border:1px solid rgba(0,200,240,0.12);
+  padding:26px 28px;
+  margin-bottom:12px;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
 }
 
-.hud-panel::before {
+/* top accent line */
+.panel::before {
   content:'';
   position:absolute; top:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, var(--cyan), rgba(0,212,255,0.2) 60%, transparent);
+  background: linear-gradient(90deg, var(--c) 0%, rgba(0,200,240,0.3) 40%, transparent 70%);
 }
 
-.hud-panel-label {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.28em;
-  color: var(--cyan);
-  text-transform: uppercase;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: 0.7;
-}
-
-.hud-panel-label::after {
+/* corner mark top-right */
+.panel::after {
   content:'';
-  flex:1; height:1px;
-  background: linear-gradient(90deg, rgba(0,212,255,0.3), transparent);
+  position:absolute; top:0; right:0;
+  width:18px; height:18px;
+  border-right:1px solid rgba(0,200,240,0.35);
+  border-bottom:1px solid rgba(0,200,240,0.35);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  background:var(--bg2);
 }
 
-/* ══════════════════════
+.panel-label {
+  font-family:'Share Tech Mono', monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  color:var(--c);
+  text-transform:uppercase;
+  margin-bottom:16px;
+  opacity:0.9;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.panel-label::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, rgba(0,200,240,0.2), transparent);
+}
+
+/* ════════════
    INPUT
-══════════════════════ */
-.input-panel { animation: bootUp 0.6s 0.15s ease both; }
+════════════ */
+.input-panel { animation: bootUp 0.7s 0.12s ease both; }
 
 textarea, .answer-input {
-  width: 100%;
-  background: rgba(0,212,255,0.03);
-  border: 1px solid rgba(0,212,255,0.12);
-  color: var(--text);
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 14px;
-  line-height: 1.85;
-  padding: 12px 15px;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-  resize: vertical;
+  width:100%;
+  background:rgba(0,200,240,0.025);
+  border:1px solid rgba(0,200,240,0.1);
+  color:var(--text);
+  font-family:'Noto Sans JP', sans-serif;
+  font-size:14px;
+  line-height:1.85;
+  padding:13px 16px;
+  outline:none;
+  transition:border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  resize:vertical;
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
 }
 
-textarea { min-height: 100px; }
+textarea { min-height:105px; }
 
 textarea:focus, .answer-input:focus {
-  border-color: rgba(0,212,255,0.4);
-  background: rgba(0,212,255,0.06);
+  border-color:rgba(0,200,240,0.4);
+  background:rgba(0,200,240,0.05);
+  box-shadow:0 0 0 2px rgba(0,200,240,0.08);
 }
 
-textarea::placeholder, .answer-input::placeholder {
-  color: var(--dim);
-  font-size: 13px;
-}
+textarea::placeholder, .answer-input::placeholder { color:var(--dim); font-size:13px; }
 
 .answer-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 10px;
+  display:flex; gap:10px; align-items:center; margin-top:12px;
 }
 
 .answer-label {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 10px;
-  color: var(--cyan);
-  letter-spacing: 0.12em;
-  white-space: nowrap;
-  opacity: 0.7;
+  font-family:'Share Tech Mono', monospace;
+  font-size:10px; color:var(--c); letter-spacing:0.14em; white-space:nowrap; opacity:0.65;
 }
 
 .answer-input { flex:1; }
 
 /* button */
 .btn-analyze {
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px;
-  background: transparent;
-  border: 1px solid var(--cyan);
-  color: var(--cyan);
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
-  position: relative;
-  overflow: hidden;
+  width:100%; margin-top:16px; padding:14px;
+  background:transparent;
+  border:1px solid var(--c);
+  color:var(--c);
+  font-family:'Rajdhani', sans-serif;
+  font-size:16px; font-weight:700;
+  letter-spacing:0.2em; text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  position:relative; overflow:hidden;
 }
 
-.btn-analyze::before {
-  content:'';
+.btn-bg {
   position:absolute; inset:0;
-  background: var(--cyan);
-  transform: translateX(-100%);
-  transition: transform 0.25s ease;
-  z-index: 0;
+  background:var(--c);
+  transform:translateY(101%);
+  transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  z-index:0;
 }
 
-.btn-analyze:hover:not(:disabled)::before { transform: translateX(0); }
-.btn-analyze:hover:not(:disabled) { color: var(--bg); }
+.btn-analyze:hover:not(:disabled) .btn-bg { transform:translateY(0); }
+.btn-analyze:hover:not(:disabled) { color:var(--bg); }
 .btn-analyze:disabled { opacity:0.3; cursor:not-allowed; }
 .btn-analyze .btn-text, .btn-analyze .spinner { position:relative; z-index:1; }
 .btn-analyze.loading .btn-text { display:none; }
@@ -308,8 +301,8 @@ textarea::placeholder, .answer-input::placeholder {
 
 .spinner {
   width:16px; height:16px;
-  border:2px solid rgba(0,212,255,0.3);
-  border-top-color: var(--cyan);
+  border:2px solid rgba(0,200,240,0.3);
+  border-top-color:currentColor;
   border-radius:50%;
   animation:spin 0.6s linear infinite;
   display:none;
@@ -318,359 +311,291 @@ textarea::placeholder, .answer-input::placeholder {
 .hint-text {
   text-align:center;
   font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  color:var(--dim);
-  margin-top:8px;
-  letter-spacing:0.12em;
+  font-size:9px; color:#6a7a99;
+  margin-top:8px; letter-spacing:0.12em;
 }
 
 /* progress */
-.progress-wrap { display:none; margin-top:14px; }
+.progress-wrap { display:none; margin-top:16px; }
 .progress-wrap.visible { display:block; }
 
 .progress-header {
-  display:flex;
-  justify-content:space-between;
+  display:flex; justify-content:space-between;
   font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  color:var(--dim);
-  margin-bottom:6px;
-  letter-spacing:0.1em;
+  font-size:9px; color:#a0b4cc;
+  margin-bottom:7px; letter-spacing:0.1em;
 }
-
-.progress-pct { color:var(--cyan); }
+.progress-pct { color:var(--c); }
 
 .progress-bar-bg {
   width:100%; height:2px;
-  background:rgba(0,212,255,0.1);
-  overflow:hidden;
+  background:rgba(0,200,240,0.1);
+  position:relative;
 }
 
 .progress-bar-fill {
   height:100%;
-  background: linear-gradient(90deg, var(--cyan2), var(--cyan));
+  background: linear-gradient(90deg, var(--c2), var(--c), var(--c3));
+  background-size:200% 100%;
   width:0%;
   transition:width 0.5s ease;
-  box-shadow: 0 0 8px var(--cyan);
+  animation:shine 2s linear infinite;
+  box-shadow:0 0 8px var(--c);
+}
+@keyframes shine {
+  0%   { background-position:0% 0; }
+  100% { background-position:200% 0; }
 }
 
-/* ══════════════════════
+/* ════════════
    ERROR
-══════════════════════ */
+════════════ */
 .error-box {
   display:none;
-  background: rgba(255,45,85,0.07);
-  border:1px solid rgba(255,45,85,0.3);
+  background:rgba(255,85,119,0.07);
+  border:1px solid rgba(255,85,119,0.25);
   padding:12px 16px;
-  font-family:'Share Tech Mono', monospace;
-  font-size:11px;
-  color:#ff8099;
-  white-space:pre-line;
-  line-height:1.7;
+  font-size:12px; color:#ff99aa;
+  white-space:pre-line; line-height:1.7;
   margin-bottom:12px;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 }
 .error-box.visible { display:block; }
 
 .limit-note {
-  display:none;
-  text-align:center;
-  font-size:10px;
-  color:var(--dim);
-  line-height:1.8;
+  display:none; text-align:center;
+  font-size:10px; color:var(--sub); line-height:1.8;
   margin-bottom:12px;
   font-family:'Share Tech Mono', monospace;
-  letter-spacing:0.06em;
 }
 
-/* ══════════════════════
+/* ════════════
    RESULTS
-══════════════════════ */
+════════════ */
 .result-section { display:none; }
 .result-section.visible { display:block; }
 
 .difficulty-row {
-  display:flex;
-  align-items:center;
-  gap:10px;
+  display:flex; align-items:center; gap:10px;
   margin-bottom:12px;
-  animation: bootUp 0.3s ease both;
+  animation:bootUp 0.35s ease both;
 }
 
 .badge {
   font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  letter-spacing:0.18em;
-  padding:3px 12px;
-  text-transform:uppercase;
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  font-size:9px; letter-spacing:0.16em;
+  padding:3px 12px; text-transform:uppercase;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
 }
-.badge-easy { background:rgba(0,212,255,0.1); color:var(--cyan);   border:1px solid rgba(0,212,255,0.3); }
-.badge-mid  { background:rgba(255,184,0,0.1);  color:var(--amber); border:1px solid rgba(255,184,0,0.3); }
-.badge-hard { background:rgba(255,45,85,0.1);  color:var(--red);   border:1px solid rgba(255,45,85,0.3); }
+.badge-easy { background:rgba(0,200,240,0.1); color:var(--c);    border:1px solid rgba(0,200,240,0.3); }
+.badge-mid  { background:rgba(245,166,35,0.1); color:var(--amber); border:1px solid rgba(245,166,35,0.3); }
+.badge-hard { background:rgba(255,85,119,0.1); color:var(--rose);  border:1px solid rgba(255,85,119,0.3); }
 
 .difficulty-label {
-  font-family:'Share Tech Mono', monospace;
-  font-size:10px;
-  color:var(--dim);
-  letter-spacing:0.06em;
+  font-family:'Share Tech Mono', monospace; font-size:10px; color:#a8bdd4; letter-spacing:0.06em;
 }
 
 /* best point */
 .best-panel {
   position:relative;
-  background: var(--bg2);
-  border:1px solid rgba(0,212,255,0.25);
-  padding:22px 24px;
+  background: linear-gradient(135deg, rgba(0,200,240,0.07) 0%, rgba(0,200,240,0.02) 100%);
+  border:1px solid rgba(0,200,240,0.25);
+  padding:24px 28px;
   margin-bottom:12px;
-  animation: bootUp 0.3s 0.05s ease both;
-  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  animation:bootUp 0.35s 0.06s ease both;
+  clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px));
   overflow:hidden;
 }
 
 .best-panel::before {
   content:'';
   position:absolute; top:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, var(--cyan), rgba(0,212,255,0.1) 70%, transparent);
+  background:linear-gradient(90deg, var(--c), rgba(0,200,240,0.2) 60%, transparent);
 }
 
-.best-corner {
-  position:absolute;
-  bottom:8px; right:8px;
-  font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  color:var(--cyan);
-  opacity:0.3;
-  letter-spacing:0.1em;
+/* decorative elements */
+.best-panel .deco-tr {
+  position:absolute; top:0; right:0;
+  width:80px; height:80px;
+  border-right:1px solid rgba(0,200,240,0.15);
+  border-bottom:1px solid rgba(0,200,240,0.15);
+  pointer-events:none;
+}
+
+.best-panel .deco-bl {
+  position:absolute; bottom:0; left:0;
+  width:50px; height:50px;
+  border-left:1px solid rgba(0,200,240,0.1);
+  border-top:1px solid rgba(0,200,240,0.1);
+  pointer-events:none;
 }
 
 .best-panel-label {
-  font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  letter-spacing:0.28em;
-  color:var(--cyan);
-  text-transform:uppercase;
-  margin-bottom:10px;
-  opacity:0.6;
+  font-family:'Share Tech Mono', monospace; font-size:9px;
+  letter-spacing:0.28em; color:var(--c);
+  text-transform:uppercase; margin-bottom:12px; opacity:0.9;
 }
 
 .best-phrase {
   font-family:'Rajdhani', sans-serif;
-  font-size:28px;
-  font-weight:700;
-  color:#fff;
-  margin-bottom:8px;
-  line-height:1.2;
+  font-size:30px; font-weight:700;
+  color:#fff; margin-bottom:10px; line-height:1.15;
   letter-spacing:0.04em;
 }
 
-.best-phrase .bracket { color:var(--cyan); opacity:0.5; }
+.best-phrase .hl {
+  color:var(--c);
+  text-shadow:0 0 20px rgba(0,200,240,0.4);
+}
 
 .best-reason {
-  font-size:12px;
-  color: #8899bb;
-  line-height:1.85;
+  font-size:13px; color:#b0c8d8; line-height:1.85;
 }
 
 /* heatmap */
 .heatmap-panel {
   background:var(--bg2);
-  border:1px solid rgba(0,212,255,0.1);
-  padding:24px;
+  border:1px solid rgba(0,200,240,0.1);
+  padding:26px 28px;
   margin-bottom:12px;
-  animation: bootUp 0.3s 0.1s ease both;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  animation:bootUp 0.35s 0.1s ease both;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);
   position:relative;
+}
+
+.heatmap-panel::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,rgba(0,200,240,0.4),transparent 60%);
 }
 
 .question-display {
-  font-size:17px;
-  line-height:2.8;
-  word-break:break-all;
-  letter-spacing:0.02em;
+  font-size:18px; line-height:3.0;
+  word-break:break-all; letter-spacing:0.02em;
 }
 
-.chunk {
-  display:inline;
-  position:relative;
-  cursor:default;
-  padding:1px 0;
-  transition: text-shadow 0.2s;
-}
+.chunk { display:inline; position:relative; cursor:default; padding:1px 0; }
 
-.chunk[data-score="5"] {
-  color:var(--s5);
-  font-weight:700;
-  text-shadow: 0 0 10px rgba(0,212,255,0.6);
-}
-.chunk[data-score="4"] {
-  color:var(--s4);
-  font-weight:500;
-  text-shadow: 0 0 8px rgba(0,255,157,0.4);
-}
-.chunk[data-score="3"] {
-  color:var(--s3);
-  text-shadow: 0 0 6px rgba(255,184,0,0.3);
-}
-.chunk[data-score="2"] { color:var(--s2); }
-.chunk[data-score="1"] { color:var(--dim); }
+.chunk[data-score="5"] { color:var(--s5); font-weight:700; text-shadow:0 0 12px rgba(0,200,240,0.5); }
+.chunk[data-score="4"] { color:var(--s4); font-weight:500; text-shadow:0 0 8px rgba(0,229,160,0.35); }
+.chunk[data-score="3"] { color:var(--s3); }
+.chunk[data-score="2"] { color:var(--s2); opacity:0.9; }
+.chunk[data-score="1"] { color:#506080; }
 
-.chunk:hover .tooltip {
-  opacity:1;
-  transform:translateX(-50%) translateY(-4px);
-  pointer-events:auto;
-}
+.chunk:hover .tooltip { opacity:1; transform:translateX(-50%) translateY(-4px); pointer-events:auto; }
 
 .tooltip {
-  position:absolute;
-  bottom:calc(100% + 8px);
-  left:50%;
+  position:absolute; bottom:calc(100% + 8px); left:50%;
   transform:translateX(-50%) translateY(0);
-  background:var(--bg3);
-  border:1px solid rgba(0,212,255,0.25);
-  padding:6px 11px;
-  font-family:'Share Tech Mono', monospace;
-  font-size:10px;
-  color:var(--text);
-  opacity:0;
-  transition:all 0.15s;
-  pointer-events:none;
-  z-index:20;
-  white-space:normal;
-  text-align:center;
-  min-width:80px;
-  max-width:180px;
-  line-height:1.6;
-  box-shadow:0 8px 24px rgba(0,0,0,0.7);
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  background:var(--bg3); border:1px solid rgba(0,200,240,0.25);
+  padding:7px 12px; font-family:'Share Tech Mono', monospace;
+  font-size:10px; color:var(--text);
+  opacity:0; transition:all 0.15s;
+  pointer-events:none; z-index:20;
+  white-space:normal; text-align:center;
+  min-width:80px; max-width:190px; line-height:1.6;
+  box-shadow:0 8px 28px rgba(0,0,0,0.6);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);
 }
 
 .tooltip::after {
-  content:'';
-  position:absolute; top:100%; left:50%;
+  content:''; position:absolute; top:100%; left:50%;
   transform:translateX(-50%);
-  border:4px solid transparent;
-  border-top-color:rgba(0,212,255,0.25);
+  border:4px solid transparent; border-top-color:rgba(0,200,240,0.25);
 }
 
 .legend {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px 18px;
-  margin-top:16px;
-  padding-top:14px;
-  border-top:1px solid rgba(0,212,255,0.08);
+  display:flex; flex-wrap:wrap; gap:10px 20px;
+  margin-top:18px; padding-top:14px;
+  border-top:1px solid rgba(0,200,240,0.08);
 }
 
 .legend-item {
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  color:var(--dim);
-  letter-spacing:0.1em;
+  display:flex; align-items:center; gap:6px;
+  font-family:'Share Tech Mono', monospace; font-size:9px;
+  color:#a0b4cc; letter-spacing:0.1em;
 }
 
-.legend-dash {
-  width:12px; height:2px;
-  flex-shrink:0;
-}
+.legend-bar { width:14px; height:2px; flex-shrink:0; }
 
 /* strategy */
 .strategy-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  animation: bootUp 0.3s 0.15s ease both;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  animation:bootUp 0.35s 0.14s ease both;
 }
 
 @media (max-width:500px) { .strategy-grid { grid-template-columns:1fr; } }
 
 .strategy-card {
-  background:var(--bg2);
-  border:1px solid rgba(0,212,255,0.1);
-  padding:16px 18px;
-  position:relative;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  background:var(--bg2); border:1px solid rgba(0,200,240,0.1);
+  padding:18px 20px; position:relative;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);
 }
 
 .strategy-card::before {
-  content:'';
-  position:absolute; top:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, rgba(0,212,255,0.4), transparent);
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,rgba(0,200,240,0.35),transparent 70%);
 }
 
 .strategy-card-title {
-  font-family:'Share Tech Mono', monospace;
-  font-size:9px;
-  letter-spacing:0.2em;
-  color:var(--cyan);
-  text-transform:uppercase;
-  margin-bottom:9px;
-  opacity:0.6;
+  font-family:'Share Tech Mono', monospace; font-size:9px;
+  letter-spacing:0.2em; color:var(--c);
+  text-transform:uppercase; margin-bottom:9px; opacity:0.9;
 }
 
-.strategy-card-body {
-  font-size:12px;
-  line-height:1.85;
-  color:#8899bb;
-}
+.strategy-card-body { font-size:13px; line-height:1.85; color:#b0c8d8; }
 
-/* ══════════════════════
-   ANIMATIONS
-══════════════════════ */
+/* ════════════
+   ANIMATION
+════════════ */
 @keyframes bootUp {
-  from { opacity:0; transform:translateY(8px); filter:blur(2px); }
-  to   { opacity:1; transform:translateY(0);   filter:blur(0); }
+  from { opacity:0; transform:translateY(10px); filter:blur(3px); }
+  to   { opacity:1; transform:translateY(0);    filter:blur(0); }
 }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:var(--bg); }
-::-webkit-scrollbar-thumb { background:rgba(0,212,255,0.2); border-radius:4px; }
+::-webkit-scrollbar-thumb { background:rgba(0,200,240,0.2); border-radius:4px; }
 </style>
 </head>
 <body>
+<div class="scanline"></div>
 <div class="wrap">
 
-  <!-- HEADER -->
   <header>
-    <div class="hud-top">
-      <div class="sys-tag">
-        SYS // QUIZ_TRAINER_AI<br>
-        VER <span>3.1.0</span> // CLAUDE-SONNET-4-5
-      </div>
-      <div class="status-cluster">
-        <div class="status-dot">SYSTEM ONLINE</div>
-      </div>
+    <div class="hud-bar">
+      <div class="sys-id">PUSH_POINT_ANALYZER // v3.2</div>
+      <div class="sys-status"><div class="pulse-dot"></div>ONLINE</div>
     </div>
-    <div class="title-block">
-      <div class="title-prefix">// PUSH POINT ANALYZER</div>
-      <h1>早押し<span class="accent">最適化</span><br>トレーナー</h1>
-      <div class="bracket-box">
-        <div class="br-inner"></div>
-        <span class="bracket-text">NO API KEY REQUIRED · FREE · UNLIMITED</span>
+    <div class="title-area">
+      <div class="title-label">// AI QUIZ TRAINER</div>
+      <h1>早押し<span class="hi">最適化</span><br>トレーナー</h1>
+      <p class="sub-title">問題文を解析し、確定ポイントをリアルタイムで可視化する</p>
+      <div class="chip-row">
+        <div class="chip">API KEY FREE</div>
+        <div class="chip">UNLIMITED</div>
+        <div class="chip">CLAUDE SONNET 4.5</div>
       </div>
     </div>
   </header>
 
-  <!-- INPUT -->
-  <div class="hud-panel input-panel">
-    <div class="hud-panel-label">INPUT // 問題文</div>
-    <textarea id="questionText" placeholder="問題文を入力..."></textarea>
+  <div class="panel input-panel">
+    <div class="panel-label">INPUT // 問題文</div>
+    <textarea id="questionText" placeholder="例：「走れメロス」の中で、メロスが人質として王のもとに残した人物の名前は何でしょう？"></textarea>
     <div class="answer-row">
-      <span class="answer-label">ANS &gt;</span>
+      <span class="answer-label">ANS ›</span>
       <input type="text" class="answer-input" id="answerText" placeholder="答えを入力">
     </div>
     <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+      <div class="btn-bg"></div>
       <span class="btn-text">▶ ANALYZE PUSH POINT</span>
       <div class="spinner"></div>
     </button>
     <p class="hint-text">// CTRL + ENTER TO EXECUTE</p>
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-header">
-        <span id="progressStep">STANDBY...</span>
+        <span id="progressStep">STANDBY</span>
         <span class="progress-pct" id="progressPct">0%</span>
       </div>
       <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
@@ -678,31 +603,31 @@ textarea::placeholder, .answer-input::placeholder {
   </div>
 
   <p class="limit-note" id="limitNote">
-    ⚠ FREE TIER LIMIT REACHED. RETRY AFTER COOLDOWN.
+    ⚠ FREE TIER LIMIT REACHED — RETRY AFTER COOLDOWN
   </p>
   <div class="error-box" id="errorBox"></div>
 
-  <!-- RESULTS -->
   <div class="result-section" id="resultSection">
 
     <div class="difficulty-row" id="difficultyRow"></div>
 
     <div class="best-panel">
+      <div class="deco-tr"></div>
+      <div class="deco-bl"></div>
       <div class="best-panel-label">// OPTIMAL PUSH POINT</div>
       <div class="best-phrase" id="bestPointText"></div>
       <div class="best-reason" id="bestPointReason"></div>
-      <div class="best-corner">CONFIRMED</div>
     </div>
 
     <div class="heatmap-panel">
-      <div class="hud-panel-label">HEATMAP // 確定ポイント可視化</div>
+      <div class="panel-label">HEATMAP // 確定ポイント可視化</div>
       <div class="question-display" id="questionDisplay"></div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dash" style="background:var(--s5)"></div>今すぐ押せる</div>
-        <div class="legend-item"><div class="legend-dash" style="background:var(--s4)"></div>ほぼ確定</div>
-        <div class="legend-item"><div class="legend-dash" style="background:var(--s3)"></div>やや絞れる</div>
-        <div class="legend-item"><div class="legend-dash" style="background:var(--s2)"></div>まだ早い</div>
-        <div class="legend-item"><div class="legend-dash" style="background:var(--dim)"></div>情報なし</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s5)"></div>今すぐ押せる</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s4)"></div>ほぼ確定</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s3)"></div>やや絞れる</div>
+        <div class="legend-item"><div class="legend-bar" style="background:var(--s2)"></div>まだ早い</div>
+        <div class="legend-item"><div class="legend-bar" style="background:#344560"></div>情報なし</div>
       </div>
     </div>
 
@@ -733,11 +658,11 @@ async function analyze() {
   progressWrap.classList.add('visible');
 
   const steps = [
-    { pct: 10, label: 'PARSING QUESTION...' },
-    { pct: 30, label: 'DETECTING PUSH POINT...' },
-    { pct: 55, label: 'GENERATING HEATMAP...' },
-    { pct: 75, label: 'BUILDING STRATEGY...' },
-    { pct: 90, label: 'RENDERING OUTPUT...' },
+    { pct:10, label:'PARSING INPUT...' },
+    { pct:30, label:'DETECTING PUSH POINT...' },
+    { pct:55, label:'GENERATING HEATMAP...' },
+    { pct:75, label:'BUILDING STRATEGY...' },
+    { pct:90, label:'RENDERING OUTPUT...' },
   ];
   let stepIdx = 0;
   const progressTimer = setInterval(() => {
@@ -745,7 +670,7 @@ async function analyze() {
       const s = steps[stepIdx++];
       progressFill.style.width = s.pct + '%';
       progressStep.textContent = s.label;
-      progressPct.textContent = s.pct + '%';
+      progressPct.textContent  = s.pct + '%';
     }
   }, 900);
 
@@ -821,8 +746,8 @@ difficultyは"easy"（有名・教養）"mid"（専門知識必要）"hard"（�
       for (const c of candidates) {
         if (typeof c === 'string' && c.length > 0) return c;
         if (Array.isArray(c)) {
-          const joined = c.map(b => b?.text || b?.content || '').join('');
-          if (joined.length > 0) return joined;
+          const j = c.map(b => b?.text || b?.content || '').join('');
+          if (j.length > 0) return j;
         }
       }
       return JSON.stringify(r);
@@ -830,8 +755,7 @@ difficultyは"easy"（有名・教養）"mid"（専門知識必要）"hard"（�
     const rawText = extractText(response);
 
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('PARSE ERROR // 再度お試しください。');
-
+    if (!jsonMatch) throw new Error('PARSE ERROR — 再度お試しください。');
     const result = JSON.parse(jsonMatch[0]);
 
     if (result.chunks) {
@@ -842,47 +766,33 @@ difficultyは"easy"（有名・教養）"mid"（専門知識必要）"hard"（�
         for (const chunk of result.chunks) {
           const idx = question.indexOf(chunk.text, pos);
           if (idx !== -1) {
-            for (let i = idx; i < idx + chunk.text.length; i++) {
+            for (let i = idx; i < idx + chunk.text.length; i++)
               scoreMap[i] = Math.max(scoreMap[i] || 1, chunk.score);
-            }
             pos = idx + chunk.text.length;
           }
         }
-        result.chunks = question.split('').map((char, i) => ({
-          text: char, score: scoreMap[i] || 1, tip: ''
-        }));
+        result.chunks = question.split('').map((ch, i) => ({ text:ch, score:scoreMap[i]||1, tip:'' }));
       }
-
-      let maxScore = 1;
-      result.chunks = result.chunks.map(chunk => {
-        if (chunk.score > maxScore) maxScore = chunk.score;
-        return { ...chunk, score: maxScore };
-      });
-
-      result.chunks = result.chunks.map(chunk => {
-        if (chunk.score >= 2 && chunk.score < 5)
-          return { ...chunk, score: Math.min(chunk.score + 1, 5) };
-        return chunk;
-      });
-
-      const firstScore5 = result.chunks.find(c => c.score === 5);
-      if (firstScore5) result.best_push_phrase = firstScore5.text;
+      let max = 1;
+      result.chunks = result.chunks.map(c => { if(c.score>max) max=c.score; return {...c,score:max}; });
+      result.chunks = result.chunks.map(c => c.score>=2&&c.score<5 ? {...c,score:Math.min(c.score+1,5)} : c);
+      const f5 = result.chunks.find(c => c.score===5);
+      if (f5) result.best_push_phrase = f5.text;
     }
 
     clearInterval(progressTimer);
     progressFill.style.width = '100%';
     progressStep.textContent = 'ANALYSIS COMPLETE';
-    progressPct.textContent = '100%';
+    progressPct.textContent  = '100%';
     setTimeout(() => progressWrap.classList.remove('visible'), 700);
     renderResult(result);
 
-  } catch (e) {
+  } catch(e) {
     const msg = e.message || String(e);
-    if (msg.includes('login') || msg.includes('auth') || msg.includes('sign')) {
-      showError('AUTH REQUIRED // Puter.jsのログインが必要です。\nポップアップが表示されたらGoogleアカウントでサインインしてください。');
-    } else {
+    if (msg.includes('login')||msg.includes('auth')||msg.includes('sign'))
+      showError('AUTH REQUIRED // Puter.jsへのログインが必要です。\nポップアップが表示されたらGoogleアカウントでサインインしてください。');
+    else
       showError('ERROR // ' + msg);
-    }
   } finally {
     clearInterval(progressTimer);
     progressWrap.classList.remove('visible');
@@ -894,24 +804,25 @@ difficultyは"easy"（有名・教養）"mid"（専門知識必要）"hard"（�
 
 function renderResult(result) {
   const diffMap = {
-    easy: ['badge-easy', 'LV.01 // 初級'],
-    mid:  ['badge-mid',  'LV.02 // 中級'],
-    hard: ['badge-hard', 'LV.03 // 上級']
+    easy: ['badge-easy','LV.01 EASY'],
+    mid:  ['badge-mid', 'LV.02 MID'],
+    hard: ['badge-hard','LV.03 HARD']
   };
-  const [cls, label] = diffMap[result.difficulty] || ['badge-mid', 'LV.02 // 中級'];
+  const [cls, label] = diffMap[result.difficulty] || ['badge-mid','LV.02 MID'];
   document.getElementById('difficultyRow').innerHTML =
-    `<span class="badge ${cls}">${label}</span><span class="difficulty-label">${result.difficulty_reason || ''}</span>`;
+    `<span class="badge ${cls}">${label}</span><span class="difficulty-label">${result.difficulty_reason||''}</span>`;
 
+  const phrase = result.best_push_phrase || '';
   document.getElementById('bestPointText').innerHTML =
-    `<span class="bracket">[</span> ${result.best_push_phrase} <span class="bracket">]</span> で押す`;
+    `<span class="hl">「${phrase}」</span>で押す`;
   document.getElementById('bestPointReason').textContent = result.best_push_reason || '';
 
   const display = document.getElementById('questionDisplay');
   display.innerHTML = '';
-  (result.chunks || []).forEach(chunk => {
+  (result.chunks||[]).forEach(chunk => {
     const span = document.createElement('span');
     span.className = 'chunk';
-    span.setAttribute('data-score', chunk.score || 1);
+    span.setAttribute('data-score', chunk.score||1);
     span.textContent = chunk.text;
     if (chunk.tip && chunk.score >= 3) {
       const tip = document.createElement('div');
@@ -925,31 +836,27 @@ function renderResult(result) {
   document.getElementById('strategyGrid').innerHTML = `
     <div class="strategy-card">
       <div class="strategy-card-title">// 早押し戦略</div>
-      <div class="strategy-card-body">${result.early_strategy || '-'}</div>
+      <div class="strategy-card-body">${result.early_strategy||'-'}</div>
     </div>
     <div class="strategy-card">
       <div class="strategy-card-title">// 注意ポイント</div>
-      <div class="strategy-card-body">${result.trap_warning || '-'}</div>
-    </div>
-  `;
+      <div class="strategy-card-body">${result.trap_warning||'-'}</div>
+    </div>`;
 
   document.getElementById('resultSection').classList.add('visible');
-  setTimeout(() => {
-    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
+  setTimeout(() => document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'}), 100);
 }
 
 function showError(msg) {
   const box = document.getElementById('errorBox');
   box.textContent = msg;
   box.classList.add('visible');
-  if (msg.includes('quota') || msg.includes('rate') || msg.includes('limit') || msg.includes('429')) {
+  if (msg.includes('quota')||msg.includes('rate')||msg.includes('limit')||msg.includes('429'))
     document.getElementById('limitNote').style.display = 'block';
-  }
 }
 
 document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyze();
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') analyze();
 });
 </script>
 </body>
