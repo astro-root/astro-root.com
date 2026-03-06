@@ -1502,19 +1502,23 @@ function updateTimerDisplay() {
   }
 
   clearInterval(timerInterval); timerInterval = null;
-  clearInterval(cdInterval); cdInterval = null;
+  // countdown は同じ cdStartAt での再発火時に cdInterval を破棄しない
+  if(state !== 'countdown' || cdInterval === null) {
+    clearInterval(cdInterval); cdInterval = null;
+  }
 
   setTimerBtn(state);
 
   if(state === 'countdown') {
+    // 同じ cdStartAt での再発火（Firebase の楽観的更新 + 確定の2発）はスキップ
+    if(cdInterval !== null) return;
+
     co.classList.add('show');
     disp.textContent = formatMs(remaining !== undefined ? remaining : limitMs);
     disp.className = 'timer-display';
 
-    // cdStartAt はサーバータイムスタンプ。受信時点のサーバー時刻との差で補正
     const serverNow = getServerTime();
     const serverElapsed = cdStartAt ? Math.max(0, serverNow - cdStartAt) : 0;
-    // カウントダウン残り = 5000ms - サーバー側での経過時間
     const cdBaseRemaining = Math.max(0, 5000 - serverElapsed);
     const cdLocalStart = Date.now();
 
@@ -1522,8 +1526,8 @@ function updateTimerDisplay() {
     const tick = () => {
       const localElapsed = Date.now() - cdLocalStart;
       const msLeft = Math.max(0, cdBaseRemaining - localElapsed);
-      const left = Math.floor(msLeft / 1000) + 1; // 4000〜4999ms → 5、3000〜3999ms → 4 …
-      if(left > 5) return; // まだ受信ラグで過去の状態なら待つ
+      const left = Math.floor(msLeft / 1000) + 1;
+      if(left > 5) return;
       if(msLeft <= 0) { clearInterval(cdInterval); cdInterval = null; return; }
       if(left !== lastShown) {
         lastShown = left;
@@ -1544,10 +1548,13 @@ function updateTimerDisplay() {
       co.classList.remove('show');
     }
 
+    // startAt はサーバー時刻。受信時点でローカル時刻ベースに変換することで
+    // serverTimeOffset の誤差を排除してタイマー速度を正確にする
+    const startAtLocal = startAt ? (Date.now() - (getServerTime() - startAt)) : Date.now();
+
     const tick = () => {
       if(!startAt || remaining === undefined) return;
-      // startAt はサーバータイムスタンプ（ServerValue.TIMESTAMP で書いた値）
-      const elapsed = getServerTime() - startAt;
+      const elapsed = Date.now() - startAtLocal;
       const left = Math.max(0, remaining - elapsed);
       disp.textContent = formatMs(left);
       if(left <= 30000) disp.className = 'timer-display danger';
