@@ -607,6 +607,15 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 .timer-display.warning { color: var(--yellow); text-shadow: 0 0 24px rgba(245,158,11,0.5); }
 .timer-display.danger { color: var(--red); text-shadow: 0 0 24px rgba(239,68,68,0.6); animation: timerPulse 0.6s infinite alternate; }
 @keyframes timerPulse { from { opacity: 1; } to { opacity: 0.6; } }
+@keyframes timerFlash {
+  0%,100% { background: transparent; }
+  15%      { background: rgba(239,68,68,0.35); box-shadow: 0 0 40px rgba(239,68,68,0.6); }
+  30%      { background: transparent; }
+  45%      { background: rgba(239,68,68,0.30); box-shadow: 0 0 40px rgba(239,68,68,0.5); }
+  60%      { background: transparent; }
+  75%      { background: rgba(239,68,68,0.20); box-shadow: 0 0 30px rgba(239,68,68,0.4); }
+}
+.timer-finish-flash { animation: timerFlash 3s ease-out forwards; border-radius: 16px; }
 .timer-controls { display: flex; gap: 10px; }
 .timer-btn {
   flex: 1; padding: 12px 8px; border-radius: 12px;
