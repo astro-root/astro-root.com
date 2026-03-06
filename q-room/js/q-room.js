@@ -1400,7 +1400,8 @@ let timerRef = null;
 let timerCb = null;
 let cdInterval = null;
 let cdStartTimeout = null;
-let _timerFinishPlayed = false; // 時間切れ演出の重複防止
+let _timerFinishPlayed = false;
+let _lastCdStartAt = null;
 
 // ===== 時間切れ演出：点滅 + 音 =====
 function _playTimerFinishEffect() {
@@ -1450,7 +1451,7 @@ function initTimerListener() {
 }
 
 function formatMs(ms) {
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const totalSec = Math.max(0, Math.round(ms / 1000));
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -1502,16 +1503,18 @@ function updateTimerDisplay() {
   }
 
   clearInterval(timerInterval); timerInterval = null;
-  // countdown は同じ cdStartAt での再発火時に cdInterval を破棄しない
-  if(state !== 'countdown' || cdInterval === null) {
+  if(state !== 'countdown') {
     clearInterval(cdInterval); cdInterval = null;
   }
 
   setTimerBtn(state);
 
   if(state === 'countdown') {
-    // 同じ cdStartAt での再発火（Firebase の楽観的更新 + 確定の2発）はスキップ
-    if(cdInterval !== null) return;
+    // Firebase の on('value') は書き込み時に楽観的更新+サーバー確認で2回発火する。
+    // _lastCdStartAt で前回と同じ cdStartAt なら再初期化せずスキップ。
+    if(cdStartAt && cdStartAt === _lastCdStartAt) return;
+    _lastCdStartAt = cdStartAt;
+    clearInterval(cdInterval); cdInterval = null;
 
     co.classList.add('show');
     disp.textContent = formatMs(remaining !== undefined ? remaining : limitMs);
@@ -1548,13 +1551,10 @@ function updateTimerDisplay() {
       co.classList.remove('show');
     }
 
-    // startAt はサーバー時刻。受信時点でローカル時刻ベースに変換することで
-    // serverTimeOffset の誤差を排除してタイマー速度を正確にする
-    const startAtLocal = startAt ? (Date.now() - (getServerTime() - startAt)) : Date.now();
-
     const tick = () => {
       if(!startAt || remaining === undefined) return;
-      const elapsed = Date.now() - startAtLocal;
+      // getServerTime() = Date.now() + serverTimeOffset でサーバー時刻と同軸で比較
+      const elapsed = getServerTime() - startAt;
       const left = Math.max(0, remaining - elapsed);
       disp.textContent = formatMs(left);
       if(left <= 30000) disp.className = 'timer-display danger';
@@ -1641,6 +1641,7 @@ async function timerAction(action) {
     clearTimeout(cdStartTimeout);
     clearInterval(timerInterval); timerInterval = null;
     clearInterval(cdInterval); cdInterval = null;
+    _lastCdStartAt = null;
     const conf2 = (roomData && roomData.conf) ? roomData.conf : DEF_CONF.time_race;
     const lm = (conf2.limit || 300) * 1000;
     await db.ref(`rooms/${rId}/timer`).set({ state: 'idle', limitMs: lm, remaining: lm, startAt: null, cdStartAt: null });
