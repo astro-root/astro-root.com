@@ -1451,7 +1451,7 @@ function initTimerListener() {
 }
 
 function formatMs(ms) {
-  const totalSec = Math.max(0, Math.round(ms / 1000));
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -1526,23 +1526,32 @@ function updateTimerDisplay() {
     const cdBaseRemaining = Math.max(0, 5000 - serverElapsed);
     const cdLocalStart = Date.now();
 
-    let lastShown = -1;
+    // 即座に正しい数字を表示（tick待ちで遅れないよう）
+    const showNum = (n) => {
+      const numEl = document.getElementById('countdown-num');
+      if(!numEl) return;
+      numEl.textContent = n;
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = 'cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+    };
+
+    // 開始時点の数字を即表示
+    const initMsLeft = cdBaseRemaining;
+    const initLeft = Math.min(5, Math.floor(initMsLeft / 1000) + 1);
+    showNum(initLeft);
+    let lastShown = initLeft;
+
     const tick = () => {
       const localElapsed = Date.now() - cdLocalStart;
       const msLeft = Math.max(0, cdBaseRemaining - localElapsed);
-      const left = Math.floor(msLeft / 1000) + 1;
-      if(left > 5) return;
       if(msLeft <= 0) { clearInterval(cdInterval); cdInterval = null; return; }
+      const left = Math.min(5, Math.floor(msLeft / 1000) + 1);
       if(left !== lastShown) {
         lastShown = left;
-        const numEl = document.getElementById('countdown-num');
-        numEl.textContent = left;
-        numEl.style.animation = 'none';
-        void numEl.offsetWidth;
-        numEl.style.animation = 'cdPop 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+        showNum(left);
       }
     };
-    tick();
     cdInterval = setInterval(tick, 50);
 
   } else if(state === 'running') {
