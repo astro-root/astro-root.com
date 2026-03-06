@@ -1409,7 +1409,7 @@ function _playTimerFinishEffect() {
 
   // --- 点滅アニメーション（画面全体）---
   document.body.classList.add('timer-finish-flash');
-  setTimeout(() => document.body.classList.remove('timer-finish-flash'), 3000);
+  setTimeout(() => document.body.classList.remove('timer-finish-flash'), 6000);
 
   // --- Web Audio API でビープ音 ---
   try {
@@ -1522,11 +1522,9 @@ function updateTimerDisplay() {
     const tick = () => {
       const localElapsed = Date.now() - cdLocalStart;
       const msLeft = Math.max(0, cdBaseRemaining - localElapsed);
-      const left = Math.ceil(msLeft / 1000);
-      if(left <= 0) {
-        clearInterval(cdInterval); cdInterval = null;
-        return;
-      }
+      const left = Math.floor(msLeft / 1000) + 1; // 4000〜4999ms → 5、3000〜3999ms → 4 …
+      if(left > 5) return; // まだ受信ラグで過去の状態なら待つ
+      if(msLeft <= 0) { clearInterval(cdInterval); cdInterval = null; return; }
       if(left !== lastShown) {
         lastShown = left;
         const numEl = document.getElementById('countdown-num');
