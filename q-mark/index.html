@@ -7,33 +7,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
+<!-- Firebase compat (non-module, global scope) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const _fbApp = firebase.initializeApp({
   apiKey: "AIzaSyDXI7ciwEFiCo3yPQmFjg0DxZSNptWKkIc",
   authDomain: "q-mark-d19c7.firebaseapp.com",
   databaseURL: "https://q-mark-d19c7-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "q-mark-d19c7",
   storageBucket: "q-mark-d19c7.firebasestorage.app",
   messagingSenderId: "522566486976",
-  appId: "1:522566486976:web:82860744ebd31f6d141625",
-  measurementId: "G-M38NFWTSP2"
-};
+  appId: "1:522566486976:web:82860744ebd31f6d141625"
+});
+const _fbDatabase = firebase.database();
 
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getDatabase(firebaseApp);
-
-// Expose to global scope for use in non-module scripts
-window.fbDb = db;
-window.fbRef = ref;
-window.fbSet = set;
-window.fbGet = get;
-window.fbOnValue = onValue;
-window.fbUpdate = update;
-window.fbRemove = remove;
+// Wrap to match the modular API shape used elsewhere
+window.fbDb = _fbDatabase;
+window.fbRef  = (db, path) => db.ref(path);
+window.fbSet  = (r, val)   => r.set(val);
+window.fbGet  = (r)        => r.get();
+window.fbOnValue = (r, cb) => { r.on('value', cb); return () => r.off('value', cb); };
+window.fbUpdate  = (r, val) => r.update(val);
+window.fbRemove  = (r)      => r.remove();
 window.firebaseReady = true;
 window.dispatchEvent(new Event('firebaseReady'));
 </script>
@@ -1196,7 +1192,7 @@ async function fbGetAllFoldersMeta() {
     const all = snap.val();
     const result = {};
     Object.entries(all).forEach(([id, val]) => {
-      if (val.meta) result[id] = val.meta;
+      if (val && val.meta) result[id] = val.meta;
     });
     return result;
   } catch(e) { console.warn('Firebase list failed:', e); return {}; }
@@ -1209,7 +1205,6 @@ async function fbDeleteFolder(folderId) {
   } catch(e) { console.warn('Firebase delete failed:', e); }
 }
 
-// Subscribe to real-time mark updates for the open folder
 function fbSubscribeFolder(folderId) {
   fbUnsubscribeAll();
   if (!folderId) return;
@@ -1218,7 +1213,6 @@ function fbSubscribeFolder(folderId) {
     const unsub = fbOnValue(dataRef, (snap) => {
       if (!snap.exists()) return;
       const data = snap.val();
-      // Only update if the change came from another session
       const remoteUpdatedAt = data.updatedAt || 0;
       if (remoteUpdatedAt > (window._lastLocalSave || 0) + 500) {
         state.marks = data.marks || {};
