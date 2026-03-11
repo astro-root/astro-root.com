@@ -515,6 +515,9 @@ canvas { display: block; width: 100%; height: auto; }
           <div id="stuCount" style="font-size:0.7rem; color:var(--text-muted);">0 / 0</div>
         </div>
         <button class="btn" onclick="navStudent(1)" style="padding:0 10px;">▶</button>
+        <div class="divider"></div>
+        <button class="btn btn-success" onclick="document.getElementById('inpAddStu').click()" title="生徒答案を追加" style="padding:0 10px;">＋ 追加</button>
+        <input type="file" id="inpAddStu" multiple style="display:none" accept="image/*,application/pdf">
       </div>
       <div class="toolbar">
         <span style="margin-right:12px; font-size:0.85rem; color:var(--text-sub);">
@@ -1370,6 +1373,36 @@ async function loadStudent(idx) {
   updateUrlHash(idx);
 }
 function navStudent(d) { loadStudent(state.currIdx + d); }
+
+async function addStudents(files) {
+  if (!files || files.length === 0) return;
+  const newFiles = Array.from(files);
+  // Skip duplicates by name
+  const existingNames = new Set(state.stuFiles.map(f => f.name));
+  const toAdd = newFiles.filter(f => {
+    if (existingNames.has(f.name)) {
+      showToast(`スキップ: ${f.name}（同名ファイルが存在します）`);
+      return false;
+    }
+    return true;
+  });
+  if (toAdd.length === 0) return;
+
+  state.stuFiles = [...state.stuFiles, ...toAdd];
+  document.getElementById('stuCount').textContent = `${state.currIdx + 1} / ${state.stuFiles.length}`;
+  showToast(`${toAdd.length}件の答案を追加しました`);
+
+  // Auto-save to folder if one is open
+  if (state.currentFolderId) {
+    await quickSaveFolder();
+  }
+}
+
+// Wire up the add button
+document.getElementById('inpAddStu').addEventListener('change', (e) => {
+  addStudents(e.target.files);
+  e.target.value = ''; // reset so same file can be re-added if needed
+});
 
 // =============================================
 // URL HASH ROUTING
