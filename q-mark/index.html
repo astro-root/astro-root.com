@@ -872,7 +872,8 @@ const state = {
   selectedText: null,
   dragging: false,
   globalMarkSize: 44,
-  currentFolderId: null
+  currentFolderId: null,
+  pageSizeMm: { width: 210, height: 297 }
 };
 
 const dropKey = document.getElementById('dropKey');
@@ -1356,38 +1357,54 @@ async function downloadAllGradedPDF() {
   if (state.stuFiles.length === 0) { showToast('生徒答案がありません'); return; }
   showToast('合本PDF生成中...');
   const stats = calculateStats();
-  const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: 'a4' });
   const origIdx = state.currIdx;
 
+  // 最初のページのサイズでPDFを初期化（後続ページは addPage で個別指定）
+  await loadStudentSilent(0);
+  await new Promise(r => setTimeout(r, 200));
+  const firstW = state.pageSizeMm.width;
+  const firstH = state.pageSizeMm.height;
+  const isFirstLandscape = firstW > firstH;
+  const pdf = new jsPDF({
+    orientation: isFirstLandscape ? 'l' : 'p',
+    unit: 'mm',
+    format: [isFirstLandscape ? firstH : firstW, isFirstLandscape ? firstW : firstH]
+  });
+
   for (let i = 0; i < state.stuFiles.length; i++) {
-    await loadStudentSilent(i);
-    await new Promise(r => setTimeout(r, 200));
+    if (i > 0) {
+      await loadStudentSilent(i);
+      await new Promise(r => setTimeout(r, 200));
+    }
     const cv = document.getElementById('cvRight');
     const fname = state.stuFiles[i].name;
     const marks = state.marks[fname] || [];
+    const pageW = state.pageSizeMm.width;
+    const pageH = state.pageSizeMm.height;
+    const isLandscape = pageW > pageH;
 
-    if (i > 0) pdf.addPage();
+    if (i > 0) {
+      pdf.addPage([isLandscape ? pageH : pageW, isLandscape ? pageW : pageH], isLandscape ? 'l' : 'p');
+    }
+
     const pdfW = pdf.internal.pageSize.getWidth();
     const pdfH = pdf.internal.pageSize.getHeight();
-    const ratio = Math.min(pdfW / cv.width, pdfH / cv.height);
-    const imgW = cv.width * ratio;
-    const imgH = cv.height * ratio;
 
-    pdf.addImage(cv.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, imgW, imgH);
+    pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pdfW, pdfH);
 
+    const s = 5;
     marks.forEach(m => {
-      const x = (m.x / 100) * imgW;
-      const y = (m.y / 100) * imgH;
-      const s = 16;
-      if (m.type === 'o') { pdf.setDrawColor(52, 211, 153); pdf.setLineWidth(1.5); pdf.circle(x, y, s/2); }
-      else if (m.type === 'x') { pdf.setDrawColor(248, 113, 113); pdf.setLineWidth(1.5); const r = s/2.5; pdf.line(x-r,y-r,x+r,y+r); pdf.line(x+r,y-r,x-r,y+r); }
-      else if (m.type === 'tri') { pdf.setDrawColor(251, 191, 36); pdf.setLineWidth(1.5); const r = s/2; pdf.triangle(x,y-r,x-r,y+r,x+r,y+r,'S'); }
+      const x = (m.x / 100) * pdfW;
+      const y = (m.y / 100) * pdfH;
+      if (m.type === 'o') { pdf.setDrawColor(52, 211, 153); pdf.setLineWidth(0.6); pdf.circle(x, y, s); }
+      else if (m.type === 'x') { pdf.setDrawColor(248, 113, 113); pdf.setLineWidth(0.6); const r = s*0.8; pdf.line(x-r,y-r,x+r,y+r); pdf.line(x+r,y-r,x-r,y+r); }
+      else if (m.type === 'tri') { pdf.setDrawColor(251, 191, 36); pdf.setLineWidth(0.6); pdf.triangle(x,y-s,x-s,y+s,x+s,y+s,'S'); }
     });
 
     const stuStats = stats?.scores.find(s => s.name === fname);
     if (stuStats) {
-      pdf.setFontSize(10); pdf.setTextColor(80, 80, 80);
-      pdf.text(`得点: ${stuStats.score}  偏差値: ${stuStats.deviation}  順位: ${stuStats.rank}/${stats.n}`, 8, pdfH - 8);
+      pdf.setFontSize(9); pdf.setTextColor(80, 80, 80);
+      pdf.text(`得点: ${stuStats.score}  偏差値: ${stuStats.deviation}  順位: ${stuStats.rank}/${stats.n}`, 5, pdfH - 4);
     }
   }
 
@@ -1495,13 +1512,28 @@ async function drawImage(file, cvId, wrapId, scrollId, side) {
     const buff = await file.arrayBuffer();
     const doc = await pdfjsLib.getDocument({data: buff}).promise;
     const page = await doc.getPage(1);
+    const viewport1 = page.getViewport({scale: 1.0});
+    // 1pt = 0.3528mm (PDF標準72dpi基準)
+    const PT_TO_MM = 0.352778;
+    if (side === 'right') {
+      state.pageSizeMm = { width: viewport1.width * PT_TO_MM, height: viewport1.height * PT_TO_MM };
+    }
     const viewport = page.getViewport({scale: 3.0});
     cv.width = viewport.width; cv.height = viewport.height;
     await page.render({canvasContext: ctx, viewport}).promise;
   } else {
     await new Promise((resolve) => {
       const img = new Image();
-      img.onload = () => { cv.width = img.width; cv.height = img.height; ctx.drawImage(img, 0, 0); resolve(); };
+      img.onload = () => {
+        cv.width = img.width; cv.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        // 画像は 96dpi 基準でmm換算
+        if (side === 'right') {
+          const PX_TO_MM = 25.4 / 96;
+          state.pageSizeMm = { width: img.width * PX_TO_MM, height: img.height * PX_TO_MM };
+        }
+        resolve();
+      };
       img.src = URL.createObjectURL(file);
     });
   }
@@ -1934,16 +1966,45 @@ async function downloadPDF() {
   const cv = document.getElementById('cvRight');
   const fname = state.stuFiles[state.currIdx].name;
   const marks = state.marks[fname] || [];
-  const pdf = new jsPDF({ orientation: cv.width>cv.height?'l':'p', unit:'px', format:[cv.width, cv.height] });
-  pdf.addImage(cv.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, cv.width, cv.height);
-  marks.forEach(m => {
-    const x = (m.x / 100) * cv.width; const y = (m.y / 100) * cv.height;
-    const s = (state.globalMarkSize * (cv.width / document.getElementById('wrapRight').offsetWidth));
-    if (m.type === 'o') { pdf.setDrawColor(52,211,153); pdf.setLineWidth(s/10); pdf.circle(x,y,s/2); }
-    else if (m.type === 'x') { pdf.setDrawColor(248,113,113); pdf.setLineWidth(s/10); const r=s/2.5; pdf.line(x-r,y-r,x+r,y+r); pdf.line(x+r,y-r,x-r,y+r); }
-    else if (m.type === 'tri') { pdf.setDrawColor(251,191,36); pdf.setLineWidth(s/10); const r=s/2; pdf.triangle(x,y-r,x-r,y+r,x+r,y+r,'S'); pdf.setTextColor(251,191,36); pdf.setFontSize(s/2); pdf.text(m.text,x,y+r/2,{align:'center'}); }
-    else { pdf.setTextColor(m.color); pdf.setFontSize(m.size*1.5); pdf.text(m.text,x,y); }
+
+  const pageW = state.pageSizeMm.width;
+  const pageH = state.pageSizeMm.height;
+  const isLandscape = pageW > pageH;
+  const pdf = new jsPDF({
+    orientation: isLandscape ? 'l' : 'p',
+    unit: 'mm',
+    format: [isLandscape ? pageH : pageW, isLandscape ? pageW : pageH]
   });
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+
+  // canvas → mm の変換比率
+  const scaleX = pdfW / cv.width;
+  const scaleY = pdfH / cv.height;
+
+  pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pdfW, pdfH);
+
+  const s = 5;
+  marks.forEach(m => {
+    const x = (m.x / 100) * pdfW;
+    const y = (m.y / 100) * pdfH;
+    if (m.type === 'o') {
+      pdf.setDrawColor(52, 211, 153); pdf.setLineWidth(0.6); pdf.circle(x, y, s);
+    } else if (m.type === 'x') {
+      pdf.setDrawColor(248, 113, 113); pdf.setLineWidth(0.6);
+      const r = s * 0.8;
+      pdf.line(x-r, y-r, x+r, y+r); pdf.line(x+r, y-r, x-r, y+r);
+    } else if (m.type === 'tri') {
+      pdf.setDrawColor(251, 191, 36); pdf.setLineWidth(0.6);
+      pdf.triangle(x, y-s, x-s, y+s, x+s, y+s, 'S');
+      pdf.setTextColor(251, 191, 36); pdf.setFontSize(7);
+      pdf.text(String(m.text), x, y + s * 0.6, { align: 'center' });
+    } else {
+      pdf.setTextColor(m.color); pdf.setFontSize(m.size * 0.35);
+      pdf.text(m.text, x, y);
+    }
+  });
+
   pdf.save(`graded_${fname}.pdf`);
   showToast('PDF保存完了');
 }
