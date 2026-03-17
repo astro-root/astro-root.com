@@ -814,15 +814,23 @@ async function fbSaveFilesToRTDB(folderId) {
     });
     done++;
 
+    let successCount = 0;
     for (let i = 0; i < state.stuFiles.length; i++) {
       const f = state.stuFiles[i];
       setSyncProgress(((done + i) / total) * 100, `📄 ${f.name} (${i+1}/${state.stuFiles.length})`);
-      const b64 = await fileToBase64(f);
-      await fbSet(fbRef(fbDb, `folders/${folderId}/files/stu_${i}`), {
-        name: f.name, type: f.type, data: b64, index: i
-      });
+      try {
+        const b64 = await fileToBase64(f);
+        await fbSet(fbRef(fbDb, `folders/${folderId}/files/stu_${i}`), {
+          name: f.name, type: f.type, data: b64, index: i
+        });
+        successCount++;
+        // 1枚保存するたびに stuCount を更新（途中失敗時も他デバイスで取得済み分を開けるように）
+        await fbSet(fbRef(fbDb, `folders/${folderId}/files/stuCount`), successCount);
+      } catch(fileErr) {
+        console.warn(`stu_${i} (${f.name}) のアップロード失敗:`, fileErr);
+        showToast(`⚠️ ${f.name} のアップロード失敗（スキップ）`);
+      }
     }
-    await fbSet(fbRef(fbDb, `folders/${folderId}/files/stuCount`), state.stuFiles.length);
     setSyncProgress(100, '完了');
     setTimeout(hideSyncUI, 600);
   } catch(e) {
@@ -835,32 +843,40 @@ async function fbSaveFilesToRTDB(folderId) {
 async function fbLoadFilesFromRTDB(folderId) {
   await waitForFirebase();
   try {
-    const snap = await fbGet(fbRef(fbDb, `folders/${folderId}/files`));
-    if (!snap.exists()) {
-      console.log('RTDB: files node not found for', folderId);
-      return false;
-    }
-    const files = snap.val();
-    if (!files.key) {
-      console.log('RTDB: key file not found');
+    // stuCount を個別に取得（全ノード一括読み込みを避ける）
+    const countSnap = await fbGet(fbRef(fbDb, `folders/${folderId}/files/stuCount`));
+    const stuCount = countSnap.exists() ? countSnap.val() : 0;
+
+    // key ファイルを個別取得
+    const keySnap = await fbGet(fbRef(fbDb, `folders/${folderId}/files/key`));
+    if (!keySnap.exists()) {
+      console.log('RTDB: key file not found for', folderId);
       return false;
     }
 
     showSyncUI('ファイルをダウンロード中...', 'クラウドからファイルを取得しています');
-    const stuCount = files.stuCount || 0;
     const total = 1 + stuCount;
     let done = 0;
 
-    setSyncProgress((done / total) * 100, `📄 ${files.key.name}`);
-    state.keyFile = base64ToFile(files.key.data, files.key.name, files.key.type);
+    const keyData = keySnap.val();
+    setSyncProgress((done / total) * 100, `📄 ${keyData.name}`);
+    state.keyFile = base64ToFile(keyData.data, keyData.name, keyData.type);
     done++;
 
+    // 生徒ファイルを1枚ずつ個別取得（一括読み込みはサイズ超過で失敗するため）
     state.stuFiles = [];
     for (let i = 0; i < stuCount; i++) {
-      const entry = files[`stu_${i}`];
-      if (entry) {
-        setSyncProgress(((done + i) / total) * 100, `📄 ${entry.name} (${i+1}/${stuCount})`);
-        state.stuFiles.push(base64ToFile(entry.data, entry.name, entry.type));
+      try {
+        const stuSnap = await fbGet(fbRef(fbDb, `folders/${folderId}/files/stu_${i}`));
+        if (stuSnap.exists()) {
+          const entry = stuSnap.val();
+          setSyncProgress(((done + i) / total) * 100, `📄 ${entry.name} (${i+1}/${stuCount})`);
+          state.stuFiles.push(base64ToFile(entry.data, entry.name, entry.type));
+        } else {
+          console.warn(`RTDB: stu_${i} not found, skipping`);
+        }
+      } catch(fileErr) {
+        console.warn(`RTDB: stu_${i} download failed:`, fileErr);
       }
     }
 
