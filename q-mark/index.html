@@ -689,10 +689,11 @@ function fbSubscribeFolder(folderId) {
   if (!folderId) return;
   waitForFirebase().then(() => {
     const dataRef = fbRef(fbDb, `folders/${folderId}/data`);
+    let isFirstFire = true;
     const unsub = fbOnValue(dataRef, (snap) => {
       if (!snap.exists()) return;
+      if (isFirstFire) { isFirstFire = false; return; }
       const data = snap.val();
-      // Only update if the change came from another session
       const remoteUpdatedAt = data.updatedAt || 0;
       if (remoteUpdatedAt > (window._lastLocalSave || 0) + 500) {
         state.marks = data.marks || {};
@@ -701,8 +702,11 @@ function fbSubscribeFolder(folderId) {
           state.globalMarkSize = data.markSize;
           markSizeRange.value = data.markSize;
         }
-        renderMarks();
-        showToast('🔄 他のデバイスの変更を反映しました');
+        if (document.getElementById('overlay').style.display === 'none') {
+          renderMarks();
+          updateUI();
+          showToast('🔄 他のデバイスの変更を反映しました');
+        }
       }
     });
     fbSyncListeners[folderId] = unsub;
@@ -1314,7 +1318,7 @@ function handleFiles(files, type) {
 }
 
 btnStart.onclick = async () => {
-  loadFromStorage();
+  if (!state.currentFolderId) loadFromStorage();
   document.getElementById('overlay').style.display = 'none';
   const bar = document.getElementById('sessionBar');
   bar.classList.add('visible');
@@ -1325,7 +1329,7 @@ btnStart.onclick = async () => {
     document.getElementById('sessionFileInfo').textContent =
       `📄 ${state.keyFile.name}  |  👥 ${state.stuFiles.length}名の答案  ·  💾 保存ボタンでフォルダに保存できます`;
   } else {
-    quickSaveFolder();
+    await quickSaveFolder();
   }
   showToast('画像を読み込んでいます...');
   await drawImage(state.keyFile, 'cvLeft', 'wrapLeft', 'scrollLeft', 'left');
@@ -1833,6 +1837,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // =============================================
 function backToTop() {
   if (!confirm('トップに戻りますか？\n（現在の採点データはブラウザに保存されています）')) return;
+  fbUnsubscribeAll();
   document.getElementById('overlay').style.display = 'flex';
   // Clear URL hash (keep folder ID if exists)
   if (state.currentFolderId) {
