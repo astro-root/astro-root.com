@@ -112,7 +112,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      min-width: 240px;
+      min-width: 0;
       box-shadow: var(--shadow-soft);
       flex: 0 0 auto;
     }
@@ -280,7 +280,31 @@
       preview.appendChild(createTeamBoard(t, playersPerTeam, savedData[t]));
     }
     recalcAndRender();
+    adjustTeamCardWidths();
   }
+
+  function adjustTeamCardWidths() {
+    const cards = preview.querySelectorAll('.team-card');
+    const count = cards.length;
+    if (count === 0) return;
+    const gap = 15;
+    if (count <= 12) {
+      const totalGap = (count - 1) * gap;
+      const availableWidth = preview.clientWidth - totalGap;
+      const cardWidth = Math.max(160, Math.floor(availableWidth / count));
+      cards.forEach(c => {
+        c.style.flex = `0 0 ${cardWidth}px`;
+        c.style.width = `${cardWidth}px`;
+      });
+    } else {
+      cards.forEach(c => {
+        c.style.flex = '0 0 240px';
+        c.style.width = '240px';
+      });
+    }
+  }
+
+  window.addEventListener('resize', adjustTeamCardWidths);
 
   function createTeamBoard(teamNo, playersPerTeam, savedData){
     const board = document.createElement('div');
