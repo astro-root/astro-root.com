@@ -62,87 +62,189 @@ button{font-family:inherit}
 /* ─── START OVERLAY ─────────────────────────────────────────── */
 #ov{
   position:fixed;inset:0;z-index:999;
-  display:flex;justify-content:center;align-items:center;
-  overflow-y:auto;padding:40px 20px;
+  display:grid;grid-template-columns:1fr 1fr;
+  overflow:hidden;
 }
-#ov::before{
-  content:'';position:fixed;inset:0;
-  background:
-    radial-gradient(ellipse 80% 60% at 15% 30%, rgba(200,148,58,.1) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 85% 70%, rgba(34,197,94,.07) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 60% at 70% 10%, rgba(56,189,248,.06) 0%, transparent 50%),
-    var(--ink);
-  animation:aBg 12s ease-in-out infinite alternate;
-}
-@keyframes aBg{from{opacity:.8}to{opacity:1}}
 
-.start{
-  position:relative;z-index:1;
-  background:rgba(15,15,21,.88);
-  backdrop-filter:blur(32px) saturate(1.4);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:var(--r-xl);
-  width:min(680px,100%);
-  padding:52px 56px 44px;
-  box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.06);
-  animation:aIn .5s cubic-bezier(.22,1,.36,1) both;
+/* ── LEFT PANEL: brand ── */
+.ov-left{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:56px 52px;
+  background:var(--ink);
 }
-@keyframes aIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
-.start::before{
-  content:'';position:absolute;top:0;left:24px;right:24px;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(200,148,58,.6),transparent);
+/* animated SVG grid */
+.ov-left::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(200,148,58,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(200,148,58,.06) 1px,transparent 1px);
+  background-size:48px 48px;
+  animation:gridShift 20s linear infinite;
 }
-.s-logo{
-  font-family:'Fraunces',serif;font-size:2.6rem;font-weight:900;
-  letter-spacing:-2px;text-align:center;margin-bottom:6px;
-  display:flex;align-items:center;justify-content:center;gap:2px;
+@keyframes gridShift{from{background-position:0 0}to{background-position:48px 48px}}
+/* glowing orbs */
+.ov-left::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 80%, rgba(200,148,58,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(34,197,94,.07) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(200,148,58,.04) 0%, transparent 50%);
+  pointer-events:none;
 }
-.s-logo em{font-style:italic;color:var(--gold-txt)}
-.s-logo .dash{color:var(--tx3);font-weight:300;margin:0 2px}
-.s-tagline{color:var(--tx2);text-align:center;font-size:.82rem;font-weight:400;margin-bottom:40px;letter-spacing:.5px}
-.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.ov-brand{position:relative;z-index:1}
+/* large decorative serif number */
+.ov-deco{
+  font-family:'Fraunces',serif;
+  font-size:clamp(120px,18vw,200px);
+  font-weight:900;
+  font-style:italic;
+  line-height:.85;
+  color:var(--gold-txt);
+  opacity:.08;
+  letter-spacing:-8px;
+  position:absolute;
+  top:32px;left:40px;
+  user-select:none;
+  pointer-events:none;
+}
+.ov-logo{
+  font-family:'Fraunces',serif;
+  font-size:clamp(3rem,5vw,4.8rem);
+  font-weight:900;
+  letter-spacing:-3px;
+  line-height:1;
+  margin-bottom:18px;
+  display:flex;align-items:baseline;gap:4px;
+}
+.ov-logo em{font-style:italic;color:var(--gold-txt)}
+.ov-logo .dash{color:var(--tx3);font-weight:300;margin:0 4px;font-size:.7em}
+.ov-rule{
+  width:48px;height:2px;
+  background:linear-gradient(90deg,var(--gold-txt),transparent);
+  margin-bottom:20px;
+}
+.ov-tagline{
+  font-size:.9rem;color:var(--tx2);font-weight:400;
+  line-height:1.7;max-width:320px;
+}
+.ov-tagline strong{color:var(--tx);font-weight:600}
+.ov-features{
+  margin-top:32px;display:flex;flex-direction:column;gap:10px;
+}
+.ov-feat{
+  display:flex;align-items:center;gap:10px;
+  font-size:.78rem;color:var(--tx3);font-weight:500;
+}
+.ov-feat-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--gold-txt);
+  opacity:.5;flex-shrink:0;
+}
+.ov-feat:hover .ov-feat-dot{opacity:1}
+.ov-bottom{
+  margin-top:48px;
+  font-size:.65rem;color:var(--tx3);opacity:.5;letter-spacing:.3px;
+}
+
+/* ── RIGHT PANEL: upload ── */
+.ov-right{
+  background:var(--surface);
+  border-left:1px solid var(--line);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:52px 48px;
+  overflow-y:auto;
+  position:relative;
+}
+.ov-right-title{
+  font-family:'Fraunces',serif;
+  font-size:1.4rem;font-weight:700;
+  letter-spacing:-.5px;margin-bottom:6px;
+}
+.ov-right-sub{
+  font-size:.78rem;color:var(--tx2);margin-bottom:32px;line-height:1.6;
+}
+/* Upload zones — horizontal stack with number labels */
+.ov-zones{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
 .dz{
-  border:2px dashed var(--line2);border-radius:var(--r-lg);
-  padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;
-  cursor:pointer;transition:all .22s;background:transparent;
+  display:flex;align-items:center;gap:16px;
+  padding:18px 20px;
+  border:1px solid var(--line);border-radius:var(--r);
+  cursor:pointer;transition:all .2s;background:var(--card);
+  position:relative;overflow:hidden;
 }
-.dz:hover,.dz.ov{border-color:var(--gold);background:var(--gold-lo);box-shadow:inset 0 0 0 1px var(--gold-lo)}
-.dz-ico{font-size:2.2rem;transition:transform .22s}
-.dz:hover .dz-ico,.dz.ov .dz-ico{transform:scale(1.1)}
-.dz-lbl{font-weight:700;font-size:.9rem;color:var(--tx)}
-.dz-hint{font-size:.72rem;color:var(--tx3);text-align:center;transition:color .22s}
-.dz:hover .dz-hint,.dz.ov .dz-hint{color:var(--gold-txt)}
+.dz::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--line);transition:background .2s;
+}
+.dz:hover,.dz.ov{border-color:var(--gold);background:var(--lift)}
+.dz:hover::before,.dz.ov::before{background:var(--gold-txt)}
+.dz-num{
+  font-family:'Fraunces',serif;font-size:1.5rem;font-weight:900;font-style:italic;
+  color:var(--tx3);flex-shrink:0;width:24px;text-align:center;line-height:1;
+  transition:color .2s;
+}
+.dz:hover .dz-num{color:var(--gold-txt)}
+.dz-body{flex:1;min-width:0}
+.dz-lbl{font-weight:700;font-size:.86rem;color:var(--tx);margin-bottom:2px}
+.dz-hint{font-size:.7rem;color:var(--tx3);transition:color .2s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dz:hover .dz-hint{color:var(--tx2)}
 .dz-hint.ok{color:var(--ok);font-weight:600}
-.s-start{
-  width:100%;height:48px;border:none;border-radius:var(--r);cursor:pointer;
-  background:linear-gradient(135deg,#b8852a,#d4a84e,#b8852a);
-  background-size:200% 100%;background-position:100%;
-  color:#1a1000;font-family:'Plus Jakarta Sans',sans-serif;font-size:.92rem;font-weight:700;
-  transition:all .3s;letter-spacing:.2px;
-  box-shadow:0 4px 20px rgba(200,148,58,.3);
+.dz-arrow{
+  color:var(--tx3);font-size:.9rem;flex-shrink:0;transition:all .2s;
+  opacity:0;transform:translateX(-4px);
 }
-.s-start:hover:not(:disabled){background-position:0%;box-shadow:0 6px 28px rgba(200,148,58,.45)}
-.s-start:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
-.s-start:active:not(:disabled){transform:translateY(1px)}
-.divr{display:flex;align-items:center;gap:12px;margin:22px 0}
+.dz:hover .dz-arrow{opacity:1;transform:translateX(0)}
+
+/* CTA button */
+.s-start{
+  width:100%;height:50px;border:none;border-radius:var(--r);cursor:pointer;
+  background:linear-gradient(135deg,#a0731e,#c8943a,#d4a84e,#c8943a,#a0731e);
+  background-size:300% 100%;background-position:100%;
+  color:#1a0e00;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.92rem;font-weight:700;letter-spacing:.3px;
+  transition:all .4s ease;
+  box-shadow:0 4px 24px rgba(200,148,58,.25);
+  position:relative;overflow:hidden;
+}
+.s-start::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform .5s;
+}
+.s-start:hover:not(:disabled)::after{transform:translateX(100%)}
+.s-start:hover:not(:disabled){background-position:0%;box-shadow:0 6px 32px rgba(200,148,58,.4)}
+.s-start:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
+.s-start:active:not(:disabled){transform:scale(.99)}
+
+/* divider */
+.divr{display:flex;align-items:center;gap:12px;margin:18px 0}
 .divr::before,.divr::after{content:'';flex:1;height:1px;background:var(--line)}
-.divr span{font-size:.68rem;color:var(--tx3);font-weight:600;letter-spacing:.5px;white-space:nowrap}
+.divr span{font-size:.65rem;color:var(--tx3);font-weight:700;letter-spacing:.6px;white-space:nowrap;text-transform:uppercase}
+
+/* folder button */
 .s-folder{
-  width:100%;height:42px;border:1px solid var(--line2);border-radius:var(--r);
+  width:100%;height:40px;border:1px solid var(--line);border-radius:var(--r);
   background:transparent;color:var(--tx2);font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;
-  align-items:center;justify-content:center;gap:8px;
+  font-size:.82rem;font-weight:600;cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
 }
 .s-folder:hover{border-color:var(--ok);color:var(--ok);background:var(--ok-hi)}
+
+/* keyboard shortcuts */
 .s-keys{
-  margin-top:20px;text-align:center;font-size:.67rem;color:var(--tx3);
-  line-height:1.8;letter-spacing:.1px;
+  margin-top:24px;padding-top:20px;
+  border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:7px;
 }
-.s-keys kbd{
+.s-key-item{
+  display:flex;align-items:center;gap:6px;
+  font-size:.68rem;color:var(--tx3);
+}
+kbd{
   display:inline-flex;align-items:center;justify-content:center;
   background:var(--card);border:1px solid var(--line2);border-radius:4px;
-  padding:0 5px;height:18px;font-family:'JetBrains Mono',monospace;font-size:.72rem;
-  color:var(--tx2);margin:0 2px;
+  padding:0 5px;height:18px;font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;color:var(--tx2);flex-shrink:0;
 }
 
 /* ─── HEADER ─────────────────────────────────────────────────── */
@@ -560,38 +662,70 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
 <body>
 
 <!-- ══════════════════════════════════════════════
-     START OVERLAY
+     START OVERLAY — full-bleed split screen
 ══════════════════════════════════════════════ -->
 <div id="ov">
-  <div class="start">
-    <div class="s-logo">
-      <em>Q</em><span class="dash">–</span><span>Mark</span>
+  <!-- LEFT: Brand -->
+  <div class="ov-left">
+    <div class="ov-deco">Q</div>
+    <div class="ov-brand">
+      <div class="ov-logo">
+        <em>Q</em><span class="dash">—</span><span style="color:var(--tx)">Mark</span>
+      </div>
+      <div class="ov-rule"></div>
+      <div class="ov-tagline">
+        <strong>ペーパー答案の採点を、<br>デジタルへ。</strong><br><br>
+        PDFや画像をアップロードして赤ペンを入れ、<br>
+        クラウドで複数デバイス間を即時同期。
+      </div>
+      <div class="ov-features">
+        <div class="ov-feat"><div class="ov-feat-dot"></div>○ ✕ △ の採点マーク + 自由テキスト注釈</div>
+        <div class="ov-feat"><div class="ov-feat-dot"></div>URLを共有するだけでマルチデバイス同期</div>
+        <div class="ov-feat"><div class="ov-feat-dot"></div>採点済みPDF・CSV統計を即エクスポート</div>
+        <div class="ov-feat"><div class="ov-feat-dot"></div>グリッドで問番号を自動割り当て</div>
+      </div>
     </div>
-    <div class="s-tagline">ペーパー答案のデジタル採点システム</div>
-    <div class="s-grid">
+    <div class="ov-bottom">インストール不要 · アカウント不要 · 完全無料</div>
+  </div>
+
+  <!-- RIGHT: Upload -->
+  <div class="ov-right">
+    <div class="ov-right-title">採点を始める</div>
+    <div class="ov-right-sub">模範解答と生徒答案をアップロード、<br>またはクラウドフォルダを開いてください。</div>
+
+    <div class="ov-zones">
       <div class="dz" id="dKey">
-        <div class="dz-ico">🔑</div>
-        <div class="dz-lbl">模範解答</div>
-        <div class="dz-hint" id="hKey">クリックまたはドラッグ</div>
+        <div class="dz-num">1</div>
+        <div class="dz-body">
+          <div class="dz-lbl">模範解答</div>
+          <div class="dz-hint" id="hKey">PDF または 画像ファイル</div>
+        </div>
+        <div class="dz-arrow">→</div>
         <input type="file" id="iKey" style="display:none" accept="image/*,application/pdf">
       </div>
       <div class="dz" id="dStu">
-        <div class="dz-ico">📚</div>
-        <div class="dz-lbl">生徒答案</div>
-        <div class="dz-hint" id="hStu">クリックまたはドラッグ（複数可）</div>
+        <div class="dz-num">2</div>
+        <div class="dz-body">
+          <div class="dz-lbl">生徒答案</div>
+          <div class="dz-hint" id="hStu">PDF または 画像（複数可）</div>
+        </div>
+        <div class="dz-arrow">→</div>
         <input type="file" id="iStu" multiple style="display:none" accept="image/*,application/pdf">
       </div>
     </div>
+
     <button id="bStart" class="s-start" disabled>採点スタート →</button>
-    <div class="divr"><span>または</span></div>
-    <button class="s-folder" onclick="openFolderModal()">📁 フォルダから開く · クラウド同期</button>
+
+    <div class="divr"><span>クラウド同期</span></div>
+    <button class="s-folder" onclick="openFolderModal()">📁 フォルダを開く · 作成する</button>
+
     <div class="s-keys">
-      <kbd>Z</kbd> 正解 &nbsp;
-      <kbd>X</kbd> 不正解 &nbsp;
-      <kbd>C</kbd> 部分点 &nbsp;
-      <kbd>T</kbd> 文字 &nbsp;
-      <kbd>←</kbd><kbd>→</kbd> 生徒切替 &nbsp;
-      <kbd>Ctrl</kbd><kbd>Z</kbd> 戻る
+      <div class="s-key-item"><kbd>Z</kbd> 正解</div>
+      <div class="s-key-item"><kbd>X</kbd> 不正解</div>
+      <div class="s-key-item"><kbd>C</kbd> 部分点</div>
+      <div class="s-key-item"><kbd>T</kbd> 文字</div>
+      <div class="s-key-item"><kbd>←</kbd><kbd>→</kbd> 切替</div>
+      <div class="s-key-item"><kbd>Ctrl</kbd><kbd>Z</kbd> 戻る</div>
     </div>
   </div>
 </div>
@@ -998,7 +1132,7 @@ function fbSub(id){
       if((d.updatedAt||0)>_lastSave+500){
         S.marks=decM(d.marks);S.zones=d.zones||[];
         if(d.markSize){S.mSz=d.markSize;document.getElementById('mszR').value=d.markSize}
-        if(document.getElementById('ov').style.display==='none'){renderMks();updUI();toast('🔄 他のデバイスの変更を反映しました')}
+        if(document.getElementById('ov').style.display==='none'||!document.getElementById('ov').style.display){renderMks();updUI();toast('🔄 他のデバイスの変更を反映しました')}
       }
     });
     _uns.data=u1;
@@ -1095,7 +1229,7 @@ async function openFolder(id){
     if(S.stus.length>0)await loadS(0);else renderMks();
     toast(`✅ 「${meta.name}」を開きました`);
   }else{
-    document.getElementById('ov').style.display='flex';
+    document.getElementById('ov').style.display='grid';
     toast('採点データを同期しました。PDFをアップロードしてください。');
   }
 }
@@ -1774,8 +1908,8 @@ async function backToTop(){
   const ok=await confirm2('トップに戻る','採点中のデータはブラウザに保存されています。トップ画面に戻りますか？','戻る',false);
   if(!ok)return;
   fbUnsub();S.fid=null;
-  document.getElementById('ov').style.display='flex';
-  document.getElementById('ov').style.display='';
+  document.getElementById('ov').style.display='grid';
+  document.getElementById('ov').style.display='grid';
   history.replaceState(null,'',location.pathname);
   document.getElementById('urlChip').textContent='';
   document.getElementById('hKey').textContent='クリックまたはドラッグ';document.getElementById('hKey').classList.remove('ok');
@@ -1789,7 +1923,7 @@ document.querySelectorAll('.mo:not(#mConfirm)').forEach(o=>o.addEventListener('c
 // Keyboard shortcuts
 document.addEventListener('keydown',e=>{
   if(document.querySelector('.mo.on'))return;
-  if(document.getElementById('ov').style.display!=='none'&&document.getElementById('ov').style.display!=='')return;
+  if(document.getElementById('ov').style.display!=='none')return;
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   const k=e.key.toLowerCase();
   if(k==='z'||k==='1')setTool('o');
