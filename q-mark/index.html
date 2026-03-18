@@ -3,567 +3,1097 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Q-Mark | 採点ツール</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Q-Mark — デジタル採点</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-const app = initializeApp({
-  apiKey:"AIzaSyDXI7ciwEFiCo3yPQmFjg0DxZSNptWKkIc",
-  authDomain:"q-mark-d19c7.firebaseapp.com",
-  databaseURL:"https://q-mark-d19c7-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"q-mark-d19c7",
-  storageBucket:"q-mark-d19c7.firebasestorage.app",
-  messagingSenderId:"522566486976",
-  appId:"1:522566486976:web:82860744ebd31f6d141625"
-});
-window._fb = { db: getDatabase(app), ref, set, get, onValue, remove };
-window.dispatchEvent(new Event('firebaseReady'));
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getDatabase,ref,set,get,onValue,remove}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+const app=initializeApp({apiKey:"AIzaSyDXI7ciwEFiCo3yPQmFjg0DxZSNptWKkIc",authDomain:"q-mark-d19c7.firebaseapp.com",databaseURL:"https://q-mark-d19c7-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"q-mark-d19c7",storageBucket:"q-mark-d19c7.firebasestorage.app",messagingSenderId:"522566486976",appId:"1:522566486976:web:82860744ebd31f6d141625"});
+window._fb={db:getDatabase(app),ref,set,get,onValue,remove};
+window.dispatchEvent(new Event('fbReady'));
 </script>
 <style>
-:root {
-  --base:#07090f; --surface:#0d1117; --panel:#111827; --raised:#161f2e;
-  --border:#1e2d3d; --border2:#253347;
-  --pri:#22d3ee; --pri-dim:rgba(34,211,238,.1); --pri-grad:linear-gradient(135deg,#06b6d4,#818cf8);
-  --ok:#34d399; --ng:#f87171; --warn:#fbbf24; --info:#38bdf8;
-  --tx:#e2e8f0; --sub:#94a3b8; --muted:#4b6280;
-  --r:10px; --r-sm:6px; --r-lg:14px; --r-xl:20px;
-  --sh:0 8px 32px rgba(0,0,0,.5); --sh-sm:0 2px 8px rgba(0,0,0,.3);
+/* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+:root{
+  --ink:#08080b;
+  --surface:#0f0f15;
+  --card:#141420;
+  --lift:#1a1a2a;
+  --groove:#202030;
+  --line:#26263a;
+  --line2:#30304a;
+
+  /* Brand — warm parchment gold, DISTINCT from mark colors */
+  --gold:#c8943a;
+  --gold-hi:rgba(200,148,58,.16);
+  --gold-lo:rgba(200,148,58,.07);
+  --gold-txt:#d9a84e;
+
+  /* Semantic mark colors */
+  --ok:#22c55e;  --ok-hi:rgba(34,197,94,.14);
+  --ng:#ef4444;  --ng-hi:rgba(239,68,68,.14);
+  --tri:#f59e0b; --tri-hi:rgba(245,158,11,.14);
+
+  --info:#38bdf8;
+  --tx:#f2ede4;   /* warm ivory — not cold white */
+  --tx2:#90909a;
+  --tx3:#48485a;
+
+  --r:10px; --r-sm:7px; --r-lg:14px; --r-xl:22px;
+  --sh:0 8px 48px rgba(0,0,0,.65);
+  --sh-sm:0 2px 12px rgba(0,0,0,.45);
+
+  /* mark size as CSS var for reactive scaling */
+  --ms:44px;
 }
+
+/* ─── RESET ─────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{font-family:'Sora',sans-serif;background:var(--base);color:var(--tx);display:flex;flex-direction:column;user-select:none}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:var(--base)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(--tx);display:flex;flex-direction:column;user-select:none;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--tx3)}
 
-/* HEADER */
-#hdr{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px;flex-shrink:0;z-index:50}
-.logo{font-weight:800;font-size:1.15rem;letter-spacing:-1px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:2px}
-.logo em{font-style:normal;background:var(--pri-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.logo:hover{opacity:.8}
-.sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
+/* ─── START OVERLAY ─────────────────────────────────────────── */
+#ov{
+  position:fixed;inset:0;z-index:999;
+  display:flex;justify-content:center;align-items:center;
+  overflow-y:auto;padding:40px 20px;
+}
+#ov::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 30%, rgba(200,148,58,.1) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 70%, rgba(34,197,94,.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 70% 10%, rgba(56,189,248,.06) 0%, transparent 50%),
+    var(--ink);
+  animation:aBg 12s ease-in-out infinite alternate;
+}
+@keyframes aBg{from{opacity:.8}to{opacity:1}}
+
+.start{
+  position:relative;z-index:1;
+  background:rgba(15,15,21,.88);
+  backdrop-filter:blur(32px) saturate(1.4);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--r-xl);
+  width:min(680px,100%);
+  padding:52px 56px 44px;
+  box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.06);
+  animation:aIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes aIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.start::before{
+  content:'';position:absolute;top:0;left:24px;right:24px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,148,58,.6),transparent);
+}
+.s-logo{
+  font-family:'Fraunces',serif;font-size:2.6rem;font-weight:900;
+  letter-spacing:-2px;text-align:center;margin-bottom:6px;
+  display:flex;align-items:center;justify-content:center;gap:2px;
+}
+.s-logo em{font-style:italic;color:var(--gold-txt)}
+.s-logo .dash{color:var(--tx3);font-weight:300;margin:0 2px}
+.s-tagline{color:var(--tx2);text-align:center;font-size:.82rem;font-weight:400;margin-bottom:40px;letter-spacing:.5px}
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.dz{
+  border:2px dashed var(--line2);border-radius:var(--r-lg);
+  padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  cursor:pointer;transition:all .22s;background:transparent;
+}
+.dz:hover,.dz.ov{border-color:var(--gold);background:var(--gold-lo);box-shadow:inset 0 0 0 1px var(--gold-lo)}
+.dz-ico{font-size:2.2rem;transition:transform .22s}
+.dz:hover .dz-ico,.dz.ov .dz-ico{transform:scale(1.1)}
+.dz-lbl{font-weight:700;font-size:.9rem;color:var(--tx)}
+.dz-hint{font-size:.72rem;color:var(--tx3);text-align:center;transition:color .22s}
+.dz:hover .dz-hint,.dz.ov .dz-hint{color:var(--gold-txt)}
+.dz-hint.ok{color:var(--ok);font-weight:600}
+.s-start{
+  width:100%;height:48px;border:none;border-radius:var(--r);cursor:pointer;
+  background:linear-gradient(135deg,#b8852a,#d4a84e,#b8852a);
+  background-size:200% 100%;background-position:100%;
+  color:#1a1000;font-family:'Plus Jakarta Sans',sans-serif;font-size:.92rem;font-weight:700;
+  transition:all .3s;letter-spacing:.2px;
+  box-shadow:0 4px 20px rgba(200,148,58,.3);
+}
+.s-start:hover:not(:disabled){background-position:0%;box-shadow:0 6px 28px rgba(200,148,58,.45)}
+.s-start:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.s-start:active:not(:disabled){transform:translateY(1px)}
+.divr{display:flex;align-items:center;gap:12px;margin:22px 0}
+.divr::before,.divr::after{content:'';flex:1;height:1px;background:var(--line)}
+.divr span{font-size:.68rem;color:var(--tx3);font-weight:600;letter-spacing:.5px;white-space:nowrap}
+.s-folder{
+  width:100%;height:42px;border:1px solid var(--line2);border-radius:var(--r);
+  background:transparent;color:var(--tx2);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;
+  align-items:center;justify-content:center;gap:8px;
+}
+.s-folder:hover{border-color:var(--ok);color:var(--ok);background:var(--ok-hi)}
+.s-keys{
+  margin-top:20px;text-align:center;font-size:.67rem;color:var(--tx3);
+  line-height:1.8;letter-spacing:.1px;
+}
+.s-keys kbd{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--card);border:1px solid var(--line2);border-radius:4px;
+  padding:0 5px;height:18px;font-family:'JetBrains Mono',monospace;font-size:.72rem;
+  color:var(--tx2);margin:0 2px;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────────── */
+#hdr{
+  height:52px;flex-shrink:0;z-index:50;
+  background:var(--surface);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 16px;gap:7px;
+}
+.logo{
+  font-family:'Fraunces',serif;font-weight:900;font-size:1.15rem;
+  letter-spacing:-1px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;
+}
+.logo em{font-style:italic;color:var(--gold-txt)}
+.logo .dash{color:var(--tx3);font-weight:300}
+.logo:hover{opacity:.75;transition:opacity .15s}
+.vsep{width:1px;height:20px;background:var(--line);flex-shrink:0;margin:0 3px}
 .sp{flex:1}
-.btn{height:32px;padding:0 11px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--sub);font-family:'Sora',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.btn:hover:not(:disabled){background:var(--raised);color:var(--tx);border-color:var(--border2)}
-.btn:active:not(:disabled){transform:translateY(1px)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.active{background:var(--pri-dim);border-color:var(--pri);color:var(--pri)}
-.btn-p{background:var(--pri-grad);color:#fff;border:none;font-weight:700}
-.btn-p:hover:not(:disabled){opacity:.9;box-shadow:0 0 10px rgba(34,211,238,.25)}
-.btn-d{color:var(--ng);border-color:var(--ng);background:rgba(248,113,113,.06)}
-.btn-d:hover:not(:disabled){background:rgba(248,113,113,.14)}
-.btn-ok{color:var(--ok);border-color:var(--ok);background:rgba(52,211,153,.06)}
-.btn-ok:hover:not(:disabled){background:rgba(52,211,153,.14)}
-.score-w{font-family:'JetBrains Mono',monospace;display:flex;align-items:baseline;gap:4px}
-.score-w .sl{font-size:.6rem;color:var(--muted);font-weight:700;letter-spacing:.5px}
-.score-w .sv{font-size:1.35rem;font-weight:700;color:var(--pri);line-height:1}
-.cg{display:flex;align-items:center;height:32px;background:var(--base);border:1px solid var(--border);border-radius:var(--r-sm);padding:0 6px;gap:4px;flex-shrink:0}
-.cl{font-size:.62rem;color:var(--muted);font-weight:700;letter-spacing:.5px}
-input[type=range]{width:66px;accent-color:var(--pri);cursor:pointer}
-.zg{display:flex;align-items:center;gap:2px}
-.zb{width:26px;height:26px;border:none;background:transparent;color:var(--sub);cursor:pointer;font-size:.95rem;border-radius:4px;display:flex;align-items:center;justify-content:center}
-.zb:hover{background:var(--raised);color:var(--tx)}
-.zv{width:42px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:600;color:var(--tx)}
 
-/* SESSION BAR */
-#sbar{display:none;height:30px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 14px;align-items:center;justify-content:space-between;gap:12px;font-size:.7rem;flex-shrink:0}
+/* Tool buttons */
+.tbtn{
+  height:34px;padding:0 11px;border-radius:var(--r-sm);
+  border:1px solid transparent;background:transparent;
+  color:var(--tx2);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.76rem;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:5px;transition:all .15s;
+  white-space:nowrap;flex-shrink:0;position:relative;
+}
+.tbtn:hover:not(:disabled){background:var(--lift);color:var(--tx);border-color:var(--line)}
+.tbtn:active:not(:disabled){transform:translateY(1px)}
+.tbtn:disabled{opacity:.35;cursor:not-allowed}
+.tbtn.act{background:var(--gold-hi);border-color:var(--gold);color:var(--gold-txt)}
+/* Tool-specific active states */
+.tbtn.act-ok{background:var(--ok-hi);border-color:var(--ok);color:var(--ok)}
+.tbtn.act-ng{background:var(--ng-hi);border-color:var(--ng);color:var(--ng)}
+.tbtn.act-tri{background:var(--tri-hi);border-color:var(--tri);color:var(--tri)}
+.tbtn.act-txt{background:var(--gold-hi);border-color:var(--gold);color:var(--gold-txt)}
+.tbtn-primary{
+  background:linear-gradient(135deg,#b8852a,#d4a84e);color:#1a1000;
+  border:none;font-weight:700;box-shadow:0 2px 8px rgba(200,148,58,.25);
+}
+.tbtn-primary:hover:not(:disabled){opacity:.92;box-shadow:0 4px 16px rgba(200,148,58,.4)}
+.tbtn-ok{color:var(--ok);border-color:rgba(34,197,94,.3);background:var(--ok-hi)}
+.tbtn-ok:hover:not(:disabled){background:rgba(34,197,94,.22);border-color:var(--ok)}
+.tbtn-ng{color:var(--ng);border-color:rgba(239,68,68,.3);background:var(--ng-hi)}
+.tbtn-ng:hover:not(:disabled){background:rgba(239,68,68,.22);border-color:var(--ng)}
+.tool-ico-ok{color:var(--ok);font-size:1rem}
+.tool-ico-ng{color:var(--ng);font-size:1rem}
+.tool-ico-tri{color:var(--tri);font-size:1rem}
+
+.score-chip{
+  display:flex;align-items:baseline;gap:5px;
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:0 12px;height:34px;
+  align-items:center;flex-shrink:0;
+}
+.sc-lbl{font-size:.6rem;font-weight:700;color:var(--tx3);letter-spacing:.8px;text-transform:uppercase}
+.sc-val{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:800;color:var(--gold-txt);line-height:1;margin-left:3px}
+
+.size-row{
+  display:flex;align-items:center;gap:7px;height:34px;
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:0 10px;flex-shrink:0;
+}
+.size-lbl{font-size:.62rem;font-weight:700;color:var(--tx3);letter-spacing:.5px}
+input[type=range]{width:64px;accent-color:var(--gold);cursor:pointer}
+
+.zoom-g{display:flex;align-items:center;gap:2px}
+.zb{
+  width:26px;height:26px;border:none;background:transparent;
+  color:var(--tx2);cursor:pointer;font-size:.9rem;
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+}
+.zb:hover{background:var(--lift);color:var(--tx)}
+.zv{
+  width:40px;text-align:center;font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;font-weight:500;color:var(--tx2);
+}
+
+/* ─── SESSION BAR ────────────────────────────────────────────── */
+#sbar{
+  display:none;height:32px;flex-shrink:0;
+  background:rgba(15,15,21,.96);border-bottom:1px solid var(--line);
+  padding:0 16px;gap:12px;font-size:.7rem;
+  align-items:center;justify-content:space-between;
+}
 #sbar.on{display:flex}
-.fpill{display:flex;align-items:center;gap:6px;color:var(--ok);font-weight:600;min-width:0}
-.fpill .fn{max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fp{display:flex;align-items:center;gap:8px;min-width:0}
+.fp-name{
+  font-weight:700;font-size:.78rem;color:var(--ok);
+  max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.fp-status{color:var(--tx3);font-size:.68rem}
+.url-chip{
+  font-family:'JetBrains Mono',monospace;font-size:.66rem;
+  color:var(--gold-txt);opacity:.7;
+  max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.sbtn{
+  height:22px;padding:0 9px;border-radius:4px;
+  border:1px solid var(--line);background:transparent;
+  color:var(--tx2);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.66rem;font-weight:600;cursor:pointer;white-space:nowrap;
+}
+.sbtn:hover{background:var(--lift);color:var(--tx);border-color:var(--line2)}
 
-/* LAYOUT BAR */
-#lbar{display:none;height:40px;background:var(--raised);border-bottom:1px solid var(--border);padding:0 14px;align-items:center;gap:10px;font-size:.78rem;flex-shrink:0}
-.ni{width:52px;height:28px;padding:0 6px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--base);color:var(--tx);font-family:'Sora',sans-serif;font-size:.76rem;text-align:center}
-select.ni{width:auto;cursor:pointer}
+/* ─── LAYOUT BAR ─────────────────────────────────────────────── */
+#lbar{
+  display:none;height:42px;flex-shrink:0;
+  background:var(--groove);border-bottom:1px solid var(--line);
+  padding:0 16px;align-items:center;gap:10px;
+}
+.ni{
+  height:28px;padding:0 8px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--ink);
+  color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.76rem;text-align:center;outline:none;
+}
+.ni:focus{border-color:var(--gold)}
+select.ni{cursor:pointer;padding-right:6px}
 
-/* WORKSPACE */
+/* ─── WORKSPACE ──────────────────────────────────────────────── */
 #ws{display:flex;flex:1;overflow:hidden}
-.pane{display:flex;flex-direction:column;min-width:160px;background:var(--surface)}
-.ph{height:44px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.pt{font-size:.76rem;font-weight:600;color:var(--sub);display:flex;align-items:center;gap:6px}
-.rsz{width:5px;background:var(--base);border-left:1px solid var(--border);border-right:1px solid var(--border);cursor:col-resize;z-index:100;transition:background .15s;flex-shrink:0}
-.rsz:hover,.rsz.on{background:var(--pri)}
+.pane{display:flex;flex-direction:column;min-width:180px;background:var(--surface)}
+.ph{
+  height:46px;flex-shrink:0;
+  background:var(--card);border-bottom:1px solid var(--line);
+  padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.ph-title{font-size:.75rem;font-weight:600;color:var(--tx2);display:flex;align-items:center;gap:6px}
 
-/* CANVAS AREA */
-.cvs{flex:1;overflow:auto;background:#040608;background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:22px 22px;display:flex;align-items:flex-start;padding:28px;touch-action:none}
-.sw{position:relative;box-shadow:0 0 0 1px rgba(255,255,255,.05),0 16px 48px rgba(0,0,0,.7);background:#fff;transform-origin:top center;margin:0 auto;flex-shrink:0}
+.rsz{
+  width:5px;background:var(--ink);
+  border-left:1px solid var(--line);border-right:1px solid var(--line);
+  cursor:col-resize;flex-shrink:0;transition:all .15s;
+}
+.rsz:hover,.rsz.on{background:var(--gold);border-color:var(--gold)}
+
+/* ─── CANVAS AREAS ───────────────────────────────────────────── */
+.cvs{
+  flex:1;overflow:auto;
+  background:var(--ink);
+  background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:24px 24px;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:36px;
+}
+.paper{
+  position:relative;flex-shrink:0;margin:0 auto;
+  background:#fff;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04),
+    0 4px 12px rgba(0,0,0,.4),
+    0 16px 48px rgba(0,0,0,.6),
+    0 40px 80px rgba(0,0,0,.4);
+  transform-origin:top center;
+}
 canvas{display:block;width:100%;height:auto}
 
-/* MARKS */
-#cg{position:absolute;pointer-events:none;width:var(--ms,44px);height:var(--ms,44px);border:2px solid rgba(255,255,255,.7);border-radius:50%;transform:translate(-50%,-50%);z-index:100;display:none}
-#cg.sn{border-color:var(--info);box-shadow:0 0 0 3px rgba(56,189,248,.2)}
-.mk{position:absolute;transform:translate(-50%,-50%);width:var(--ms,44px);height:var(--ms,44px);display:flex;justify-content:center;align-items:center;font-weight:800;pointer-events:none;z-index:10;font-family:'JetBrains Mono',monospace}
-.mb{position:absolute;bottom:-7px;right:-7px;background:var(--panel);color:var(--tx);font-size:9px;padding:1px 4px;border-radius:3px;border:1px solid var(--border);font-weight:700;white-space:nowrap}
-.mk-o{border-radius:50%;border:3px solid var(--ok);background:rgba(52,211,153,.1)}
-.mk-x{color:var(--ng)}
-.mk-x::before,.mk-x::after{content:'';position:absolute;width:3px;height:100%;background:var(--ng);border-radius:2px}
-.mk-x::before{transform:rotate(45deg)}.mk-x::after{transform:rotate(-45deg)}
-.mk-tri{display:flex;justify-content:center;align-items:center}
-.mk-tri-sh{position:absolute;top:0;left:0;width:100%;height:100%;clip-path:polygon(50% 0%,0% 100%,100% 100%);background:rgba(251,191,36,.12)}
-.mk-tri-tx{position:relative;z-index:2;font-size:.85rem;padding-top:18%;text-shadow:0 1px 2px rgba(0,0,0,.9);color:var(--warn)}
-.mk-txt{position:absolute;transform:translateY(-50%);white-space:nowrap;z-index:11;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,.9);background:rgba(0,0,0,.55);padding:3px 8px;border-radius:4px;border:2px solid transparent;cursor:grab;backdrop-filter:blur(4px)}
-.mk-txt:hover{border-color:rgba(255,255,255,.2)}.mk-txt.sel{border-color:var(--pri)}
-.zone{position:absolute;border:1px dashed var(--warn);background:rgba(251,191,36,.06);transform:translate(-50%,-50%);pointer-events:none;display:flex;justify-content:center;align-items:center;color:var(--warn);font-size:.62rem;font-weight:700;border-radius:3px}
-#te{position:absolute;background:rgba(13,17,23,.96);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:var(--r);padding:8px;display:none;gap:8px;align-items:center;box-shadow:var(--sh);z-index:200}
+/* ─── MARK LAYERS ────────────────────────────────────────────── */
+#lMk,#lZn,#lTp{position:absolute;inset:0;pointer-events:none}
+#lMk{pointer-events:none}
+/* cursor guide */
+#cg{
+  position:absolute;pointer-events:none;
+  width:var(--ms);height:var(--ms);
+  border:2px solid rgba(255,255,255,.6);border-radius:50%;
+  transform:translate(-50%,-50%);z-index:200;display:none;
+  transition:border-color .1s;
+}
+#cg.snap{border-color:var(--info);box-shadow:0 0 0 4px rgba(56,189,248,.15)}
 
-/* OVERLAY */
-#ov{position:fixed;inset:0;background:rgba(7,9,15,.93);z-index:999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(12px)}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);width:min(660px,96vw);padding:44px;box-shadow:var(--sh);position:relative;overflow:hidden}
-.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pri-grad)}
-.st{font-size:1.9rem;font-weight:800;letter-spacing:-1px;text-align:center;margin-bottom:4px}
-.ss{color:var(--sub);text-align:center;font-size:.82rem;margin-bottom:32px}
-.ug{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
-.dz{border:2px dashed var(--border);border-radius:var(--r-lg);padding:28px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .2s}
-.dz:hover,.dz.ov{border-color:var(--pri);background:var(--pri-dim)}
-.di{font-size:2rem}.dl{font-weight:700;font-size:.88rem}
-.ds{font-size:.72rem;color:var(--muted);text-align:center}.ds.ok{color:var(--ok);font-weight:600}
-.dvr{display:flex;align-items:center;gap:10px;margin:20px 0}
-.dvr::before,.dvr::after{content:'';flex:1;height:1px;background:var(--border)}
-.dvr span{font-size:.68rem;color:var(--muted);font-weight:700;letter-spacing:.5px;white-space:nowrap}
+/* marks */
+.mk{
+  position:absolute;transform:translate(-50%,-50%);
+  width:var(--ms);height:var(--ms);
+  pointer-events:none;z-index:10;display:flex;justify-content:center;align-items:center;
+}
+.mk.fresh{animation:mkPop .26s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes mkPop{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:0}
+  70%{transform:translate(-50%,-50%) scale(1.18)}
+  100%{transform:translate(-50%,-50%) scale(1);opacity:1}
+}
+/* circle */
+.mk-o{
+  border-radius:50%;
+  border:3px solid var(--ok);
+  background:var(--ok-hi);
+  box-shadow:0 0 0 2px rgba(34,197,94,.08),inset 0 0 12px rgba(34,197,94,.06);
+}
+/* cross — SVG background for clean look at any size */
+.mk-x{
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cline x1='12' y1='12' x2='88' y2='88' stroke='%23ef4444' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='88' y1='12' x2='12' y2='88' stroke='%23ef4444' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") center/80% no-repeat;
+  background-color:var(--ng-hi);border-radius:4px;
+  box-shadow:0 0 0 2px rgba(239,68,68,.08);
+}
+/* triangle — SVG background */
+.mk-tri{
+  display:flex;justify-content:center;align-items:center;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 96'%3E%3Cpolygon points='50,4 4,92 96,92' stroke='%23f59e0b' stroke-width='5' fill='rgba(245,158,11,0.1)' stroke-linejoin='round'/%3E%3C/svg%3E") center/88% no-repeat;
+}
+.mk-tri-tx{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.8rem;
+  color:var(--tri);text-shadow:0 1px 4px rgba(0,0,0,.9);
+  position:relative;z-index:1;padding-top:22%;
+}
+/* number badge */
+.mb{
+  position:absolute;bottom:-8px;right:-6px;
+  background:var(--card);color:var(--tx);
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+  padding:1px 4px;border-radius:4px;border:1px solid var(--line2);
+  white-space:nowrap;
+}
+/* text mark */
+.mk-txt{
+  position:absolute;transform:translateY(-50%);
+  white-space:nowrap;z-index:11;pointer-events:auto;cursor:grab;
+  font-weight:700;text-shadow:0 2px 6px rgba(0,0,0,.95);
+  background:rgba(8,8,11,.6);padding:3px 9px;border-radius:5px;
+  border:2px solid transparent;backdrop-filter:blur(4px);transition:border-color .15s;
+}
+.mk-txt:hover{border-color:rgba(255,255,255,.18)}
+.mk-txt.sel{border-color:var(--gold)}
+/* zone snap indicator */
+.zone{
+  position:absolute;transform:translate(-50%,-50%);pointer-events:none;
+  border:1px dashed rgba(245,158,11,.5);background:rgba(245,158,11,.05);
+  border-radius:4px;display:flex;justify-content:center;align-items:center;
+  color:rgba(245,158,11,.6);font-size:.6rem;font-weight:700;
+}
 
-/* MODALS */
-.mo{position:fixed;inset:0;background:rgba(7,9,15,.88);z-index:1000;display:none;justify-content:center;align-items:center;backdrop-filter:blur(8px)}
+/* ─── TEXT EDITOR ────────────────────────────────────────────── */
+#te{
+  position:absolute;display:none;align-items:center;gap:8px;
+  background:rgba(14,14,20,.96);backdrop-filter:blur(16px);
+  border:1px solid var(--line2);border-radius:var(--r);
+  padding:9px 12px;box-shadow:var(--sh-sm);z-index:300;
+}
+
+/* ─── MODAL BASE ─────────────────────────────────────────────── */
+.mo{
+  position:fixed;inset:0;z-index:1000;
+  display:none;justify-content:center;align-items:center;
+  background:rgba(8,8,11,.82);backdrop-filter:blur(12px);
+  padding:20px;
+}
 .mo.on{display:flex}
-.mb2{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh);position:relative;overflow:hidden;animation:mIn .18s ease}
-.mb2::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pri-grad)}
-@keyframes mIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
-.mhdr{padding:22px 22px 0;display:flex;justify-content:space-between;align-items:center}
-.mtit{font-size:1rem;font-weight:800;letter-spacing:-.3px}
-.mcls{width:28px;height:28px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;border-radius:6px;display:flex;align-items:center;justify-content:center}
-.mcls:hover{background:var(--raised);color:var(--tx)}
-.mbdy{padding:18px 22px 22px;overflow-y:auto}
-.fg{margin-bottom:13px}
-.fl{display:block;font-size:.72rem;font-weight:700;color:var(--sub);margin-bottom:5px;letter-spacing:.3px}
-.fi{width:100%;height:37px;background:var(--base);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--tx);font-family:'Sora',sans-serif;font-size:.83rem;padding:0 11px;outline:none;transition:border-color .15s}
-.fi:focus{border-color:var(--pri)}.fi::placeholder{color:var(--muted)}
-.fer{color:var(--ng);font-size:.72rem;margin-top:5px;min-height:14px}
-.ibox{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:var(--r-sm);padding:10px 13px;font-size:.74rem;color:var(--info);line-height:1.6}
+.mbox{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-xl);box-shadow:var(--sh);
+  position:relative;overflow:hidden;animation:mIn .2s cubic-bezier(.22,1,.36,1) both;
+}
+.mbox::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,148,58,.5),transparent);
+}
+@keyframes mIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:none}}
+.mhdr{padding:24px 26px 0;display:flex;justify-content:space-between;align-items:center}
+.mtit{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;letter-spacing:-.3px}
+.mcls{
+  width:30px;height:30px;border:none;background:transparent;
+  color:var(--tx3);cursor:pointer;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+}
+.mcls:hover{background:var(--lift);color:var(--tx)}
+.mbdy{padding:20px 26px 26px;overflow-y:auto}
 
-/* FOLDER */
-#fm .mb2{width:min(650px,96vw);max-height:82vh;display:flex;flex-direction:column}
-#fm .mbdy{flex:1;display:flex;flex-direction:column;gap:14px}
+/* form elements */
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:.72rem;font-weight:700;color:var(--tx2);margin-bottom:6px;letter-spacing:.3px}
+.fi{
+  width:100%;height:38px;background:var(--ink);
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.84rem;padding:0 12px;outline:none;transition:border-color .15s;
+}
+.fi:focus{border-color:var(--gold)}
+.fi::placeholder{color:var(--tx3)}
+select.fi{height:auto;padding:9px 12px;cursor:pointer}
+.ferr{color:var(--ng);font-size:.72rem;margin-top:5px;min-height:14px}
+
+/* info box */
+.infobox{
+  background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.15);
+  border-radius:var(--r-sm);padding:10px 14px;font-size:.75rem;
+  color:var(--info);line-height:1.65;
+}
+
+/* ─── FOLDER MODAL ───────────────────────────────────────────── */
+#mFolder .mbox{width:min(640px,100%);max-height:88vh;display:flex;flex-direction:column}
+#mFolder .mbdy{flex:1;display:flex;flex-direction:column;gap:14px;max-height:calc(88vh - 72px)}
 .fcr{display:flex;gap:8px}
 .fcr .fi{flex:1}
-.fl2{display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;min-height:80px}
-.fc{background:var(--base);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;gap:13px;transition:all .15s}
-.fc:hover{border-color:var(--border2);background:var(--raised)}
-.fi2{font-size:1.4rem;flex-shrink:0}
-.fn2{flex:1;min-width:0}
-.fn3{font-weight:700;font-size:.86rem;margin-bottom:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.fm2{font-size:.68rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
-.fm2 .ac{color:var(--info);font-weight:600}
-.fa{display:flex;gap:5px;flex-shrink:0}
-.fe{text-align:center;padding:36px 20px;color:var(--muted);font-size:.82rem;line-height:1.8}
+.flist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;min-height:60px}
+/* folder card */
+.fc{
+  background:var(--ink);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+  transition:border-color .15s,background .15s;
+}
+.fc:hover{border-color:var(--line2);background:rgba(26,26,42,.7)}
+.fc-ico{font-size:1.5rem;flex-shrink:0;line-height:1}
+.fc-info{flex:1;min-width:0}
+.fc-name{font-weight:700;font-size:.86rem;margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fc-meta{font-size:.7rem;color:var(--tx3);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.fc-meta .ac{color:var(--info);font-weight:600}
+.fc-meta .badge{font-size:.6rem;padding:1px 7px;border-radius:20px;background:var(--gold-hi);color:var(--gold-txt);border:1px solid rgba(200,148,58,.25);font-weight:700}
+.fc-acts{display:flex;gap:5px;flex-shrink:0}
+.fe{text-align:center;padding:40px 20px;color:var(--tx3);font-size:.82rem;line-height:2}
 
-/* FILE MANAGER */
-#mgr .mb2{width:min(560px,96vw);max-height:80vh;display:flex;flex-direction:column}
-#mgr .mbdy{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px}
-.fr{background:var(--base);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 13px;display:flex;align-items:center;gap:11px;transition:border-color .15s}
-.fr:hover{border-color:var(--border2)}
-.fri{font-size:1rem;flex-shrink:0}
-.frn{flex:1;font-size:.8rem;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.frt{font-size:.66rem;color:var(--muted);flex-shrink:0;font-family:'JetBrains Mono',monospace}
-.fkb{font-size:.62rem;padding:2px 7px;border-radius:20px;background:rgba(251,191,36,.1);color:var(--warn);border:1px solid rgba(251,191,36,.25);font-weight:700;flex-shrink:0}
+/* ─── FILE MANAGER ───────────────────────────────────────────── */
+#mFiles .mbox{width:min(520px,100%);max-height:82vh;display:flex;flex-direction:column}
+#mFiles .mbdy{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;max-height:calc(82vh - 72px)}
+.fr{
+  background:var(--ink);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:10px 14px;display:flex;align-items:center;gap:12px;transition:border-color .15s;
+}
+.fr:hover{border-color:var(--line2)}
+.fr-ico{font-size:1.05rem;flex-shrink:0}
+.fr-name{flex:1;font-size:.8rem;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fr-type{font-size:.66rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.fr-badge{font-size:.62rem;padding:2px 8px;border-radius:20px;background:rgba(245,158,11,.1);color:var(--tri);border:1px solid rgba(245,158,11,.2);font-weight:700;flex-shrink:0}
 
-/* STATS */
-#st .mb2{width:min(720px,96vw);max-height:88vh;display:flex;flex-direction:column}
-#st .mbdy{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.stl{background:var(--base);border:1px solid var(--border);border-radius:var(--r);padding:13px;text-align:center}
-.stll{font-size:.63rem;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
-.stlv{font-size:1.55rem;font-weight:800;font-family:'JetBrains Mono',monospace}
-.stlv.cy{color:var(--pri)}.stlv.bl{color:var(--info)}.stlv.gr{color:var(--ok)}.stlv.rd{color:var(--ng)}
-.bw{background:var(--base);border:1px solid var(--border);border-radius:var(--r);padding:14px}
-.bwt{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
-.bars{display:flex;align-items:flex-end;gap:3px;height:76px}
-.bi{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
-.bf{width:100%;background:var(--pri-grad);border-radius:2px 2px 0 0;min-height:2px;opacity:.7}
-.bf.cur{opacity:1;box-shadow:0 0 8px rgba(34,211,238,.35)}
-.bbl{font-size:.53rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* ─── STATS MODAL ────────────────────────────────────────────── */
+#mStats .mbox{width:min(740px,100%);max-height:90vh;display:flex;flex-direction:column}
+#mStats .mbdy{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:18px;max-height:calc(90vh - 72px)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stile{
+  background:var(--ink);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px;text-align:center;
+}
+.stile-l{font-size:.63rem;font-weight:700;color:var(--tx3);letter-spacing:.7px;text-transform:uppercase;margin-bottom:6px}
+.stile-v{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:800;line-height:1}
+.stile-v.c1{color:var(--gold-txt)}
+.stile-v.c2{color:var(--info)}
+.stile-v.c3{color:var(--ok)}
+.stile-v.c4{color:var(--ng)}
+.hist-wrap{
+  background:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+}
+.hist-title{font-size:.68rem;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:12px}
+#histCanvas{width:100%;height:90px;display:block}
 .stab{width:100%;border-collapse:collapse;font-size:.78rem}
-.stab th{padding:8px 11px;background:rgba(34,211,238,.05);border-bottom:1px solid var(--border);font-weight:700;color:var(--sub);text-align:left;white-space:nowrap}
-.stab td{padding:7px 11px;border-bottom:1px solid rgba(30,45,61,.5)}
-.stab tr:hover td{background:rgba(255,255,255,.02)}.stab tr.me td{background:rgba(34,211,238,.04)}
-.rb{display:inline-flex;align-items:center;justify-content:center;width:24px;height:19px;border-radius:3px;font-weight:800;font-size:.7rem;font-family:'JetBrains Mono',monospace}
-.r1{background:rgba(251,191,36,.16);color:var(--warn);border:1px solid rgba(251,191,36,.3)}
-.r2{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.22)}
-.r3{background:rgba(180,83,9,.1);color:#d97706;border:1px solid rgba(180,83,9,.22)}
-.rn{background:var(--base);color:var(--muted);border:1px solid var(--border)}
-.db{display:flex;align-items:center;gap:5px}
-.df{height:5px;border-radius:3px;background:var(--pri-grad);min-width:2px}
-.seb{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);margin-top:4px}
+.stab th{padding:9px 12px;background:rgba(200,148,58,.05);border-bottom:1px solid var(--line);font-weight:700;color:var(--tx2);text-align:left;white-space:nowrap}
+.stab td{padding:8px 12px;border-bottom:1px solid rgba(38,38,58,.7)}
+.stab tr:hover td{background:rgba(255,255,255,.015)}
+.stab tr.me td{background:rgba(200,148,58,.04)}
+.rnk{display:inline-flex;align-items:center;justify-content:center;width:24px;height:19px;border-radius:4px;font-weight:800;font-size:.7rem;font-family:'JetBrains Mono',monospace}
+.r1{background:rgba(245,158,11,.16);color:var(--tri);border:1px solid rgba(245,158,11,.28)}
+.r2{background:rgba(144,144,154,.1);color:#90909a;border:1px solid rgba(144,144,154,.2)}
+.r3{background:rgba(180,90,9,.1);color:#c07030;border:1px solid rgba(180,90,9,.2)}
+.rn{background:var(--card);color:var(--tx3);border:1px solid var(--line)}
+.dbar{display:flex;align-items:center;gap:5px}
+.dfill{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-txt));min-width:2px;transition:width .3s}
+.sexp{display:flex;gap:8px;padding-top:16px;border-top:1px solid var(--line)}
 
-/* SYNC */
-#sy{position:fixed;inset:0;background:rgba(7,9,15,.93);z-index:9999;display:none;justify-content:center;align-items:center;backdrop-filter:blur(10px)}
-#sy.on{display:flex}
-.syc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:38px 46px;min-width:360px;text-align:center;box-shadow:var(--sh);position:relative;overflow:hidden}
-.syc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pri-grad)}
-.syi{font-size:2.2rem;margin-bottom:10px}
-.syt{font-size:.95rem;font-weight:800;margin-bottom:4px}
-.sys{font-size:.76rem;color:var(--muted);margin-bottom:18px}
-.syk{background:var(--base);border-radius:8px;height:8px;overflow:hidden;margin-bottom:7px}
-.syb{height:100%;background:var(--pri-grad);border-radius:8px;transition:width .2s;width:0%}
-.syf{font-size:.7rem;color:var(--sub);min-height:14px}
+/* ─── CONFIRM DIALOG ─────────────────────────────────────────── */
+#mConfirm .mbox{width:min(380px,100%);text-align:center}
+#mConfirm .mbdy{padding:24px 28px 28px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.conf-ico{font-size:2.4rem;line-height:1}
+.conf-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700}
+.conf-msg{font-size:.82rem;color:var(--tx2);line-height:1.7;max-width:280px}
+.conf-btns{display:flex;gap:10px;justify-content:center;width:100%}
 
-/* TOAST */
-#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--panel);color:var(--tx);padding:9px 20px;border-radius:50px;font-size:.82rem;font-weight:600;border:1px solid var(--border2);box-shadow:var(--sh);opacity:0;transition:all .25s;pointer-events:none;z-index:2000;white-space:nowrap}
+/* ─── SYNC OVERLAY ───────────────────────────────────────────── */
+#mSync{
+  position:fixed;inset:0;z-index:9999;
+  display:none;justify-content:center;align-items:center;
+  background:rgba(8,8,11,.9);backdrop-filter:blur(16px);
+}
+#mSync.on{display:flex}
+.sync-card{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-xl);padding:44px 52px;min-width:380px;
+  text-align:center;box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.sync-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.sync-ico{font-size:2.4rem;margin-bottom:14px;display:block}
+.sync-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:5px}
+.sync-sub{font-size:.78rem;color:var(--tx2);margin-bottom:22px}
+.sync-track{background:var(--ink);border-radius:999px;height:6px;overflow:hidden;margin-bottom:9px;border:1px solid var(--line)}
+.sync-bar{height:100%;background:linear-gradient(90deg,#b8852a,#d4a84e);border-radius:999px;transition:width .25s ease;width:0%}
+.sync-file{font-size:.72rem;color:var(--tx2);min-height:16px;font-family:'JetBrains Mono',monospace}
+
+/* ─── TOAST ──────────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:28px;left:50%;z-index:2000;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--lift);color:var(--tx);
+  padding:10px 22px;border-radius:999px;
+  font-size:.82rem;font-weight:600;
+  border:1px solid var(--line2);box-shadow:var(--sh-sm);
+  opacity:0;pointer-events:none;white-space:nowrap;
+  transition:opacity .22s, transform .22s cubic-bezier(.22,1,.36,1);
+}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.nqc{background:var(--pri-dim);border:1px solid rgba(34,211,238,.22);color:var(--pri);padding:2px 8px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700}
+/* ─── STUDENT NAV ────────────────────────────────────────────── */
+.s-nav{display:flex;align-items:center;gap:8px}
+.s-info{text-align:center;min-width:0}
+.s-name{font-weight:700;font-size:.82rem;max-width:160px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--tx)}
+.s-count{font-size:.64rem;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.nq-chip{
+  background:var(--gold-hi);border:1px solid rgba(200,148,58,.25);
+  color:var(--gold-txt);padding:1px 8px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:700;
+}
+
+/* ─── PANE HEADER RIGHT ─────────────────────────────────────── */
+.ph-right{display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
 
-<!-- START OVERLAY -->
+<!-- ══════════════════════════════════════════════
+     START OVERLAY
+══════════════════════════════════════════════ -->
 <div id="ov">
-  <div class="sc">
-    <div class="st"><em style="font-style:normal;background:var(--pri-grad);-webkit-background-clip:text;background-clip:text;color:transparent">Q</em>-Mark</div>
-    <div class="ss">模範解答と生徒答案（PDF / 画像）をアップロードして採点を開始</div>
-    <div class="ug">
-      <div class="dz" id="dKey"><div class="di">🔑</div><div class="dl">模範解答</div><div class="ds" id="sKey">クリックまたはドラッグ</div><input type="file" id="iKey" style="display:none" accept="image/*,application/pdf"></div>
-      <div class="dz" id="dStu"><div class="di">📚</div><div class="dl">生徒答案</div><div class="ds" id="sStu">クリックまたはドラッグ（複数可）</div><input type="file" id="iStu" multiple style="display:none" accept="image/*,application/pdf"></div>
+  <div class="start">
+    <div class="s-logo">
+      <em>Q</em><span class="dash">–</span><span>Mark</span>
     </div>
-    <button id="bStart" class="btn btn-p" style="width:100%;height:44px;justify-content:center;font-size:.9rem;border-radius:var(--r)" disabled>採点スタート →</button>
-    <div class="dvr"><span>フォルダ</span></div>
-    <button class="btn btn-ok" style="width:100%;height:38px;justify-content:center;font-size:.8rem;border-radius:var(--r)" onclick="openFolderModal()">📁 フォルダを開く / 作成</button>
-    <div style="margin-top:14px;text-align:center;font-size:.67rem;color:var(--muted)">Z/1=正解　X/2=不正解　C/3=部分点　T=文字　←→=切替　Ctrl+Z=戻る</div>
+    <div class="s-tagline">ペーパー答案のデジタル採点システム</div>
+    <div class="s-grid">
+      <div class="dz" id="dKey">
+        <div class="dz-ico">🔑</div>
+        <div class="dz-lbl">模範解答</div>
+        <div class="dz-hint" id="hKey">クリックまたはドラッグ</div>
+        <input type="file" id="iKey" style="display:none" accept="image/*,application/pdf">
+      </div>
+      <div class="dz" id="dStu">
+        <div class="dz-ico">📚</div>
+        <div class="dz-lbl">生徒答案</div>
+        <div class="dz-hint" id="hStu">クリックまたはドラッグ（複数可）</div>
+        <input type="file" id="iStu" multiple style="display:none" accept="image/*,application/pdf">
+      </div>
+    </div>
+    <button id="bStart" class="s-start" disabled>採点スタート →</button>
+    <div class="divr"><span>または</span></div>
+    <button class="s-folder" onclick="openFolderModal()">📁 フォルダから開く · クラウド同期</button>
+    <div class="s-keys">
+      <kbd>Z</kbd> 正解 &nbsp;
+      <kbd>X</kbd> 不正解 &nbsp;
+      <kbd>C</kbd> 部分点 &nbsp;
+      <kbd>T</kbd> 文字 &nbsp;
+      <kbd>←</kbd><kbd>→</kbd> 生徒切替 &nbsp;
+      <kbd>Ctrl</kbd><kbd>Z</kbd> 戻る
+    </div>
   </div>
 </div>
 
-<!-- HEADER -->
+<!-- ══════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════ -->
 <div id="hdr">
-  <div class="logo" onclick="backToTop()"><em>Q</em>-Mark</div>
-  <div class="sep"></div>
-  <button class="btn active" id="tO" onclick="setTool('o')"><span style="color:var(--ok)">○</span> 正解</button>
-  <button class="btn" id="tX" onclick="setTool('x')"><span style="color:var(--ng)">×</span> 不正解</button>
-  <button class="btn" id="tT" onclick="setTool('tri')"><span style="color:var(--warn)">△</span> 部分点</button>
-  <button class="btn" id="tTx" onclick="setTool('text')">T 文字</button>
-  <div class="sep"></div>
-  <div class="cg"><span class="cl">SIZE</span><input type="range" id="msz" min="20" max="100" value="44"></div>
-  <button class="btn" onclick="toggleLayout()">📐 Grid</button>
+  <div class="logo" onclick="backToTop()" title="トップに戻る">
+    <em>Q</em><span class="dash">–</span><span>Mark</span>
+  </div>
+  <div class="vsep"></div>
+  <!-- Mark tools -->
+  <button class="tbtn act-ok" id="tO" onclick="setTool('o')" title="正解 [Z / 1]">
+    <span class="tool-ico-ok">○</span> 正解
+  </button>
+  <button class="tbtn" id="tX" onclick="setTool('x')" title="不正解 [X / 2]">
+    <span class="tool-ico-ng">✕</span> 不正解
+  </button>
+  <button class="tbtn" id="tTri" onclick="setTool('tri')" title="部分点 [C / 3]">
+    <span class="tool-ico-tri">△</span> 部分点
+  </button>
+  <button class="tbtn" id="tTxt" onclick="setTool('text')" title="文字 [T]">
+    <span style="font-weight:700;color:var(--tx2)">T</span> 文字
+  </button>
+  <div class="vsep"></div>
+  <div class="size-row">
+    <span class="size-lbl">SZ</span>
+    <input type="range" id="mszR" min="20" max="100" value="44">
+  </div>
+  <button class="tbtn" onclick="toggleLayout()" title="グリッド設定">📐</button>
   <div class="sp"></div>
-  <div class="score-w"><span class="sl">SCORE</span><span class="sv" id="sco">0</span></div>
-  <div class="sep"></div>
-  <button class="btn btn-ok" onclick="openFolderModal()">📁 フォルダ</button>
-  <button class="btn" onclick="openSaveModal()">💾 保存</button>
-  <button class="btn" onclick="openFileMgr()">🗂 管理</button>
-  <button class="btn" onclick="openStats()">📊 統計</button>
-  <button class="btn" onclick="undo()">↩ 戻る</button>
-  <div class="sep"></div>
-  <button class="btn btn-p" onclick="dlPDF()">PDF</button>
-  <button class="btn" onclick="dlCSV()">CSV</button>
+  <!-- Score -->
+  <div class="score-chip">
+    <span class="sc-lbl">SCORE</span>
+    <span class="sc-val" id="scoreVal">0</span>
+  </div>
+  <div class="vsep"></div>
+  <!-- Actions -->
+  <button class="tbtn" onclick="openFolderModal()" title="フォルダ">📁 フォルダ</button>
+  <button class="tbtn" onclick="openSaveModal()" title="保存">💾 保存</button>
+  <button class="tbtn" onclick="openFileMgr()" title="ファイル管理">🗂</button>
+  <button class="tbtn" onclick="openStats()" title="統計">📊</button>
+  <button class="tbtn" onclick="undo()" title="元に戻す [Ctrl+Z]">↩</button>
+  <div class="vsep"></div>
+  <button class="tbtn tbtn-primary" onclick="dlPDF()" title="現在の答案をPDF保存">PDF</button>
+  <button class="tbtn" onclick="dlCSV()" title="採点データをCSV出力">CSV</button>
 </div>
 
-<!-- SESSION BAR -->
+<!-- ══════════════════════════════════════════════
+     SESSION BAR
+══════════════════════════════════════════════ -->
 <div id="sbar">
-  <div class="fpill" id="fpill" style="display:none">
-    <span>📁</span><span class="fn" id="fpn">—</span>
-    <span style="color:var(--muted);font-size:.63rem">に保存中</span>
-    <button class="btn btn-ok" style="height:20px;padding:0 7px;font-size:.63rem" onclick="quickSave()">上書き</button>
+  <div class="fp" id="fp" style="display:none">
+    <span style="color:var(--ok)">📁</span>
+    <span class="fp-name" id="fpName">—</span>
+    <span class="fp-status">に同期中</span>
+    <button class="sbtn tbtn-ok" style="border-color:rgba(34,197,94,.25)" onclick="quickSave()">上書き保存</button>
   </div>
-  <div id="nfi" style="color:var(--muted);font-size:.68rem"></div>
-  <div style="display:flex;align-items:center;gap:7px">
-    <span id="udis" style="font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--pri);opacity:.7"></span>
-    <button class="btn" style="height:20px;padding:0 7px;font-size:.63rem" onclick="cpURL()">🔗 URLコピー</button>
+  <div id="nfInfo" style="color:var(--tx3);font-size:.7rem"></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="url-chip" id="urlChip"></span>
+    <button class="sbtn" onclick="cpURL()">🔗 URLコピー</button>
   </div>
 </div>
 
-<!-- LAYOUT BAR -->
+<!-- ══════════════════════════════════════════════
+     LAYOUT BAR
+══════════════════════════════════════════════ -->
 <div id="lbar">
-  <span style="color:var(--info);font-weight:700;font-size:.76rem">📐 始点→終点をクリック</span>
-  <div class="sep"></div>
-  <span style="font-size:.73rem;color:var(--sub)">開始No:</span>
-  <input type="number" id="gS" class="ni" value="1">
-  <select id="gD" class="ni"><option value="h">→ 横</option><option value="v">↓ 縦</option></select>
-  <input type="number" id="gR" class="ni" value="20" style="width:46px"> 行 ×
-  <input type="number" id="gC" class="ni" value="5" style="width:46px"> 列
-  <button class="btn btn-p" style="height:28px" onclick="genGrid()">生成</button>
-  <button class="btn" style="height:28px" onclick="toggleLayout()">完了</button>
-  <button class="btn btn-d" style="height:28px" onclick="clearZones()">ゾーン消去</button>
+  <span style="color:var(--info);font-weight:700;font-size:.76rem">📐 始点 → 終点をクリック</span>
+  <div class="vsep"></div>
+  <span style="font-size:.72rem;color:var(--tx2)">開始:</span>
+  <input type="number" class="ni" id="gS" value="1" style="width:48px">
+  <select class="ni" id="gD"><option value="h">→ 横</option><option value="v">↓ 縦</option></select>
+  <input type="number" class="ni" id="gR" value="20" style="width:46px"> 行 ×
+  <input type="number" class="ni" id="gC" value="5" style="width:46px"> 列
+  <button class="tbtn tbtn-primary" style="height:28px" onclick="genGrid()">生成</button>
+  <button class="tbtn" style="height:28px" onclick="toggleLayout()">完了</button>
+  <button class="tbtn tbtn-ng" style="height:28px" onclick="clearZones()">ゾーン消去</button>
 </div>
 
-<!-- WORKSPACE -->
+<!-- ══════════════════════════════════════════════
+     WORKSPACE
+══════════════════════════════════════════════ -->
 <div id="ws">
-  <div class="pane" id="pL" style="width:40%">
-    <div class="ph"><div class="pt">🔑 模範解答</div><div class="zg"><button class="zb" onclick="addZoom('l',-10)">−</button><div class="zv" id="zL">100%</div><button class="zb" onclick="addZoom('l',10)">+</button></div></div>
-    <div class="cvs" id="scL"><div class="sw" id="wL"><canvas id="cvL"></canvas></div></div>
+  <!-- Left pane: key -->
+  <div class="pane" id="pL" style="width:42%">
+    <div class="ph">
+      <div class="ph-title">🔑 模範解答</div>
+      <div class="zoom-g">
+        <button class="zb" onclick="addZoom('l',-10)">−</button>
+        <div class="zv" id="zL">100%</div>
+        <button class="zb" onclick="addZoom('l',10)">+</button>
+      </div>
+    </div>
+    <div class="cvs" id="scL">
+      <div class="paper" id="wL"><canvas id="cvL"></canvas></div>
+    </div>
   </div>
   <div class="rsz" id="rsz"></div>
-  <div class="pane" id="pR" style="width:60%">
+  <!-- Right pane: student -->
+  <div class="pane" id="pR" style="width:58%">
     <div class="ph">
-      <div style="display:flex;align-items:center;gap:7px">
-        <button class="btn" style="padding:0 9px" onclick="navS(-1)">◀</button>
-        <div style="text-align:center">
-          <div style="font-weight:700;font-size:.8rem;max-width:150px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" id="snm">—</div>
-          <div style="font-size:.63rem;color:var(--muted);font-family:'JetBrains Mono',monospace" id="scnt">0 / 0</div>
+      <div class="s-nav">
+        <button class="tbtn" style="padding:0 10px" onclick="navS(-1)" title="前の答案 [←]">◀</button>
+        <div class="s-info">
+          <div class="s-name" id="sName">—</div>
+          <div class="s-count" id="sCnt">0 / 0</div>
         </div>
-        <button class="btn" style="padding:0 9px" onclick="navS(1)">▶</button>
-        <div class="sep"></div>
-        <button class="btn btn-ok" style="padding:0 9px" onclick="document.getElementById('iAddS').click()">＋ 追加</button>
+        <button class="tbtn" style="padding:0 10px" onclick="navS(1)" title="次の答案 [→]">▶</button>
+        <div class="vsep"></div>
+        <button class="tbtn tbtn-ok" style="padding:0 9px;font-size:.74rem" onclick="document.getElementById('iAddS').click()" title="答案を追加">＋ 追加</button>
         <input type="file" id="iAddS" multiple style="display:none" accept="image/*,application/pdf">
       </div>
-      <div style="display:flex;align-items:center;gap:9px">
-        <span style="font-size:.73rem;color:var(--sub)">Next: <span class="nqc" id="nq">1</span></span>
-        <button class="btn btn-d" style="padding:0 9px;height:28px;font-size:.7rem" onclick="clearMks()">全消去</button>
-        <div class="sep"></div>
-        <div class="zg"><button class="zb" onclick="addZoom('r',-10)">−</button><div class="zv" id="zR">100%</div><button class="zb" onclick="addZoom('r',10)">+</button></div>
+      <div class="ph-right">
+        <span style="font-size:.73rem;color:var(--tx2)">Q <span class="nq-chip" id="nqChip">1</span></span>
+        <button class="tbtn tbtn-ng" style="padding:0 9px;height:28px;font-size:.7rem" onclick="clearMks()" title="このページのマークを全消去">全消去</button>
+        <div class="vsep"></div>
+        <div class="zoom-g">
+          <button class="zb" onclick="addZoom('r',-10)">−</button>
+          <div class="zv" id="zR">100%</div>
+          <button class="zb" onclick="addZoom('r',10)">+</button>
+        </div>
       </div>
     </div>
     <div class="cvs" id="scR">
-      <div class="sw" id="wR">
+      <div class="paper" id="wR">
         <canvas id="cvR"></canvas>
-        <div id="lMk"></div><div id="lZn"></div><div id="lTp"></div>
+        <div id="lMk"></div>
+        <div id="lZn"></div>
+        <div id="lTp"></div>
         <div id="cg"></div>
+        <!-- text editor tooltip -->
         <div id="te">
-          <input type="number" id="txSz" class="ni" value="24" style="width:50px">
-          <input type="color" id="txCl" value="#ef4444" style="border:none;background:transparent;cursor:pointer;height:26px">
-          <button class="btn btn-d" style="height:26px;padding:0 8px;font-size:.7rem" onclick="delSelTxt()">削除</button>
-          <button class="btn btn-p" style="height:26px;padding:0 9px;font-size:.7rem" onclick="closeTxtEd()">OK</button>
+          <input type="number" class="ni" id="txSz" value="24" style="width:50px" title="文字サイズ">
+          <input type="color" id="txCl" value="#ef4444" style="border:none;background:transparent;cursor:pointer;height:28px;width:32px">
+          <button class="tbtn tbtn-ng" style="height:28px;padding:0 9px;font-size:.7rem" onclick="delSelTxt()">削除</button>
+          <button class="tbtn tbtn-primary" style="height:28px;padding:0 10px;font-size:.7rem" onclick="closeTxtEd()">OK</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SYNC OVERLAY -->
-<div id="sy"><div class="syc"><div class="syi" id="syI">☁️</div><div class="syt" id="syT">アップロード中...</div><div class="sys" id="syS">他のデバイスでも開けるようにしています</div><div class="syk"><div class="syb" id="syB"></div></div><div class="syf" id="syF"></div></div></div>
-
-<!-- TOAST --><div id="toast"></div>
-
-<!-- FOLDER MODAL -->
-<div class="mo" id="fm"><div class="mb2">
-  <div class="mhdr"><div class="mtit">📁 フォルダ</div><button class="mcls" onclick="closeM('fm')">✕</button></div>
-  <div class="mbdy" style="max-height:calc(80vh - 64px)">
-    <div class="ibox">🔗 <strong>フォルダURLを共有するだけで、どのデバイスからでも採点データを閲覧・編集できます。</strong></div>
-    <div class="fcr"><input type="text" id="nfn" class="fi" placeholder="新しいフォルダ名（例: 2024 中間テスト）"><button class="btn btn-p" onclick="createFolder()" style="white-space:nowrap">＋ 作成</button></div>
-    <div class="fl2" id="flist"></div>
+<!-- ══════════════════════════════════════════════
+     SYNC OVERLAY
+══════════════════════════════════════════════ -->
+<div id="mSync">
+  <div class="sync-card">
+    <span class="sync-ico" id="syncIco">☁️</span>
+    <div class="sync-title" id="syncTitle">アップロード中...</div>
+    <div class="sync-sub" id="syncSub">他のデバイスでも開けるようにしています</div>
+    <div class="sync-track"><div class="sync-bar" id="syncBar"></div></div>
+    <div class="sync-file" id="syncFile"></div>
   </div>
-</div></div>
+</div>
 
-<!-- SAVE MODAL -->
-<div class="mo" id="sv"><div class="mb2" style="width:min(390px,96vw)">
-  <div class="mhdr"><div class="mtit">💾 フォルダに保存</div><button class="mcls" onclick="closeM('sv')">✕</button></div>
-  <div class="mbdy">
-    <p style="color:var(--sub);font-size:.8rem;margin-bottom:12px">模範解答・生徒答案・採点マークを保存します。</p>
-    <div class="fg"><label class="fl">保存先フォルダ</label><select id="svSel" class="fi" style="height:auto;padding:8px 11px;cursor:pointer"></select></div>
-    <div class="fg"><label class="fl">または新しいフォルダ名</label><input type="text" id="svNm" class="fi" placeholder="空欄の場合は選択フォルダに保存"></div>
-    <div class="fer" id="svErr"></div>
-    <button class="btn btn-p" style="width:100%;height:39px;justify-content:center;margin-top:7px" onclick="execSave()">保存する</button>
+<!-- ══════════════════════════════════════════════
+     TOAST
+══════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════
+     FOLDER MODAL
+══════════════════════════════════════════════ -->
+<div class="mo" id="mFolder">
+  <div class="mbox">
+    <div class="mhdr">
+      <div class="mtit">📁 フォルダ</div>
+      <button class="mcls" onclick="closeM('mFolder')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="infobox">
+        🔗 <strong>フォルダURLを共有するだけで、URLを知っている誰でも採点データを閲覧・編集できます。</strong>
+        パスワード不要・アカウント不要。
+      </div>
+      <div class="fcr">
+        <input type="text" id="nfName" class="fi" placeholder="新しいフォルダ名（例: 2024 中間テスト 3年A組）">
+        <button class="tbtn tbtn-primary" onclick="createFolder()" style="white-space:nowrap">＋ 作成</button>
+      </div>
+      <div class="flist" id="fList"></div>
+    </div>
   </div>
-</div></div>
+</div>
 
-<!-- FILE MANAGER MODAL -->
-<div class="mo" id="mgr"><div class="mb2">
-  <div class="mhdr"><div class="mtit">🗂 ファイル管理</div><button class="mcls" onclick="closeM('mgr')">✕</button></div>
-  <div class="mbdy" id="mgrB" style="max-height:calc(80vh - 64px)"></div>
-</div></div>
+<!-- ══════════════════════════════════════════════
+     SAVE MODAL
+══════════════════════════════════════════════ -->
+<div class="mo" id="mSave">
+  <div class="mbox" style="width:min(400px,100%)">
+    <div class="mhdr">
+      <div class="mtit">💾 フォルダに保存</div>
+      <button class="mcls" onclick="closeM('mSave')">✕</button>
+    </div>
+    <div class="mbdy">
+      <p style="color:var(--tx2);font-size:.8rem;line-height:1.7;margin-bottom:16px">模範解答・生徒答案・採点マークを保存します。<br>保存後はURLを共有するだけで他のデバイスでも開けます。</p>
+      <div class="fg">
+        <label class="fl">保存先フォルダ</label>
+        <select id="svSel" class="fi"></select>
+      </div>
+      <div class="fg">
+        <label class="fl">または新しいフォルダ名で作成</label>
+        <input type="text" id="svNew" class="fi" placeholder="空欄の場合は上で選択したフォルダに保存">
+      </div>
+      <div class="ferr" id="svErr"></div>
+      <button class="tbtn tbtn-primary" style="width:100%;height:40px;justify-content:center;margin-top:8px" onclick="execSave()">保存して同期を開始する</button>
+    </div>
+  </div>
+</div>
 
-<!-- STATS MODAL -->
-<div class="mo" id="st"><div class="mb2">
-  <div class="mhdr"><div class="mtit">📊 統計</div><button class="mcls" onclick="closeM('st')">✕</button></div>
-  <div class="mbdy" id="stB" style="max-height:calc(88vh - 64px)"></div>
-</div></div>
+<!-- ══════════════════════════════════════════════
+     FILE MANAGER
+══════════════════════════════════════════════ -->
+<div class="mo" id="mFiles">
+  <div class="mbox">
+    <div class="mhdr">
+      <div class="mtit">🗂 ファイル管理</div>
+      <button class="mcls" onclick="closeM('mFiles')">✕</button>
+    </div>
+    <div class="mbdy" id="filesBody"></div>
+  </div>
+</div>
 
+<!-- ══════════════════════════════════════════════
+     STATS MODAL
+══════════════════════════════════════════════ -->
+<div class="mo" id="mStats">
+  <div class="mbox">
+    <div class="mhdr">
+      <div class="mtit">📊 採点統計</div>
+      <button class="mcls" onclick="closeM('mStats')">✕</button>
+    </div>
+    <div class="mbdy" id="statsBody"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CONFIRM DIALOG
+══════════════════════════════════════════════ -->
+<div class="mo" id="mConfirm">
+  <div class="mbox">
+    <div class="mbdy">
+      <div class="conf-ico" id="confIco">⚠️</div>
+      <div class="conf-title" id="confTitle"></div>
+      <div class="conf-msg" id="confMsg"></div>
+      <div class="conf-btns">
+        <button class="tbtn" style="flex:1;justify-content:center" onclick="_confCancel()">キャンセル</button>
+        <button class="tbtn tbtn-ng" style="flex:1;justify-content:center" id="confOK" onclick="_confOK()">削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════ -->
 <script>
 'use strict';
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const {jsPDF}=window.jspdf;
 
-// ── FIREBASE (safe: never read parent nodes) ──────────────────────
-function waitFB(){return new Promise(r=>{if(window._fb){r();return;}window.addEventListener('firebaseReady',()=>r(),{once:true});})}
-function fbr(p){return window._fb.ref(window._fb.db,p)}
+// ── FIREBASE HELPERS (never read parent of /files — avoids 10MB limit) ──
+function waitFB(){return new Promise(r=>{if(window._fb)return r();window.addEventListener('fbReady',r,{once:true});})}
+const fbr=p=>window._fb.ref(window._fb.db,p);
 async function fbGet(p){await waitFB();const s=await window._fb.get(fbr(p));return s.exists()?s.val():null}
-async function fbSet(p,v){await waitFB();await window._fb.set(fbr(p),v)}
-async function fbDel(p){await waitFB();await window._fb.remove(fbr(p))}
-function fbOn(p,cb){waitFB().then(()=>window._fb.onValue(fbr(p),s=>cb(s.exists()?s.val():null)))}
+async function fbSet(p,v){await waitFB();return window._fb.set(fbr(p),v)}
+async function fbDel(p){await waitFB();return window._fb.remove(fbr(p))}
 
-function ek(s){return s.replace(/[.#$[\]/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase())}
-function dk(s){return s.replace(/%([0-9A-F]{2})/g,(_,h)=>String.fromCharCode(parseInt(h,16)))}
-function encM(m){const o={};for(const[k,v]of Object.entries(m))o[ek(k)]=v;return o}
-function decM(m){if(!m)return{};const o={};for(const[k,v]of Object.entries(m))o[dk(k)]=v;return o}
+// Key encoding (Firebase disallows . # $ [ ] / in keys)
+const ek=s=>s.replace(/[.#$[\]/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+const dk=s=>s.replace(/%([0-9A-F]{2})/g,(_,h)=>String.fromCharCode(parseInt(h,16)));
+const encM=m=>{const o={};for(const[k,v]of Object.entries(m))o[ek(k)]=v;return o};
+const decM=m=>{if(!m)return{};const o={};for(const[k,v]of Object.entries(m))o[dk(k)]=v;return o};
 
 // ── INDEXEDDB ────────────────────────────────────────────────────
-const DBNM='QMv3',DBVR=1;let idb=null;
-function initDB(){return new Promise((res,rej)=>{const q=indexedDB.open(DBNM,DBVR);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('f'))d.createObjectStore('f',{keyPath:'id'});};q.onsuccess=e=>{idb=e.target.result;res();};q.onerror=()=>rej(q.error);});}
-function idbPut(d){return new Promise((res,rej)=>{const tx=idb.transaction('f','readwrite');tx.objectStore('f').put(d).onsuccess=()=>res();tx.onerror=()=>rej(tx.error);})}
-function idbGet(id){return new Promise((res,rej)=>{const tx=idb.transaction('f','readonly');const q=tx.objectStore('f').get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error);})}
-function idbDel(id){return new Promise((res,rej)=>{const tx=idb.transaction('f','readwrite');tx.objectStore('f').delete(id).onsuccess=()=>res();tx.onerror=()=>rej(tx.error);})}
+const DBNM='QMark_v3',DBVER=1;let idb=null;
+function initDB(){return new Promise((ok,fail)=>{
+  const r=indexedDB.open(DBNM,DBVER);
+  r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('f'))d.createObjectStore('f',{keyPath:'id'});};
+  r.onsuccess=e=>{idb=e.target.result;ok()};r.onerror=()=>fail(r.error);
+})}
+const idbPut=d=>new Promise((ok,fail)=>{const t=idb.transaction('f','readwrite');t.objectStore('f').put(d).onsuccess=ok;t.onerror=()=>fail(t.error)});
+const idbGet=id=>new Promise((ok,fail)=>{const t=idb.transaction('f','readonly'),r=t.objectStore('f').get(id);r.onsuccess=()=>ok(r.result||null);r.onerror=()=>fail(r.error)});
+const idbDel=id=>new Promise((ok,fail)=>{const t=idb.transaction('f','readwrite');t.objectStore('f').delete(id).onsuccess=ok;t.onerror=()=>fail(t.error)});
 
 // ── FILE UTILS ───────────────────────────────────────────────────
-function f2b(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);})}
-function b2f(b,n,t){const a=atob(b),u=new Uint8Array(a.length);for(let i=0;i<a.length;i++)u[i]=a.charCodeAt(i);return new File([u],n,{type:t})}
-function f2buf(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsArrayBuffer(f);})}
+const f2b=f=>new Promise((ok,fail)=>{const r=new FileReader;r.onload=()=>ok(r.result.split(',')[1]);r.onerror=fail;r.readAsDataURL(f)});
+const b2f=(b,n,t)=>{const a=atob(b),u=new Uint8Array(a.length);for(let i=0;i<a.length;i++)u[i]=a.charCodeAt(i);return new File([u],n,{type:t})};
+const f2buf=f=>new Promise((ok,fail)=>{const r=new FileReader;r.onload=()=>ok(r.result);r.onerror=fail;r.readAsArrayBuffer(f)});
 
 // ── STATE ────────────────────────────────────────────────────────
-const S={keyFile:null,stuFiles:[],currIdx:0,marks:{},zones:[],tool:'o',zoom:{l:100,r:100},fitW:{l:0,r:0},nextQ:1,selTxt:null,drag:false,mSz:44,layout:false,gPts:[],folderId:null,pgMm:{w:210,h:297}};
+const S={
+  key:null,stus:[],idx:0,
+  marks:{},zones:[],tool:'o',
+  zoom:{l:100,r:100},fit:{l:0,r:0},
+  nextQ:1,selTxt:null,drag:false,
+  mSz:44,layout:false,gpts:[],
+  fid:null,pgMm:{w:210,h:297},
+  _fresh:false  // trigger pop animation for new mark
+};
 let _lastSave=0,_uns={};
 
-// ── FOLDER META ──────────────────────────────────────────────────
-const MK='QMF4',VK='QMVF4';
-const gMeta=()=>JSON.parse(localStorage.getItem(MK)||'[]');
-const sMeta=d=>localStorage.setItem(MK,JSON.stringify(d));
-const gVis=()=>JSON.parse(localStorage.getItem(VK)||'[]');
-const aVis=id=>{const v=gVis();if(!v.includes(id)){v.unshift(id);localStorage.setItem(VK,JSON.stringify(v.slice(0,50)));}};
-const genId=()=>Date.now().toString(36)+Math.random().toString(36).substr(2,8);
+// ── FOLDER META (localStorage) ───────────────────────────────────
+const MK='QMF5',VK='QMVF5';
+const getMeta=()=>JSON.parse(localStorage.getItem(MK)||'[]');
+const setMeta=d=>localStorage.setItem(MK,JSON.stringify(d));
+const getVis=()=>JSON.parse(localStorage.getItem(VK)||'[]');
+const addVis=id=>{const v=getVis();if(!v.includes(id)){v.unshift(id);localStorage.setItem(VK,JSON.stringify(v.slice(0,60)))}};
+const genId=()=>Date.now().toString(36)+Math.random().toString(36).substr(2,9);
 
 // ── SYNC UI ──────────────────────────────────────────────────────
-function showSy(t,s=''){document.getElementById('syT').textContent=t;document.getElementById('syS').textContent=s;document.getElementById('syB').style.width='0%';document.getElementById('syF').textContent='';document.getElementById('sy').classList.add('on');}
-function setSy(p,l=''){document.getElementById('syB').style.width=p+'%';document.getElementById('syF').textContent=l;}
-function hideSy(){document.getElementById('sy').classList.remove('on');}
+function showSync(title,sub=''){
+  document.getElementById('syncTitle').textContent=title;
+  document.getElementById('syncSub').textContent=sub;
+  document.getElementById('syncBar').style.width='0%';
+  document.getElementById('syncFile').textContent='';
+  document.getElementById('mSync').classList.add('on');
+}
+function progSync(pct,label=''){
+  document.getElementById('syncBar').style.width=pct+'%';
+  document.getElementById('syncFile').textContent=label;
+}
+function hideSync(){document.getElementById('mSync').classList.remove('on')}
 
-// ── FIREBASE UPLOAD (per-file stuCount update) ───────────────────
+// ── FIREBASE: UPLOAD FILES ───────────────────────────────────────
+// Uploads each file individually; updates stuCount after EACH file
+// so other devices can start downloading immediately
 async function fbUpAll(id){
-  showSy('アップロード中...','他のデバイスでも開けるようにしています');
+  showSync('アップロード中...','他のデバイスと同期しています');
   try{
-    setSy(0,`📄 ${S.keyFile.name}`);
-    await fbSet(`folders/${id}/files/key`,{name:S.keyFile.name,type:S.keyFile.type,data:await f2b(S.keyFile)});
+    progSync(0,`🔑 ${S.key.name}`);
+    await fbSet(`folders/${id}/files/key`,{name:S.key.name,type:S.key.type,data:await f2b(S.key)});
     let done=0;
-    for(let i=0;i<S.stuFiles.length;i++){
-      const f=S.stuFiles[i];
-      setSy(((i+1)/(S.stuFiles.length+1))*100,`📄 ${f.name} (${i+1}/${S.stuFiles.length})`);
+    for(let i=0;i<S.stus.length;i++){
+      const f=S.stus[i];
+      progSync(((i+1)/(S.stus.length+1))*100,`📄 ${f.name} (${i+1}/${S.stus.length})`);
       try{
         await fbSet(`folders/${id}/files/stu_${i}`,{name:f.name,type:f.type,data:await f2b(f),index:i});
         done++;
-        await fbSet(`folders/${id}/files/stuCount`,done);// update per file so other devices see progress
-      }catch(e){console.warn('upload stu_'+i,e);}
+        await fbSet(`folders/${id}/files/stuCount`,done);// update per-file!
+      }catch(e){console.warn('upload stu_'+i,e)}
     }
-    setSy(100,'完了');setTimeout(hideSy,500);
-  }catch(e){hideSy();throw e;}
+    progSync(100,'完了');setTimeout(hideSync,600);
+  }catch(e){hideSync();throw e}
 }
+
 async function fbAppend(id,files,start){
   for(let i=0;i<files.length;i++){
     await fbSet(`folders/${id}/files/stu_${start+i}`,{name:files[i].name,type:files[i].type,data:await f2b(files[i]),index:start+i});
-    await fbSet(`folders/${id}/files/stuCount`,start+i+1);// per file
+    await fbSet(`folders/${id}/files/stuCount`,start+i+1);// per-file
   }
 }
 
-// ── FIREBASE DOWNLOAD (individual fetches) ───────────────────────
+// ── FIREBASE: DOWNLOAD FILES ─────────────────────────────────────
+// Fetches each file INDIVIDUALLY — never reads /files parent node
+// This prevents hitting the 10MB response limit
 async function fbDlAll(id){
   const cnt=(await fbGet(`folders/${id}/files/stuCount`))||0;
   const key=await fbGet(`folders/${id}/files/key`);
   if(!key)return false;
-  showSy('ダウンロード中...','クラウドからファイルを取得しています');
-  setSy(0,`📄 ${key.name}`);
-  S.keyFile=b2f(key.data,key.name,key.type);
+  showSync('ダウンロード中...','クラウドからファイルを取得しています');
+  progSync(0,`🔑 ${key.name}`);
+  S.key=b2f(key.data,key.name,key.type);
   const del=(await fbGet(`folders/${id}/deletedNames`))||[];
-  S.stuFiles=[];
+  S.stus=[];
   for(let i=0;i<cnt;i++){
     const d=await fbGet(`folders/${id}/files/stu_${i}`);
-    if(d&&!del.includes(d.name)){setSy(((i+1)/(cnt+1))*100,`📄 ${d.name} (${i+1}/${cnt})`);S.stuFiles.push(b2f(d.data,d.name,d.type));}
+    if(d&&!del.includes(d.name)){
+      progSync(((i+1)/(cnt+1))*100,`📄 ${d.name} (${i+1}/${cnt})`);
+      S.stus.push(b2f(d.data,d.name,d.type));
+    }
   }
-  setSy(100,'完了');setTimeout(hideSy,500);return true;
+  progSync(100,'完了');setTimeout(hideSync,600);
+  return true;
 }
+
 async function fbDlDiff(id,from,to){
   const del=(await fbGet(`folders/${id}/deletedNames`))||[];
   for(let i=from;i<to;i++){
     const d=await fbGet(`folders/${id}/files/stu_${i}`);
-    if(d&&!del.includes(d.name)&&!S.stuFiles.find(f=>f.name===d.name))S.stuFiles.push(b2f(d.data,d.name,d.type));
+    if(d&&!del.includes(d.name)&&!S.stus.find(f=>f.name===d.name))
+      S.stus.push(b2f(d.data,d.name,d.type));
   }
-  document.getElementById('scnt').textContent=`${S.currIdx+1} / ${S.stuFiles.length}`;
+  document.getElementById('sCnt').textContent=`${S.idx+1} / ${S.stus.length}`;
 }
 
-// ── FIREBASE SAVE DATA ───────────────────────────────────────────
-async function fbSaveData(id){_lastSave=Date.now();await fbSet(`folders/${id}/data`,{marks:encM(S.marks),zones:S.zones.length?S.zones:null,markSize:S.mSz,updatedAt:_lastSave});}
+// ── FIREBASE: MARKS & METADATA ───────────────────────────────────
+async function fbSaveData(id){
+  _lastSave=Date.now();
+  await fbSet(`folders/${id}/data`,{marks:encM(S.marks),zones:S.zones.length?S.zones:null,markSize:S.mSz,updatedAt:_lastSave});
+}
 
-// ── FIREBASE SUBSCRIBE ───────────────────────────────────────────
+// ── FIREBASE: REALTIME SUBSCRIBE ─────────────────────────────────
+// Never listens on /files or its parent — only /data and /files/stuCount
 function fbSub(id){
   fbUnsub();if(!id)return;
-  let fd=true;
-  const u1=window._fb.onValue(fbr(`folders/${id}/data`),async snap=>{
-    if(fd){fd=false;return;}
-    const d=snap.exists()?snap.val():null;if(!d)return;
-    if((d.updatedAt||0)>_lastSave+500){
-      S.marks=decM(d.marks);S.zones=d.zones||[];
-      if(d.markSize){S.mSz=d.markSize;document.getElementById('msz').value=d.markSize;}
-      if(document.getElementById('ov').style.display==='none'){renderMks();updUI();toast('🔄 他のデバイスの変更を反映');}
-    }
+  waitFB().then(()=>{
+    // 1. Listen for mark/zone changes from other devices
+    let fd=true;
+    const u1=window._fb.onValue(fbr(`folders/${id}/data`),async snap=>{
+      if(fd){fd=false;return}
+      const d=snap.exists()?snap.val():null;if(!d)return;
+      if((d.updatedAt||0)>_lastSave+500){
+        S.marks=decM(d.marks);S.zones=d.zones||[];
+        if(d.markSize){S.mSz=d.markSize;document.getElementById('mszR').value=d.markSize}
+        if(document.getElementById('ov').style.display==='none'){renderMks();updUI();toast('🔄 他のデバイスの変更を反映しました')}
+      }
+    });
+    _uns.data=u1;
+    // 2. Listen for new student files being added on other devices
+    let fc=true;
+    const u2=window._fb.onValue(fbr(`folders/${id}/files/stuCount`),async snap=>{
+      if(fc){fc=false;return}
+      const rc=snap.exists()?snap.val():0,lc=S.stus.length;
+      if(rc<=lc)return;
+      toast(`📥 ${rc-lc} 件の答案を取得中...`);
+      await fbDlDiff(id,lc,rc);
+      await idbCache(id);
+      toast(`✅ ${S.stus.length} 件の答案を同期しました`);
+    });
+    _uns.cnt=u2;
   });
-  _uns.data=u1;
-  let fc=true;
-  const u2=window._fb.onValue(fbr(`folders/${id}/files/stuCount`),async snap=>{
-    if(fc){fc=false;return;}
-    const rc=snap.exists()?snap.val():0,lc=S.stuFiles.length;
-    if(rc<=lc)return;
-    toast(`📥 ${rc-lc} 件の答案を取得中...`);
-    await fbDlDiff(id,lc,rc);
-    await idbCache(id);
-    toast(`✅ ${S.stuFiles.length} 件に更新`);
-  });
-  _uns.cnt=u2;
 }
-function fbUnsub(){for(const u of Object.values(_uns)){try{u();}catch(_){}}  _uns={};}
+function fbUnsub(){for(const u of Object.values(_uns)){try{u()}catch(_){}} _uns={}}
 
 // ── IDB CACHE ────────────────────────────────────────────────────
 async function idbCache(id){
-  if(!S.keyFile)return;
+  if(!S.key)return;
   try{
-    const kb=await f2buf(S.keyFile),sbs=await Promise.all(S.stuFiles.map(f2buf));
-    await idbPut({id,keyFile:{name:S.keyFile.name,type:S.keyFile.type,buffer:kb},stuFiles:S.stuFiles.map((f,i)=>({name:f.name,type:f.type,buffer:sbs[i]})),marks:S.marks,zones:S.zones,markSize:S.mSz});
-  }catch(e){console.warn('idbCache',e);}
+    const kb=await f2buf(S.key),sbs=await Promise.all(S.stus.map(f2buf));
+    await idbPut({id,keyFile:{name:S.key.name,type:S.key.type,buffer:kb},stuFiles:S.stus.map((f,i)=>({name:f.name,type:f.type,buffer:sbs[i]})),marks:S.marks,zones:S.zones,markSize:S.mSz});
+  }catch(e){console.warn('idbCache:',e)}
 }
 
-// ── OPEN FOLDER ──────────────────────────────────────────────────
+// ── OPEN FOLDER — the main orchestrator ──────────────────────────
+// Design: IDB → Firebase (meta/data only) → Firebase (files, individually)
 async function openFolder(id){
-  toast('📂 フォルダを読み込んでいます...');
+  toast('📂 読み込んでいます...');
   fbUnsub();
 
-  // 1. IDB first
+  // Step 1: Load from IDB (fast, local)
   const loc=await idbGet(id).catch(()=>null);
-  if(loc?.keyFile){S.keyFile=new File([loc.keyFile.buffer],loc.keyFile.name,{type:loc.keyFile.type});S.stuFiles=(loc.stuFiles||[]).map(f=>new File([f.buffer],f.name,{type:f.type}));}
-  else{S.keyFile=null;S.stuFiles=[];}
+  if(loc?.keyFile){
+    S.key=new File([loc.keyFile.buffer],loc.keyFile.name,{type:loc.keyFile.type});
+    S.stus=(loc.stuFiles||[]).map(f=>new File([f.buffer],f.name,{type:f.type}));
+  }else{S.key=null;S.stus=[]}
 
-  // 2. Meta+data from Firebase (NOT files - avoids size limit)
+  // Step 2: Fetch meta and data from Firebase (NOT /files — avoids size limit)
   const fbMeta=await fbGet(`folders/${id}/meta`);
   const fbData=await fbGet(`folders/${id}/data`);
 
-  // 3. If nothing → check files/key
+  // Step 3: If nothing local and nothing in Firebase/data, check if files exist
   if(!loc&&!fbData){
-    const kex=await fbGet(`folders/${id}/files/key`);
-    if(!kex){toast('⚠️ フォルダが見つかりません');return;}
+    const keyExists=await fbGet(`folders/${id}/files/key`);
+    if(!keyExists){toast('⚠️ フォルダが見つかりません');return}
   }
 
-  // 4. Marks/zones: Firebase wins
-  if(fbData){S.marks=decM(fbData.marks);S.zones=fbData.zones||[];S.mSz=fbData.markSize||44;}
-  else if(loc){S.marks=loc.marks||{};S.zones=loc.zones||[];S.mSz=loc.markSize||44;}
-  document.getElementById('msz').value=S.mSz;
+  // Step 4: Apply marks/zones — Firebase wins (newest)
+  if(fbData){S.marks=decM(fbData.marks);S.zones=fbData.zones||[];S.mSz=fbData.markSize||44}
+  else if(loc){S.marks=loc.marks||{};S.zones=loc.zones||[];S.mSz=loc.markSize||44}
+  document.getElementById('mszR').value=S.mSz;
 
-  // 5. Files: download if missing, diff if partial
-  if(!S.keyFile){
-    if(!await fbDlAll(id)){toast('⚠️ ファイルのダウンロードに失敗');return;}
+  // Step 5: Files — download if missing or partial
+  if(!S.key){
+    const ok=await fbDlAll(id);
+    if(!ok){toast('⚠️ ファイルのダウンロードに失敗しました');return}
   }else{
     const rc=(await fbGet(`folders/${id}/files/stuCount`))||0;
-    if(rc>S.stuFiles.length){toast(`📥 ${rc-S.stuFiles.length} 件を取得中...`);await fbDlDiff(id,S.stuFiles.length,rc);}
+    if(rc>S.stus.length){
+      toast(`📥 ${rc-S.stus.length} 件の差分を取得中...`);
+      await fbDlDiff(id,S.stus.length,rc);
+    }
   }
 
-  // 6. Cache to IDB
+  // Step 6: Cache updated state to IDB
   await idbCache(id);
 
-  // 7. Meta
-  const metaE=fbMeta||{id,name:`フォルダ (${id.slice(0,6)})`,createdAt:Date.now()};
-  const meta=gMeta();if(!meta.find(f=>f.id===id)){meta.unshift(metaE);sMeta(meta);}
-  aVis(id);S.folderId=id;
+  // Step 7: Register folder metadata locally
+  const meta=fbMeta||{id,name:`フォルダ (${id.slice(0,6)})`,createdAt:Date.now()};
+  const mArr=getMeta();if(!mArr.find(f=>f.id===id)){mArr.unshift(meta);setMeta(mArr)}
+  addVis(id);S.fid=id;
 
-  // 8. Subscribe
+  // Step 8: Subscribe to realtime updates
   fbSub(id);
 
-  // 9. Ensure data node
-  if(!fbData&&S.keyFile){_lastSave=Date.now();fbSet(`folders/${id}/data`,{marks:encM(S.marks),zones:S.zones.length?S.zones:null,markSize:S.mSz,updatedAt:_lastSave}).catch(()=>{});}
+  // Step 9: Ensure /data node exists (first-time open from URL)
+  if(!fbData&&S.key){_lastSave=Date.now();fbSet(`folders/${id}/data`,{marks:encM(S.marks),zones:S.zones.length?S.zones:null,markSize:S.mSz,updatedAt:_lastSave}).catch(()=>{})}
 
-  // 10. UI
+  // Step 10: Update URL and UI
   history.replaceState(null,'','#folder-'+id);
-  document.getElementById('udis').textContent='#folder-'+id;
-  document.getElementById('fpn').textContent=metaE.name;
-  document.getElementById('fpill').style.display='flex';
+  document.getElementById('urlChip').textContent='#folder-'+id;
+  document.getElementById('fpName').textContent=meta.name;
+  document.getElementById('fp').style.display='flex';
   document.getElementById('sbar').classList.add('on');
-  closeM('fm');
+  closeM('mFolder');
 
-  if(S.keyFile){
+  if(S.key){
     document.getElementById('ov').style.display='none';
-    await drawImg(S.keyFile,'cvL','wL','scL','l');
-    if(S.stuFiles.length>0)await loadS(0);else renderMks();
+    await drawImg(S.key,'cvL','wL','scL','l');
+    if(S.stus.length>0)await loadS(0);else renderMks();
+    toast(`✅ 「${meta.name}」を開きました`);
   }else{
     document.getElementById('ov').style.display='flex';
     toast('採点データを同期しました。PDFをアップロードしてください。');
@@ -572,129 +1102,201 @@ async function openFolder(id){
 
 // ── CREATE / DELETE FOLDER ───────────────────────────────────────
 async function createFolder(){
-  const nm=document.getElementById('nfn').value.trim()||`採点 ${new Date().toLocaleDateString('ja-JP')}`;
+  const nm=document.getElementById('nfName').value.trim()||`採点 ${new Date().toLocaleDateString('ja-JP')}`;
   const id=genId(),mo={id,name:nm,createdAt:Date.now(),stuCount:0};
-  const meta=gMeta();meta.unshift(mo);sMeta(meta);aVis(id);
+  const m=getMeta();m.unshift(mo);setMeta(m);addVis(id);
   await idbPut({id,keyFile:null,stuFiles:[],marks:{},zones:[],markSize:44});
   fbSet(`folders/${id}/meta`,mo).catch(()=>{});
-  document.getElementById('nfn').value='';
-  renderFL();toast(`📁 「${nm}」を作成しました`);
+  document.getElementById('nfName').value='';
+  renderFolderList();
+  toast(`📁 「${nm}」を作成しました`);
 }
-async function delFolder(id){
-  if(!confirm('このフォルダを完全に削除しますか？'))return;
+
+async function deleteFolder(id){
+  const ok=await confirm2('フォルダを削除','このフォルダとFirebase上のすべてのデータを完全に削除しますか？この操作は取り消せません。','削除する');
+  if(!ok)return;
   await idbDel(id).catch(()=>{});
-  sMeta(gMeta().filter(f=>f.id!==id));
-  localStorage.setItem(VK,JSON.stringify(gVis().filter(v=>v!==id)));
+  setMeta(getMeta().filter(f=>f.id!==id));
+  localStorage.setItem(VK,JSON.stringify(getVis().filter(v=>v!==id)));
+  // Delete nodes individually (never the parent /folders/${id} — might be huge)
   const cnt=(await fbGet(`folders/${id}/files/stuCount`))||0;
-  const jobs=[fbDel(`folders/${id}/meta`),fbDel(`folders/${id}/data`),fbDel(`folders/${id}/files/key`),fbDel(`folders/${id}/files/stuCount`)];
+  const jobs=[fbDel(`folders/${id}/meta`),fbDel(`folders/${id}/data`),fbDel(`folders/${id}/files/key`),fbDel(`folders/${id}/files/stuCount`),fbDel(`folders/${id}/deletedNames`)];
   for(let i=0;i<cnt;i++)jobs.push(fbDel(`folders/${id}/files/stu_${i}`));
   await Promise.allSettled(jobs);
-  renderFL();toast('フォルダを削除しました');
+  if(S.fid===id){S.fid=null;document.getElementById('fp').style.display='none'}
+  renderFolderList();
+  toast('フォルダを削除しました');
 }
 
 // ── RENDER FOLDER LIST ───────────────────────────────────────────
-async function renderFL(){
-  const list=document.getElementById('flist');
-  list.innerHTML='<div style="text-align:center;padding:22px;color:var(--muted);font-size:.8rem">🔄 読み込み中...</div>';
-  const lm=gMeta(),vis=gVis(),m={};
+async function renderFolderList(){
+  const list=document.getElementById('fList');
+  list.innerHTML='<div style="text-align:center;padding:28px;color:var(--tx3);font-size:.8rem">🔄 読み込み中...</div>';
+
+  const lm=getMeta(),vis=getVis(),m={};
   lm.forEach(f=>m[f.id]=f);
-  vis.forEach(id=>{if(!m[id])m[id]={id,name:`フォルダ (${id.slice(0,6)}...)`,createdAt:0,stuCount:'?',fromUrl:true};});
-  await Promise.allSettled(Object.keys(m).map(async id=>{const c=await fbGet(`folders/${id}/files/stuCount`).catch(()=>null);if(c!==null)m[id].stuCount=c;}));
+  vis.forEach(id=>{if(!m[id])m[id]={id,name:`フォルダ (${id.slice(0,6)}...)`,createdAt:0,stuCount:'?',fromUrl:true}});
+
+  await Promise.allSettled(Object.keys(m).map(async id=>{
+    const c=await fbGet(`folders/${id}/files/stuCount`).catch(()=>null);
+    if(c!==null)m[id].stuCount=c;
+  }));
+
   const items=Object.values(m).sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
-  sMeta(items.filter(f=>!f.fromUrl));
-  if(!items.length){list.innerHTML='<div class="fe">📂<br>フォルダがまだありません。<br>新規作成するか、フォルダURLを受け取った場合はそのURLを開いてください。</div>';return;}
+  setMeta(items.filter(f=>!f.fromUrl));
+
+  if(!items.length){
+    list.innerHTML='<div class="fe">📭<br>フォルダはまだありません。<br>新規作成するか、フォルダURLを受け取った場合は<br>そのURLをブラウザで開いてください。</div>';
+    return;
+  }
   list.innerHTML='';
   items.forEach(f=>{
-    const act=f.id===S.folderId;
-    const dt=f.createdAt?new Date(f.createdAt).toLocaleDateString('ja-JP',{month:'short',day:'numeric'}):'不明';
+    const isAct=f.id===S.fid;
+    const dt=f.createdAt?new Date(f.createdAt).toLocaleDateString('ja-JP',{year:'numeric',month:'short',day:'numeric'}):'不明';
     const c=document.createElement('div');c.className='fc';
-    c.innerHTML=`<div class="fi2">${act?'📂':f.fromUrl?'🔗':'📁'}</div>
-<div class="fn2"><div class="fn3">${f.name}${act?' <span style="font-size:.58rem;background:rgba(34,211,238,.13);color:var(--pri);border:1px solid rgba(34,211,238,.28);padding:1px 6px;border-radius:20px;font-weight:700">開いています</span>':''}</div>
-<div class="fm2"><span>${dt}</span><span class="ac">${f.stuCount??'?'} 件</span>${f.fromUrl?'<span style="color:var(--pri)">URLから</span>':''}</div></div>
-<div class="fa">
-  <button class="btn" style="height:27px;padding:0 7px;font-size:.68rem" onclick="event.stopPropagation();shareF('${f.id}')">🔗 共有</button>
-  <button class="btn btn-p" style="height:27px;font-size:.72rem" onclick="event.stopPropagation();openFolder('${f.id}')">開く</button>
-  <button class="btn btn-d" style="height:27px;padding:0 7px;font-size:.68rem" onclick="event.stopPropagation();delFolder('${f.id}')">削除</button>
-</div>`;
+    c.innerHTML=`
+      <div class="fc-ico">${isAct?'📂':f.fromUrl?'🔗':'📁'}</div>
+      <div class="fc-info">
+        <div class="fc-name">${esc(f.name)}${isAct?' <span class="fc-meta" style="display:inline-flex;margin-left:6px"><span class="fc-badge" style="background:var(--ok-hi);color:var(--ok);border-color:rgba(34,197,94,.25)">開いています</span></span>':''}</div>
+        <div class="fc-meta">
+          <span>${dt}</span>
+          <span class="ac">${f.stuCount??'?'} 件の答案</span>
+          ${f.fromUrl?'<span style="color:var(--gold-txt)">URLから追加</span>':''}
+        </div>
+      </div>
+      <div class="fc-acts">
+        <button class="tbtn" style="height:28px;padding:0 9px;font-size:.7rem" onclick="event.stopPropagation();shareF('${f.id}')" title="URLを共有">🔗</button>
+        <button class="tbtn tbtn-primary" style="height:28px;font-size:.74rem" onclick="event.stopPropagation();openFolder('${f.id}')">開く</button>
+        <button class="tbtn tbtn-ng" style="height:28px;padding:0 9px;font-size:.7rem" onclick="event.stopPropagation();deleteFolder('${f.id}')" title="削除">🗑</button>
+      </div>`;
     list.appendChild(c);
   });
 }
-function shareF(id){navigator.clipboard.writeText(location.origin+location.pathname+'#folder-'+id).then(()=>toast('🔗 URLをコピーしました'));}
 
-// ── SAVE ─────────────────────────────────────────────────────────
-function openSaveModal(){
-  if(!S.keyFile||!S.stuFiles.length){toast('先にファイルをアップロードしてください');return;}
-  const sel=document.getElementById('svSel');sel.innerHTML='';
-  const meta=gMeta();
-  if(!meta.length){const o=document.createElement('option');o.value='';o.textContent='（フォルダがありません）';sel.appendChild(o);}
-  else meta.forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.name;if(f.id===S.folderId)o.selected=true;sel.appendChild(o);});
-  document.getElementById('svNm').value='';document.getElementById('svErr').textContent='';
-  openM('sv');
+function shareF(id){
+  const url=location.origin+location.pathname+'#folder-'+id;
+  navigator.clipboard.writeText(url).then(()=>toast('🔗 URLをクリップボードにコピーしました'));
 }
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ── SAVE MODAL ───────────────────────────────────────────────────
+function openSaveModal(){
+  if(!S.key||!S.stus.length){toast('先にファイルをアップロードしてください');return}
+  const sel=document.getElementById('svSel');sel.innerHTML='';
+  const meta=getMeta();
+  if(!meta.length){const o=document.createElement('option');o.textContent='（フォルダがありません — 下で名前を入力して新規作成）';o.value='';sel.appendChild(o)}
+  else meta.forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.name;if(f.id===S.fid)o.selected=true;sel.appendChild(o)});
+  document.getElementById('svNew').value='';
+  document.getElementById('svErr').textContent='';
+  openM('mSave');
+}
+
 async function execSave(){
   const err=document.getElementById('svErr');err.textContent='';
   try{
     toast('保存中...');
-    const nm=document.getElementById('svNm').value.trim(),sel=document.getElementById('svSel').value;
-    let tid=sel;const meta=gMeta();let mo;
-    if(nm){tid=genId();mo={id:tid,name:nm,createdAt:Date.now(),stuCount:S.stuFiles.length};meta.unshift(mo);aVis(tid);}
-    else if(tid){const i=meta.findIndex(f=>f.id===tid);if(i>=0){meta[i].stuCount=S.stuFiles.length;meta[i].updatedAt=Date.now();mo=meta[i];}else throw new Error('フォルダが見つかりません');}
-    else throw new Error('保存先を選択してください');
-    sMeta(meta);S.folderId=tid;_lastSave=Date.now();
+    const nm=document.getElementById('svNew').value.trim(),sel=document.getElementById('svSel').value;
+    let tid=sel;const meta=getMeta();let mo;
+    if(nm){
+      tid=genId();mo={id:tid,name:nm,createdAt:Date.now(),stuCount:S.stus.length};
+      meta.unshift(mo);addVis(tid);
+    }else if(tid){
+      const i=meta.findIndex(f=>f.id===tid);
+      if(i<0)throw new Error('フォルダが見つかりません');
+      meta[i].stuCount=S.stus.length;meta[i].updatedAt=Date.now();mo=meta[i];
+    }else throw new Error('保存先フォルダを選択してください');
+    setMeta(meta);S.fid=tid;_lastSave=Date.now();
     await idbCache(tid);
     await fbSet(`folders/${tid}/meta`,mo);
     await fbSaveData(tid);
-    closeM('sv');
+    closeM('mSave');
     await fbUpAll(tid);
     fbSub(tid);
-    document.getElementById('fpn').textContent=mo.name;
-    document.getElementById('fpill').style.display='flex';
+    document.getElementById('fpName').textContent=mo.name;
+    document.getElementById('fp').style.display='flex';
     document.getElementById('sbar').classList.add('on');
-    document.getElementById('udis').textContent='#folder-'+tid;
+    document.getElementById('urlChip').textContent='#folder-'+tid;
     history.replaceState(null,'','#folder-'+tid);
     toast('✅ 保存しました');
-  }catch(e){err.textContent=e.message;}
+  }catch(e){err.textContent=e.message}
 }
+
 async function quickSave(){
-  if(!S.folderId||!S.keyFile)return;
-  const meta=gMeta(),i=meta.findIndex(f=>f.id===S.folderId);
-  if(i>=0){meta[i].stuCount=S.stuFiles.length;meta[i].updatedAt=Date.now();sMeta(meta);fbSet(`folders/${S.folderId}/meta`,meta[i]).catch(()=>{});}
-  await idbCache(S.folderId);await fbSaveData(S.folderId);toast('💾 上書き保存しました');
+  if(!S.fid||!S.key)return;
+  const meta=getMeta(),i=meta.findIndex(f=>f.id===S.fid);
+  if(i>=0){meta[i].stuCount=S.stus.length;meta[i].updatedAt=Date.now();setMeta(meta);fbSet(`folders/${S.fid}/meta`,meta[i]).catch(()=>{})}
+  await idbCache(S.fid);await fbSaveData(S.fid);
+  toast('💾 上書き保存しました');
 }
 
 // ── FILE MANAGER ─────────────────────────────────────────────────
 function openFileMgr(){
-  const b=document.getElementById('mgrB');b.innerHTML='';
-  if(!S.folderId){b.innerHTML='<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:22px">フォルダに保存してから使用してください</div>';openM('mgr');return;}
-  if(S.keyFile){const r=document.createElement('div');r.className='fr';r.innerHTML=`<div class="fri">🔑</div><div class="frn">${S.keyFile.name}</div><div class="fkb">模範解答</div><div class="frt">${S.keyFile.type.includes('pdf')?'PDF':'IMG'}</div>`;b.appendChild(r);}
-  if(!S.stuFiles.length){const d=document.createElement('div');d.style.cssText='color:var(--muted);font-size:.78rem;text-align:center;padding:18px';d.textContent='生徒答案がありません';b.appendChild(d);}
-  else S.stuFiles.forEach((f)=>{const r=document.createElement('div');r.className='fr';r.innerHTML=`<div class="fri">📄</div><div class="frn">${f.name}</div><div class="frt">${f.type.includes('pdf')?'PDF':'IMG'}</div><button class="btn btn-d" style="height:25px;padding:0 7px;font-size:.67rem;flex-shrink:0" onclick="delStu('${f.name}')">削除</button>`;b.appendChild(r);});
-  openM('mgr');
+  const b=document.getElementById('filesBody');b.innerHTML='';
+  if(!S.fid){b.innerHTML='<div style="color:var(--tx3);font-size:.8rem;text-align:center;padding:24px">フォルダに保存後にご利用ください</div>';openM('mFiles');return}
+  // Key file
+  if(S.key){
+    const r=document.createElement('div');r.className='fr';
+    r.innerHTML=`<div class="fr-ico">🔑</div><div class="fr-name">${esc(S.key.name)}</div><div class="fr-badge">模範解答</div><div class="fr-type">${S.key.type.includes('pdf')?'PDF':'IMG'}</div>`;
+    b.appendChild(r);
+  }
+  const sep=document.createElement('div');sep.style.cssText='height:1px;background:var(--line);margin:6px 0';b.appendChild(sep);
+  if(!S.stus.length){
+    const d=document.createElement('div');d.style.cssText='color:var(--tx3);font-size:.78rem;text-align:center;padding:16px';d.textContent='生徒答案がありません';b.appendChild(d);
+  }else{
+    S.stus.forEach(f=>{
+      const r=document.createElement('div');r.className='fr';
+      r.innerHTML=`<div class="fr-ico">📄</div><div class="fr-name">${esc(f.name)}</div><div class="fr-type">${f.type.includes('pdf')?'PDF':'IMG'}</div><button class="tbtn tbtn-ng" style="height:26px;padding:0 8px;font-size:.68rem;flex-shrink:0" onclick="delStu('${esc(f.name)}')">削除</button>`;
+      b.appendChild(r);
+    });
+  }
+  // Footer: clear all
+  if(S.stus.length>0){
+    const ft=document.createElement('div');ft.style.cssText='padding-top:12px;border-top:1px solid var(--line);margin-top:8px;display:flex;gap:8px';
+    ft.innerHTML=`<button class="tbtn tbtn-ng" style="font-size:.74rem" onclick="clearAllStus()">🗑 生徒答案をすべて削除</button>`;
+    b.appendChild(ft);
+  }
+  openM('mFiles');
 }
+
 async function delStu(nm){
-  if(!confirm(`「${nm}」を削除しますか？`))return;
-  const i=S.stuFiles.findIndex(f=>f.name===nm);if(i<0)return;
-  S.stuFiles.splice(i,1);
-  if(S.currIdx>=S.stuFiles.length)S.currIdx=Math.max(0,S.stuFiles.length-1);
+  const ok=await confirm2('答案を削除',`「${nm}」を削除しますか？この操作はフォルダ内の全デバイスに反映されます。`,'削除する');
+  if(!ok)return;
+  const i=S.stus.findIndex(f=>f.name===nm);if(i<0)return;
+  S.stus.splice(i,1);
+  if(S.idx>=S.stus.length)S.idx=Math.max(0,S.stus.length-1);
   delete S.marks[nm];
-  if(S.folderId){
-    const del=(await fbGet(`folders/${S.folderId}/deletedNames`))||[];
+  if(S.fid){
+    const del=(await fbGet(`folders/${S.fid}/deletedNames`))||[];
     if(!del.includes(nm))del.push(nm);
-    await fbSet(`folders/${S.folderId}/deletedNames`,del);
-    await fbSaveData(S.folderId);await idbCache(S.folderId);
+    await fbSet(`folders/${S.fid}/deletedNames`,del);
+    await fbSaveData(S.fid);await idbCache(S.fid);
   }
   openFileMgr();
-  if(S.stuFiles.length>0)loadS(S.currIdx);else renderMks();
+  if(S.stus.length>0)loadS(S.idx);else renderMks();
   updUI();toast(`🗑 「${nm}」を削除しました`);
+}
+
+async function clearAllStus(){
+  const ok=await confirm2('すべての答案を削除',`${S.stus.length} 件の生徒答案をすべて削除しますか？`,'すべて削除');
+  if(!ok)return;
+  const names=S.stus.map(f=>f.name);
+  S.stus=[];S.idx=0;names.forEach(n=>delete S.marks[n]);
+  if(S.fid){
+    const del=(await fbGet(`folders/${S.fid}/deletedNames`))||[];
+    names.forEach(n=>{if(!del.includes(n))del.push(n)});
+    await fbSet(`folders/${S.fid}/deletedNames`,del);
+    await fbSaveData(S.fid);await idbCache(S.fid);
+  }
+  closeM('mFiles');renderMks();updUI();toast('全生徒答案を削除しました');
 }
 
 // ── SAVE TO STORAGE ──────────────────────────────────────────────
 function saveStorage(){
-  localStorage.setItem('QM_MK',JSON.stringify({marks:S.marks,zones:S.zones,markSize:S.mSz}));
-  if(S.folderId)fbSaveData(S.folderId).catch(()=>{});
+  localStorage.setItem('QM_MK5',JSON.stringify({marks:S.marks,zones:S.zones,markSize:S.mSz}));
+  if(S.fid)fbSaveData(S.fid).catch(()=>{});
 }
 
-// ── DRAW / ZOOM ──────────────────────────────────────────────────
+// ── DRAW IMAGE ───────────────────────────────────────────────────
 async function drawImg(file,cvId,wId,scId,side){
   const cv=document.getElementById(cvId),ctx=cv.getContext('2d');
   if(file.type==='application/pdf'){
@@ -702,271 +1304,512 @@ async function drawImg(file,cvId,wId,scId,side){
     const pg=await doc.getPage(1);
     const v1=pg.getViewport({scale:1});
     if(side==='r')S.pgMm={w:v1.width*.352778,h:v1.height*.352778};
-    const v=pg.getViewport({scale:3});cv.width=v.width;cv.height=v.height;
-    await pg.render({canvasContext:ctx,viewport:v}).promise;
+    const vp=pg.getViewport({scale:3});
+    cv.width=vp.width;cv.height=vp.height;
+    await pg.render({canvasContext:ctx,viewport:vp}).promise;
   }else{
-    await new Promise(res=>{const img=new Image();img.onload=()=>{cv.width=img.width;cv.height=img.height;ctx.drawImage(img,0,0);if(side==='r')S.pgMm={w:img.width*25.4/96,h:img.height*25.4/96};res();};img.src=URL.createObjectURL(file);});
+    await new Promise(res=>{
+      const img=new Image;
+      img.onload=()=>{cv.width=img.width;cv.height=img.height;ctx.drawImage(img,0,0);if(side==='r')S.pgMm={w:img.width*25.4/96,h:img.height*25.4/96};res()};
+      img.src=URL.createObjectURL(file);
+    });
   }
-  const con=document.getElementById(scId),fw=Math.max(200,con.clientWidth-56);
-  S.fitW[side]=fw;S.zoom[side]=100;applyZoom(side);
+  const con=document.getElementById(scId);
+  S.fit[side]=Math.max(200,con.clientWidth-72);
+  S.zoom[side]=100;applyZoom(side);
 }
-function addZoom(s,d){S.zoom[s]=Math.max(10,Math.min(500,S.zoom[s]+d));applyZoom(s);}
+
+function addZoom(s,d){S.zoom[s]=Math.max(10,Math.min(500,S.zoom[s]+d));applyZoom(s)}
 function applyZoom(s){
-  document.getElementById(s==='l'?'wL':'wR').style.width=(S.fitW[s]*(S.zoom[s]/100))+'px';
+  document.getElementById(s==='l'?'wL':'wR').style.width=(S.fit[s]*(S.zoom[s]/100))+'px';
   document.getElementById(s==='l'?'zL':'zR').textContent=S.zoom[s]+'%';
   if(s==='r')renderMks();
 }
 
 // ── LOAD STUDENT ─────────────────────────────────────────────────
 async function loadS(idx){
-  if(idx<0||idx>=S.stuFiles.length)return;
-  S.currIdx=idx;closeTxtEd();
-  const f=S.stuFiles[idx];
-  document.getElementById('snm').textContent=f.name;
-  document.getElementById('scnt').textContent=`${idx+1} / ${S.stuFiles.length}`;
-  const ms=S.marks[f.name]||[];S.nextQ=(ms.reduce((m,v)=>v.qNum>m?v.qNum:m,0))+1;
-  updUI();await drawImg(f,'cvR','wR','scR','r');renderMks();
+  if(idx<0||idx>=S.stus.length)return;
+  S.idx=idx;closeTxtEd();
+  const f=S.stus[idx];
+  document.getElementById('sName').textContent=f.name;
+  document.getElementById('sCnt').textContent=`${idx+1} / ${S.stus.length}`;
+  const ms=S.marks[f.name]||[];
+  S.nextQ=(ms.reduce((m,v)=>v.qNum>m?v.qNum:m,0))+1;
+  updUI();
+  await drawImg(f,'cvR','wR','scR','r');
+  renderMks();
 }
 async function loadSSilent(idx){
-  if(idx<0||idx>=S.stuFiles.length)return;
-  S.currIdx=idx;const f=S.stuFiles[idx];
-  document.getElementById('snm').textContent=f.name;document.getElementById('scnt').textContent=`${idx+1} / ${S.stuFiles.length}`;
+  if(idx<0||idx>=S.stus.length)return;
+  S.idx=idx;const f=S.stus[idx];
+  document.getElementById('sName').textContent=f.name;
+  document.getElementById('sCnt').textContent=`${idx+1} / ${S.stus.length}`;
   const ms=S.marks[f.name]||[];S.nextQ=(ms.reduce((m,v)=>v.qNum>m?v.qNum:m,0))+1;
   updUI();await drawImg(f,'cvR','wR','scR','r');renderMks();
 }
-function navS(d){loadS(S.currIdx+d);}
+const navS=d=>loadS(S.idx+d);
 
 // ── ADD STUDENTS ─────────────────────────────────────────────────
 async function addStudents(files){
   if(!files?.length)return;
-  const ex=new Set(S.stuFiles.map(f=>f.name));
-  const add=Array.from(files).filter(f=>{if(ex.has(f.name)){toast(`スキップ: ${f.name}（重複）`);return false;}return true;});
+  const ex=new Set(S.stus.map(f=>f.name));
+  const add=Array.from(files).filter(f=>{if(ex.has(f.name)){toast(`スキップ: ${f.name}（重複）`);return false}return true});
   if(!add.length)return;
-  const si=S.stuFiles.length;S.stuFiles.push(...add);
-  document.getElementById('scnt').textContent=`${S.currIdx+1} / ${S.stuFiles.length}`;
-  toast(`${add.length} 件追加しました`);
-  if(S.folderId){await quickSave();await fbAppend(S.folderId,add,si);}
+  const si=S.stus.length;S.stus.push(...add);
+  document.getElementById('sCnt').textContent=`${S.idx+1} / ${S.stus.length}`;
+  toast(`${add.length} 件を追加しました`);
+  if(S.fid){await quickSave();await fbAppend(S.fid,add,si)}
 }
-document.getElementById('iAddS').addEventListener('change',e=>{addStudents(e.target.files);e.target.value='';});
+document.getElementById('iAddS').addEventListener('change',e=>{addStudents(e.target.files);e.target.value=''});
 
 // ── MARKS ────────────────────────────────────────────────────────
 function renderMks(){
   const lm=document.getElementById('lMk'),lz=document.getElementById('lZn');
   lm.innerHTML='';lz.innerHTML='';
-  const sc=S.zoom.r/100,ds=S.mSz*sc;
+  const scale=S.zoom.r/100,ds=S.mSz*scale;
   document.documentElement.style.setProperty('--ms',ds+'px');
-  S.zones.forEach(z=>{const d=document.createElement('div');d.className='zone';d.style.width=ds+'px';d.style.height=(ds*.58)+'px';d.style.left=z.x+'%';d.style.top=z.y+'%';d.textContent=z.qNum;lz.appendChild(d);});
-  const fn=S.stuFiles[S.currIdx]?.name;if(!fn)return;
-  (S.marks[fn]||[]).forEach((m,i)=>{
+
+  S.zones.forEach(z=>{
+    const d=document.createElement('div');d.className='zone';
+    d.style.width=ds+'px';d.style.height=(ds*.58)+'px';
+    d.style.left=z.x+'%';d.style.top=z.y+'%';
+    d.textContent=z.qNum;lz.appendChild(d);
+  });
+
+  const fn=S.stus[S.idx]?.name;if(!fn)return;
+  const list=S.marks[fn]||[];
+  list.forEach((m,i)=>{
+    const isFresh=S._fresh&&i===list.length-1;
     if(m.type==='text'){
-      const d=document.createElement('div');d.className='mk-txt';if(S.selTxt===i)d.classList.add('sel');
-      d.style.left=m.x+'%';d.style.top=m.y+'%';d.style.color=m.color;d.style.fontSize=m.size+'px';d.textContent=m.text;
-      d.onmousedown=e=>{e.stopPropagation();startDrag(i,d);};lm.appendChild(d);
+      const d=document.createElement('div');d.className='mk-txt';
+      if(S.selTxt===i)d.classList.add('sel');
+      if(isFresh)d.classList.add('fresh');
+      d.style.left=m.x+'%';d.style.top=m.y+'%';
+      d.style.color=m.color;d.style.fontSize=m.size+'px';
+      d.textContent=m.text;
+      d.onmousedown=e=>{e.stopPropagation();startDrag(i,d)};
+      lm.appendChild(d);
     }else{
       const d=document.createElement('div');d.className=`mk mk-${m.type}`;
-      d.style.left=m.x+'%';d.style.top=m.y+'%';d.style.width=ds+'px';d.style.height=ds+'px';
-      if(m.type==='tri'){const sh=document.createElement('div');sh.className='mk-tri-sh';const tx=document.createElement('span');tx.className='mk-tri-tx';tx.textContent=m.text;d.appendChild(sh);d.appendChild(tx);}
-      const b=document.createElement('div');b.className='mb';b.textContent=m.qNum;d.appendChild(b);lm.appendChild(d);
+      if(isFresh)d.classList.add('fresh');
+      d.style.left=m.x+'%';d.style.top=m.y+'%';
+      d.style.width=ds+'px';d.style.height=ds+'px';
+      if(m.type==='tri'){
+        const tx=document.createElement('span');tx.className='mk-tri-tx';tx.textContent=m.text;d.appendChild(tx);
+      }
+      const b=document.createElement('div');b.className='mb';b.textContent=m.qNum;d.appendChild(b);
+      lm.appendChild(d);
     }
   });
+  if(S._fresh)S._fresh=false;// reset after rendering
 }
 
 function addMk(x,y,q){
-  const fn=S.stuFiles[S.currIdx]?.name;if(!fn)return;
+  const fn=S.stus[S.idx]?.name;if(!fn)return;
   if(!S.marks[fn])S.marks[fn]=[];
-  if(S.tool==='text'){const t=prompt('文字を入力:','');if(!t)return;S.marks[fn].push({x,y,type:'text',text:t,size:24,color:'#ef4444'});}
-  else if(S.tool==='tri'){const t=prompt('部分点または文字:','1');if(t===null)return;const oi=S.marks[fn].findIndex(m=>m.qNum===q&&m.type!=='text');if(oi>=0)S.marks[fn].splice(oi,1);S.marks[fn].push({x,y,type:'tri',text:t,qNum:q});S.nextQ=q+1;}
-  else{const oi=S.marks[fn].findIndex(m=>m.qNum===q&&m.type!=='text');if(oi>=0)S.marks[fn].splice(oi,1);S.marks[fn].push({x,y,type:S.tool,qNum:q});S.nextQ=q+1;}
-  saveStorage();renderMks();updUI();
+  if(S.tool==='text'){
+    const t=prompt('文字を入力:','');if(!t)return;
+    S.marks[fn].push({x,y,type:'text',text:t,size:24,color:'#ef4444'});
+  }else if(S.tool==='tri'){
+    const t=prompt('部分点または文字:','1');if(t===null)return;
+    const oi=S.marks[fn].findIndex(m=>m.qNum===q&&m.type!=='text');
+    if(oi>=0)S.marks[fn].splice(oi,1);
+    S.marks[fn].push({x,y,type:'tri',text:t,qNum:q});S.nextQ=q+1;
+  }else{
+    const oi=S.marks[fn].findIndex(m=>m.qNum===q&&m.type!=='text');
+    if(oi>=0)S.marks[fn].splice(oi,1);
+    S.marks[fn].push({x,y,type:S.tool,qNum:q});S.nextQ=q+1;
+  }
+  S._fresh=true;saveStorage();renderMks();updUI();
 }
 
 function setTool(t){
   S.tool=t;
-  document.querySelectorAll('[id^="t"]').forEach(b=>{if(['tO','tX','tT','tTx'].includes(b.id))b.classList.remove('active');});
-  const m={o:'tO',x:'tX',tri:'tT',text:'tTx'};if(m[t])document.getElementById(m[t]).classList.add('active');
+  const btns={o:'tO',x:'tX',tri:'tTri',text:'tTxt'};
+  const cls={o:'act-ok',x:'act-ng',tri:'act-tri',text:'act-txt'};
+  Object.entries(btns).forEach(([k,id])=>{
+    const b=document.getElementById(id);
+    b.classList.remove('act-ok','act-ng','act-tri','act-txt');
+    if(k===t)b.classList.add(cls[k]);
+  });
 }
 
 function updUI(){
-  const fn=S.stuFiles[S.currIdx]?.name;const ms=S.marks[fn]||[];
-  let sc=0;ms.forEach(m=>{if(m.type==='o')sc+=1;if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))sc+=v;}});
-  document.getElementById('sco').textContent=Number.isInteger(sc)?sc:sc.toFixed(1);
-  document.getElementById('nq').textContent=S.nextQ;
+  const fn=S.stus[S.idx]?.name;const ms=S.marks[fn]||[];
+  let sc=0;ms.forEach(m=>{if(m.type==='o')sc+=1;if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))sc+=v}});
+  document.getElementById('scoreVal').textContent=Number.isInteger(sc)?sc:sc.toFixed(1);
+  document.getElementById('nqChip').textContent=S.nextQ;
 }
 
-function undo(){const fn=S.stuFiles[S.currIdx]?.name;if(!fn)return;if(S.marks[fn]?.length){const r=S.marks[fn].pop();if(r.qNum)S.nextQ=r.qNum;saveStorage();renderMks();updUI();}}
-function clearMks(){if(!confirm('この答案のマークをすべて消去しますか？'))return;const fn=S.stuFiles[S.currIdx]?.name;if(!fn)return;S.marks[fn]=[];S.nextQ=1;saveStorage();renderMks();updUI();}
+function undo(){
+  const fn=S.stus[S.idx]?.name;if(!fn)return;
+  if(S.marks[fn]?.length){const r=S.marks[fn].pop();if(r.qNum)S.nextQ=r.qNum;saveStorage();renderMks();updUI()}
+}
+async function clearMks(){
+  const ok=await confirm2('マークを消去','この答案のすべての採点マークを消去しますか？','消去する');
+  if(!ok)return;
+  const fn=S.stus[S.idx]?.name;if(!fn)return;
+  S.marks[fn]=[];S.nextQ=1;saveStorage();renderMks();updUI();
+}
 
-// ── GRID ─────────────────────────────────────────────────────────
-function toggleLayout(){S.layout=!S.layout;document.getElementById('lbar').style.display=S.layout?'flex':'none';S.gPts=[];document.getElementById('lTp').innerHTML='';renderMks();}
-function addGpt(x,y){S.gPts.push({x,y});const d=document.createElement('div');d.style.cssText=`position:absolute;width:10px;height:10px;background:var(--info);border-radius:50%;left:${x}%;top:${y}%;transform:translate(-50%,-50%);box-shadow:0 0 5px #000`;document.getElementById('lTp').appendChild(d);if(S.gPts.length===2)toast('行・列を指定して生成');}
+// ── GRID / LAYOUT MODE ───────────────────────────────────────────
+function toggleLayout(){
+  S.layout=!S.layout;
+  document.getElementById('lbar').style.display=S.layout?'flex':'none';
+  S.gpts=[];document.getElementById('lTp').innerHTML='';renderMks();
+}
+function addGpt(x,y){
+  S.gpts.push({x,y});
+  const d=document.createElement('div');
+  d.style.cssText=`position:absolute;width:10px;height:10px;background:var(--info);border-radius:50%;left:${x}%;top:${y}%;transform:translate(-50%,-50%);box-shadow:0 0 6px #000`;
+  document.getElementById('lTp').appendChild(d);
+  if(S.gpts.length===2)toast('行・列を入力して「生成」をクリック');
+}
 function genGrid(){
-  if(S.gPts.length<2){alert('始点と終点を指定してください');return;}
-  const[p1,p2]=S.gPts,rows=+document.getElementById('gR').value,cols=+document.getElementById('gC').value;
+  if(S.gpts.length<2){alert('始点と終点を指定してください');return}
+  const[p1,p2]=S.gpts,rows=+document.getElementById('gR').value,cols=+document.getElementById('gC').value;
   const sq=+document.getElementById('gS').value||1,dir=document.getElementById('gD').value;
   S.zones=[];let q=sq;
-  if(dir==='h'){for(let r=0;r<rows;r++){const ry=rows===1?0:r/(rows-1),cy=p1.y+(p2.y-p1.y)*ry;for(let c=0;c<cols;c++){const rx=cols===1?0:c/(cols-1),cx=p1.x+(p2.x-p1.x)*rx;S.zones.push({x:cx,y:cy,qNum:q++});}}}
-  else{for(let c=0;c<cols;c++){const rx=cols===1?0:c/(cols-1),cx=p1.x+(p2.x-p1.x)*rx;for(let r=0;r<rows;r++){const ry=rows===1?0:r/(rows-1),cy=p1.y+(p2.y-p1.y)*ry;S.zones.push({x:cx,y:cy,qNum:q++});}}}
-  saveStorage();renderMks();S.gPts=[];document.getElementById('lTp').innerHTML='';toast('グリッドを生成しました');
+  if(dir==='h'){
+    for(let r=0;r<rows;r++){const ry=rows===1?0:r/(rows-1),cy=p1.y+(p2.y-p1.y)*ry;
+      for(let c=0;c<cols;c++){const rx=cols===1?0:c/(cols-1),cx=p1.x+(p2.x-p1.x)*rx;S.zones.push({x:cx,y:cy,qNum:q++})}}
+  }else{
+    for(let c=0;c<cols;c++){const rx=cols===1?0:c/(cols-1),cx=p1.x+(p2.x-p1.x)*rx;
+      for(let r=0;r<rows;r++){const ry=rows===1?0:r/(rows-1),cy=p1.y+(p2.y-p1.y)*ry;S.zones.push({x:cx,y:cy,qNum:q++})}}
+  }
+  saveStorage();renderMks();S.gpts=[];document.getElementById('lTp').innerHTML='';
+  toast(`${S.zones.length} 個のゾーンを生成しました`);
 }
-function clearZones(){if(!confirm('ゾーンをすべて消去しますか？'))return;S.zones=[];saveStorage();renderMks();}
+async function clearZones(){
+  const ok=await confirm2('ゾーンを消去','すべての採点ゾーンを消去しますか？','消去する');
+  if(!ok)return;S.zones=[];saveStorage();renderMks();
+}
 
 // ── TEXT DRAG ────────────────────────────────────────────────────
-function startDrag(i,el){S.selTxt=i;S.drag=true;const fn=S.stuFiles[S.currIdx].name,m=S.marks[fn][i];document.getElementById('txSz').value=m.size;document.getElementById('txCl').value=m.color;const ed=document.getElementById('te'),wr=document.getElementById('wR').getBoundingClientRect(),tr=el.getBoundingClientRect();ed.style.display='flex';ed.style.top=(tr.bottom-wr.top+5)+'px';ed.style.left=(tr.left-wr.left)+'px';}
-function endDrag(){S.drag=false;saveStorage();}
-function closeTxtEd(){S.selTxt=null;document.getElementById('te').style.display='none';renderMks();}
-function delSelTxt(){if(S.selTxt===null)return;S.marks[S.stuFiles[S.currIdx].name].splice(S.selTxt,1);closeTxtEd();saveStorage();}
-document.getElementById('txSz').addEventListener('input',e=>{if(S.selTxt!==null){S.marks[S.stuFiles[S.currIdx].name][S.selTxt].size=e.target.value;renderMks();}});
-document.getElementById('txCl').addEventListener('input',e=>{if(S.selTxt!==null){S.marks[S.stuFiles[S.currIdx].name][S.selTxt].color=e.target.value;renderMks();}});
+function startDrag(i,el){
+  S.selTxt=i;S.drag=true;
+  const fn=S.stus[S.idx].name,m=S.marks[fn][i];
+  document.getElementById('txSz').value=m.size;
+  document.getElementById('txCl').value=m.color;
+  const ed=document.getElementById('te'),wr=document.getElementById('wR').getBoundingClientRect(),tr=el.getBoundingClientRect();
+  ed.style.display='flex';ed.style.top=(tr.bottom-wr.top+5)+'px';ed.style.left=(tr.left-wr.left)+'px';
+}
+function endDrag(){S.drag=false;saveStorage()}
+function closeTxtEd(){S.selTxt=null;document.getElementById('te').style.display='none';renderMks()}
+function delSelTxt(){if(S.selTxt===null)return;S.marks[S.stus[S.idx].name].splice(S.selTxt,1);closeTxtEd();saveStorage()}
+document.getElementById('txSz').addEventListener('input',e=>{if(S.selTxt!==null){S.marks[S.stus[S.idx].name][S.selTxt].size=+e.target.value;renderMks()}});
+document.getElementById('txCl').addEventListener('input',e=>{if(S.selTxt!==null){S.marks[S.stus[S.idx].name][S.selTxt].color=e.target.value;renderMks()}});
 
-// ── CANVAS EVENTS ────────────────────────────────────────────────
-const wR=document.getElementById('wR'),cg=document.getElementById('cg');
+// ── CANVAS EVENT HANDLERS ────────────────────────────────────────
+const wR=document.getElementById('wR'),cgEl=document.getElementById('cg');
 wR.addEventListener('mousemove',e=>{
   if(S.layout)return;
-  const r=wR.getBoundingClientRect();const px=((e.clientX-r.left)/r.width)*100,py=((e.clientY-r.top)/r.height)*100;
-  cg.style.display='block';cg.style.left=(e.clientX-r.left)+'px';cg.style.top=(e.clientY-r.top)+'px';
-  cg.classList.remove('sn');delete cg.dataset.sn;
+  const r=wR.getBoundingClientRect();
+  const px=((e.clientX-r.left)/r.width)*100,py=((e.clientY-r.top)/r.height)*100;
+  cgEl.style.display='block';
+  cgEl.style.left=(e.clientX-r.left)+'px';cgEl.style.top=(e.clientY-r.top)+'px';
+  cgEl.classList.remove('snap');delete cgEl.dataset.snap;
   const SNAP=2.5,z=S.zones.find(z=>Math.abs(z.x-px)<SNAP&&Math.abs(z.y-py)<SNAP);
-  if(z&&S.tool!=='text'){cg.classList.add('sn');cg.dataset.sn=z.qNum;}
-  if(S.drag&&S.selTxt!==null){const fn=S.stuFiles[S.currIdx].name;if(S.marks[fn]?.[S.selTxt]){S.marks[fn][S.selTxt].x=px;S.marks[fn][S.selTxt].y=py;renderMks();}}
+  if(z&&S.tool!=='text'){cgEl.classList.add('snap');cgEl.dataset.snap=z.qNum}
+  if(S.drag&&S.selTxt!==null){
+    const fn=S.stus[S.idx].name;
+    if(S.marks[fn]?.[S.selTxt]){S.marks[fn][S.selTxt].x=px;S.marks[fn][S.selTxt].y=py;renderMks()}
+  }
 });
-wR.addEventListener('mouseleave',()=>{cg.style.display='none';});
+wR.addEventListener('mouseleave',()=>{cgEl.style.display='none'});
 wR.addEventListener('mousedown',e=>{
-  if(e.button!==0)return;if(S.selTxt!==null&&!S.drag)closeTxtEd();if(S.drag)return;
-  const r=wR.getBoundingClientRect(),px=((e.clientX-r.left)/r.width)*100,py=((e.clientY-r.top)/r.height)*100;
-  if(S.layout){addGpt(px,py);return;}
+  if(e.button!==0)return;
+  if(S.selTxt!==null&&!S.drag)closeTxtEd();
+  if(S.drag)return;
+  const r=wR.getBoundingClientRect();
+  const px=((e.clientX-r.left)/r.width)*100,py=((e.clientY-r.top)/r.height)*100;
+  if(S.layout){addGpt(px,py);return}
   let q=S.nextQ,fx=px,fy=py;
-  if(cg.dataset.sn&&S.tool!=='text'){const z=S.zones.find(z=>z.qNum==cg.dataset.sn);q=z.qNum;fx=z.x;fy=z.y;}
+  if(cgEl.dataset.snap&&S.tool!=='text'){
+    const z=S.zones.find(z=>z.qNum==cgEl.dataset.snap);q=z.qNum;fx=z.x;fy=z.y;
+  }
   addMk(fx,fy,q);
 });
 window.addEventListener('mouseup',endDrag);
-document.getElementById('msz').addEventListener('input',e=>{S.mSz=parseInt(e.target.value);renderMks();saveStorage();});
-document.getElementById('scR').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();addZoom('r',e.deltaY<0?5:-5);}},{passive:false});
-document.getElementById('scL').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();addZoom('l',e.deltaY<0?5:-5);}},{passive:false});
+document.getElementById('mszR').addEventListener('input',e=>{S.mSz=+e.target.value;renderMks();saveStorage()});
+document.getElementById('scR').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();addZoom('r',e.deltaY<0?5:-5)}},{passive:false});
+document.getElementById('scL').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();addZoom('l',e.deltaY<0?5:-5)}},{passive:false});
 
 // ── RESIZER ──────────────────────────────────────────────────────
-let resizing=false;
-document.getElementById('rsz').addEventListener('mousedown',()=>{resizing=true;document.getElementById('rsz').classList.add('on');});
-window.addEventListener('mouseup',()=>{resizing=false;document.getElementById('rsz').classList.remove('on');});
-window.addEventListener('mousemove',e=>{if(!resizing)return;const w=document.getElementById('ws').offsetWidth,p=(e.clientX/w)*100;if(p>10&&p<90){document.getElementById('pL').style.width=p+'%';document.getElementById('pR').style.width=(100-p)+'%';}});
+let _resizing=false;
+document.getElementById('rsz').addEventListener('mousedown',()=>{_resizing=true;document.getElementById('rsz').classList.add('on')});
+window.addEventListener('mouseup',()=>{_resizing=false;document.getElementById('rsz').classList.remove('on')});
+window.addEventListener('mousemove',e=>{
+  if(!_resizing)return;
+  const w=document.getElementById('ws').offsetWidth,p=(e.clientX/w)*100;
+  if(p>10&&p<90){document.getElementById('pL').style.width=p+'%';document.getElementById('pR').style.width=(100-p)+'%'}
+});
 
 // ── UPLOAD SETUP ─────────────────────────────────────────────────
-function setupDrop(dId,iId,type){
-  const drop=document.getElementById(dId),inp=document.getElementById(iId);
-  drop.onclick=()=>inp.click();
-  inp.onchange=e=>handleF(e.target.files,type);
-  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('ov');});
-  drop.addEventListener('dragleave',()=>drop.classList.remove('ov'));
-  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('ov');handleF(e.dataTransfer.files,type);});
+function setupDrop(dropId,inpId,type){
+  const d=document.getElementById(dropId),i=document.getElementById(inpId);
+  d.onclick=()=>i.click();i.onchange=e=>handleF(e.target.files,type);
+  d.addEventListener('dragover',e=>{e.preventDefault();d.classList.add('ov')});
+  d.addEventListener('dragleave',()=>d.classList.remove('ov'));
+  d.addEventListener('drop',e=>{e.preventDefault();d.classList.remove('ov');handleF(e.dataTransfer.files,type)});
 }
 setupDrop('dKey','iKey','key');setupDrop('dStu','iStu','stu');
 function handleF(files,type){
   if(!files.length)return;
-  if(type==='key'){S.keyFile=files[0];const el=document.getElementById('sKey');el.textContent=`✓ ${S.keyFile.name}`;el.classList.add('ok');}
-  else{S.stuFiles=Array.from(files);const el=document.getElementById('sStu');el.textContent=`✓ ${S.stuFiles.length}枚`;el.classList.add('ok');}
-  document.getElementById('bStart').disabled=!(S.keyFile&&S.stuFiles.length>0);
+  if(type==='key'){
+    S.key=files[0];
+    const h=document.getElementById('hKey');h.textContent=`✓ ${S.key.name}`;h.classList.add('ok');
+  }else{
+    S.stus=Array.from(files);
+    const h=document.getElementById('hStu');h.textContent=`✓ ${S.stus.length}枚`;h.classList.add('ok');
+  }
+  document.getElementById('bStart').disabled=!(S.key&&S.stus.length);
 }
-const bStart=document.getElementById('bStart');
-bStart.onclick=async()=>{
-  if(!S.folderId){const r=localStorage.getItem('QM_MK');if(r)try{const d=JSON.parse(r);S.marks=d.marks||{};S.zones=d.zones||[];S.mSz=d.markSize||44;document.getElementById('msz').value=S.mSz;}catch(_){}}
+
+document.getElementById('bStart').addEventListener('click',async()=>{
+  if(!S.fid){const r=localStorage.getItem('QM_MK5');if(r)try{const d=JSON.parse(r);S.marks=d.marks||{};S.zones=d.zones||[];S.mSz=d.markSize||44;document.getElementById('mszR').value=S.mSz}catch(_){}}
   document.getElementById('ov').style.display='none';
   document.getElementById('sbar').classList.add('on');
-  if(S.folderId){document.getElementById('fpill').style.display='flex';await quickSave();}
-  else{document.getElementById('nfi').textContent=`📄 ${S.keyFile.name}  |  👥 ${S.stuFiles.length}名  ·  保存ボタンでフォルダに保存できます`;}
-  await drawImg(S.keyFile,'cvL','wL','scL','l');
+  if(S.fid){document.getElementById('fp').style.display='flex';await quickSave()}
+  else{document.getElementById('nfInfo').textContent=`📄 ${S.key.name}  ·  👥 ${S.stus.length}名  ·  保存ボタンでフォルダに保存できます`}
+  await drawImg(S.key,'cvL','wL','scL','l');
   await loadS(0);
-};
+});
 
-// ── STATS ────────────────────────────────────────────────────────
+// ── STATISTICS ───────────────────────────────────────────────────
 function calcStats(){
-  if(!S.stuFiles.length)return null;
-  const sc=S.stuFiles.map(f=>{let s=0;(S.marks[f.name]||[]).forEach(m=>{if(m.type==='o')s+=1;if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))s+=v;}});return{name:f.name,score:s};});
+  if(!S.stus.length)return null;
+  const sc=S.stus.map(f=>{let s=0;(S.marks[f.name]||[]).forEach(m=>{if(m.type==='o')s+=1;if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))s+=v}});return{name:f.name,score:s}});
   const n=sc.length,mean=sc.reduce((s,x)=>s+x.score,0)/n;
   const sd=Math.sqrt(sc.reduce((s,x)=>s+Math.pow(x.score-mean,2),0)/n);
-  const srt=[...sc].map(x=>x.score).sort((a,b)=>a-b);
-  const med=n%2===0?(srt[n/2-1]+srt[n/2])/2:srt[Math.floor(n/2)];
-  sc.forEach(s=>{s.dev=sd>0?Math.round((50+10*(s.score-mean)/sd)*10)/10:50;s.rank=sc.filter(x=>x.score>s.score).length+1;});
+  const sorted=[...sc].map(x=>x.score).sort((a,b)=>a-b);
+  const med=n%2===0?(sorted[n/2-1]+sorted[n/2])/2:sorted[Math.floor(n/2)];
+  sc.forEach(s=>{s.dev=sd>0?Math.round((50+10*(s.score-mean)/sd)*10)/10:50;s.rank=sc.filter(x=>x.score>s.score).length+1});
   return{scores:sc,mean:Math.round(mean*10)/10,sd:Math.round(sd*10)/10,max:Math.max(...sc.map(x=>x.score)),min:Math.min(...sc.map(x=>x.score)),med:Math.round(med*10)/10,n};
 }
+
 function openStats(){
-  if(!S.stuFiles.length){toast('生徒答案がありません');return;}
+  if(!S.stus.length){toast('生徒答案がありません');return}
   const st=calcStats();if(!st)return;
-  const cur=S.stuFiles[S.currIdx]?.name,ms=st.max||1;
-  let h=`<div class="sg"><div class="stl"><div class="stll">平均点</div><div class="stlv cy">${st.mean}</div></div><div class="stl"><div class="stll">標準偏差</div><div class="stlv bl">${st.sd}</div></div><div class="stl"><div class="stll">最高点</div><div class="stlv gr">${st.max}</div></div><div class="stl"><div class="stll">最低点</div><div class="stlv rd">${st.min}</div></div></div>`;
-  const bars=st.scores.map(s=>`<div class="bi" title="${s.name}: ${s.score}点"><div class="bf${s.name===cur?' cur':''}" style="height:${Math.round((s.score/ms)*66)+2}px"></div><div class="bbl">${s.name.replace(/\.[^.]+$/,'')}</div></div>`).join('');
-  h+=`<div class="bw"><div class="bwt">得点分布</div><div class="bars">${bars}</div></div>`;
+  const cur=S.stus[S.idx]?.name;
+
+  let html=`<div class="sg">
+    <div class="stile"><div class="stile-l">平均点</div><div class="stile-v c1">${st.mean}</div></div>
+    <div class="stile"><div class="stile-l">標準偏差</div><div class="stile-v c2">${st.sd}</div></div>
+    <div class="stile"><div class="stile-l">最高点</div><div class="stile-v c3">${st.max}</div></div>
+    <div class="stile"><div class="stile-l">最低点</div><div class="stile-v c4">${st.min}</div></div>
+  </div>
+  <div class="hist-wrap">
+    <div class="hist-title">得点分布</div>
+    <canvas id="histCanvas"></canvas>
+  </div>`;
+
   const rc=r=>r===1?'r1':r===2?'r2':r===3?'r3':'rn';
-  const rows=[...st.scores].sort((a,b)=>a.rank-b.rank).map(s=>`<tr class="${s.name===cur?'me':''}"><td><span class="rb ${rc(s.rank)}">${s.rank}</span></td><td style="max-width:190px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:${s.name===cur?'var(--pri)':'inherit'}">${s.name}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${s.score===st.max?'var(--ok)':s.score===st.min?'var(--ng)':'inherit'}">${s.score}</td><td style="font-family:'JetBrains Mono',monospace;color:${s.dev>=60?'var(--ok)':s.dev<=40?'var(--ng)':'inherit'}">${s.dev}</td><td><div class="db"><div class="df" style="width:${Math.max(4,Math.min(110,s.dev*1.15))}px"></div></div></td></tr>`).join('');
-  h+=`<div style="overflow-x:auto"><table class="stab"><thead><tr><th>順位</th><th>ファイル名</th><th>得点</th><th>偏差値</th><th>—</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-  h+=`<div class="seb"><button class="btn btn-p" onclick="dlStatsCSV()">📥 CSV</button><button class="btn" onclick="dlAllPDF()">📄 合本PDF</button></div>`;
-  document.getElementById('stB').innerHTML=h;openM('st');
+  const rows=[...st.scores].sort((a,b)=>a.rank-b.rank).map(s=>`
+    <tr class="${s.name===cur?'me':''}">
+      <td><span class="rnk ${rc(s.rank)}">${s.rank}</span></td>
+      <td style="max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:${s.name===cur?'var(--gold-txt)':'inherit'};font-weight:${s.name===cur?'700':'400'}">${esc(s.name)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${s.score===st.max?'var(--ok)':s.score===st.min?'var(--ng)':'inherit'}">${s.score}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:${s.dev>=60?'var(--ok)':s.dev<=40?'var(--ng)':'var(--tx2)'}">${s.dev}</td>
+      <td><div class="dbar"><div class="dfill" style="width:${Math.max(4,Math.min(100,s.dev*1.1))}px"></div></div></td>
+    </tr>`).join('');
+
+  html+=`<div style="overflow-x:auto">
+    <table class="stab">
+      <thead><tr><th>順位</th><th>ファイル名</th><th>得点</th><th>偏差値</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <div class="sexp">
+    <button class="tbtn tbtn-primary" onclick="dlStatsCSV()">📥 統計CSV</button>
+    <button class="tbtn" onclick="dlAllPDF()">📄 合本PDF</button>
+  </div>`;
+
+  document.getElementById('statsBody').innerHTML=html;
+  openM('mStats');
+
+  // Draw histogram on canvas
+  requestAnimationFrame(()=>{
+    const canvas=document.getElementById('histCanvas');if(!canvas)return;
+    const dpr=window.devicePixelRatio||1;
+    const rect=canvas.getBoundingClientRect();
+    const W=rect.width||600,H=90;
+    canvas.width=W*dpr;canvas.height=H*dpr;
+    canvas.style.height=H+'px';
+    const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+    drawHist(ctx,W,H,st.scores.map(s=>s.score),st.scores.find(s=>s.name===cur)?.score??-1,st.max);
+  });
 }
+
+function drawHist(ctx,W,H,scores,curScore,maxScore){
+  if(!scores.length)return;
+  const BINS=Math.min(12,Math.max(5,Math.ceil(scores.length/2)));
+  const binW=(maxScore+.01)/BINS;
+  const counts=Array(BINS).fill(0);
+  scores.forEach(s=>{const b=Math.min(BINS-1,Math.floor(s/binW));counts[b]++});
+  const maxC=Math.max(...counts)||1;
+  const bW=(W-20)/(BINS);
+  const bH=H-26;
+
+  ctx.clearRect(0,0,W,H);
+  counts.forEach((c,i)=>{
+    const x=10+i*bW;const fh=Math.max(3,(c/maxC)*bH);
+    const binMin=i*binW,binMax=(i+1)*binW;
+    const isCur=curScore>=binMin&&curScore<binMax;
+    // Bar fill
+    const grad=ctx.createLinearGradient(0,H-bH,0,H);
+    grad.addColorStop(0,isCur?'rgba(200,148,58,.9)':'rgba(200,148,58,.3)');
+    grad.addColorStop(1,isCur?'rgba(200,148,58,.6)':'rgba(200,148,58,.15)');
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.roundRect(x+1.5,H-26-fh,bW-3,fh,2);
+    ctx.fill();
+    // Label
+    ctx.fillStyle=isCur?'rgba(240,236,228,.7)':'rgba(72,72,90,.9)';
+    ctx.font=`500 9px JetBrains Mono, monospace`;
+    ctx.textAlign='center';
+    ctx.fillText(Math.round(binMin),x+bW/2,H-10);
+    // Count on top
+    if(c>0){
+      ctx.fillStyle=isCur?'rgba(200,148,58,.9)':'rgba(144,144,154,.7)';
+      ctx.font=`700 9px JetBrains Mono, monospace`;
+      ctx.fillText(c,x+bW/2,H-30-fh);
+    }
+  });
+}
+
 function dlStatsCSV(){
   const st=calcStats();if(!st)return;
   let csv='\uFEFF順位,氏名,得点,偏差値\n';
-  [...st.scores].sort((a,b)=>a.rank-b.rank).forEach(s=>{csv+=`${s.rank},"${s.name}",${s.score},${s.dev}\n`;});
-  csv+=`\n平均,${st.mean},,\n標準偏差,${st.sd},,\n最高,${st.max},,\n最低,${st.min},,\n`;
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='statistics.csv';a.click();
+  [...st.scores].sort((a,b)=>a.rank-b.rank).forEach(s=>{csv+=`${s.rank},"${s.name}",${s.score},${s.dev}\n`});
+  csv+=`\n平均,${st.mean},,\n標準偏差,${st.sd},,\n最高,${st.max},,\n最低,${st.min},,\n中央値,${st.med},,\n`;
+  dl(new Blob([csv],{type:'text/csv'}),'statistics.csv');
 }
 
 // ── EXPORT ───────────────────────────────────────────────────────
 async function dlPDF(){
+  if(!S.stus.length){toast('生徒答案がありません');return}
   toast('PDF生成中...');
-  const cv=document.getElementById('cvR'),fn=S.stuFiles[S.currIdx].name,ms=S.marks[fn]||[];
+  const cv=document.getElementById('cvR'),fn=S.stus[S.idx].name;
   const pw=S.pgMm.w,ph=S.pgMm.h,land=pw>ph;
   const pdf=new jsPDF({orientation:land?'l':'p',unit:'mm',format:[land?ph:pw,land?pw:ph]});
-  const W=pdf.internal.pageSize.getWidth(),H=pdf.internal.pageSize.getHeight(),s=5;
-  pdf.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,W,H);
-  ms.forEach(m=>{const x=(m.x/100)*W,y=(m.y/100)*H;if(m.type==='o'){pdf.setDrawColor(52,211,153);pdf.setLineWidth(.6);pdf.circle(x,y,s);}else if(m.type==='x'){pdf.setDrawColor(248,113,113);pdf.setLineWidth(.6);const r=s*.8;pdf.line(x-r,y-r,x+r,y+r);pdf.line(x+r,y-r,x-r,y+r);}else if(m.type==='tri'){pdf.setDrawColor(251,191,36);pdf.setLineWidth(.6);pdf.triangle(x,y-s,x-s,y+s,x+s,y+s,'S');pdf.setTextColor(251,191,36);pdf.setFontSize(7);pdf.text(String(m.text),x,y+s*.6,{align:'center'});}else{pdf.setTextColor(m.color);pdf.setFontSize(m.size*.35);pdf.text(m.text,x,y);}});
+  const W=pdf.internal.pageSize.getWidth(),Ht=pdf.internal.pageSize.getHeight();
+  pdf.addImage(cv.toDataURL('image/jpeg',.93),'JPEG',0,0,W,Ht);
+  (S.marks[fn]||[]).forEach(m=>{
+    const x=(m.x/100)*W,y=(m.y/100)*Ht,s=5;
+    if(m.type==='o'){pdf.setDrawColor(34,197,94);pdf.setLineWidth(.6);pdf.circle(x,y,s)}
+    else if(m.type==='x'){pdf.setDrawColor(239,68,68);pdf.setLineWidth(.6);const r=s*.8;pdf.line(x-r,y-r,x+r,y+r);pdf.line(x+r,y-r,x-r,y+r)}
+    else if(m.type==='tri'){pdf.setDrawColor(245,158,11);pdf.setLineWidth(.6);pdf.triangle(x,y-s,x-s,y+s,x+s,y+s,'S');pdf.setTextColor(245,158,11);pdf.setFontSize(7);pdf.text(String(m.text),x,y+s*.6,{align:'center'})}
+    else if(m.type==='text'){pdf.setTextColor(m.color);pdf.setFontSize(m.size*.35);pdf.text(m.text,x,y)}
+  });
   pdf.save(`graded_${fn}.pdf`);toast('PDF保存完了');
 }
+
 async function dlAllPDF(){
-  if(!S.stuFiles.length){toast('生徒答案がありません');return;}
+  if(!S.stus.length){toast('生徒答案がありません');return}
   toast('合本PDF生成中...');
-  const st=calcStats(),orig=S.currIdx;
+  const st=calcStats(),orig=S.idx;
   await loadSSilent(0);await new Promise(r=>setTimeout(r,200));
   const fw=S.pgMm.w,fh=S.pgMm.h,fl=fw>fh;
   const pdf=new jsPDF({orientation:fl?'l':'p',unit:'mm',format:[fl?fh:fw,fl?fw:fh]});
-  for(let i=0;i<S.stuFiles.length;i++){
-    if(i>0){await loadSSilent(i);await new Promise(r=>setTimeout(r,200));}
-    const cv=document.getElementById('cvR'),fn=S.stuFiles[i].name,ms=S.marks[fn]||[];
+  for(let i=0;i<S.stus.length;i++){
+    if(i>0){await loadSSilent(i);await new Promise(r=>setTimeout(r,200))}
+    const cv=document.getElementById('cvR'),fn=S.stus[i].name;
     const pw=S.pgMm.w,ph=S.pgMm.h,land=pw>ph;
     if(i>0)pdf.addPage([land?ph:pw,land?pw:ph],land?'l':'p');
-    const W=pdf.internal.pageSize.getWidth(),H=pdf.internal.pageSize.getHeight(),s=5;
-    pdf.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,W,H);
-    ms.forEach(m=>{const x=(m.x/100)*W,y=(m.y/100)*H;if(m.type==='o'){pdf.setDrawColor(52,211,153);pdf.setLineWidth(.6);pdf.circle(x,y,s);}else if(m.type==='x'){pdf.setDrawColor(248,113,113);pdf.setLineWidth(.6);const r=s*.8;pdf.line(x-r,y-r,x+r,y+r);pdf.line(x+r,y-r,x-r,y+r);}else if(m.type==='tri'){pdf.setDrawColor(251,191,36);pdf.setLineWidth(.6);pdf.triangle(x,y-s,x-s,y+s,x+s,y+s,'S');}});
-    const ss=st?.scores.find(x=>x.name===fn);if(ss){pdf.setFontSize(9);pdf.setTextColor(80,80,80);pdf.text(`得点: ${ss.score}  偏差値: ${ss.dev}  順位: ${ss.rank}/${st.n}`,5,H-4);}
+    const W=pdf.internal.pageSize.getWidth(),Ht=pdf.internal.pageSize.getHeight(),s=5;
+    pdf.addImage(cv.toDataURL('image/jpeg',.93),'JPEG',0,0,W,Ht);
+    (S.marks[fn]||[]).forEach(m=>{
+      const x=(m.x/100)*W,y=(m.y/100)*Ht;
+      if(m.type==='o'){pdf.setDrawColor(34,197,94);pdf.setLineWidth(.6);pdf.circle(x,y,s)}
+      else if(m.type==='x'){pdf.setDrawColor(239,68,68);pdf.setLineWidth(.6);const r=s*.8;pdf.line(x-r,y-r,x+r,y+r);pdf.line(x+r,y-r,x-r,y+r)}
+      else if(m.type==='tri'){pdf.setDrawColor(245,158,11);pdf.setLineWidth(.6);pdf.triangle(x,y-s,x-s,y+s,x+s,y+s,'S')}
+    });
+    const ss=st?.scores.find(x=>x.name===fn);
+    if(ss){pdf.setFontSize(8);pdf.setTextColor(100,100,100);pdf.text(`得点: ${ss.score}  偏差値: ${ss.dev}  順位: ${ss.rank}/${st.n}`,5,Ht-4)}
   }
   await loadSSilent(orig);pdf.save('all_graded.pdf');toast('合本PDF保存完了');
 }
+
 function dlCSV(){
-  let mx=0;S.zones.forEach(z=>mx=Math.max(mx,z.qNum));Object.values(S.marks).forEach(ms=>ms.forEach(m=>{if(m.qNum)mx=Math.max(mx,m.qNum);}));if(!mx)mx=10;
-  const fn=S.stuFiles.map(f=>f.name);let csv='\uFEFFNumber,';fn.forEach(n=>csv+=`"${n}",`);csv+='\n';
-  let tot='Total Score,';fn.forEach(n=>{let s=0;(S.marks[n]||[]).forEach(m=>{if(m.type==='o')s+=1;if(m.type==='tri')s+=(parseFloat(m.text)||0);});tot+=s+',';});csv+=tot+'\n';
-  for(let i=1;i<=mx;i++){let r=`${i},`;fn.forEach(n=>{const m=(S.marks[n]||[]).find(x=>x.qNum===i);let v='';if(m){if(m.type==='o')v='1';else if(m.type==='x')v='0';else if(m.type==='tri')v=m.text;}r+=v+',';});csv+=r+'\n';}
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='results.csv';a.click();
+  let mx=0;S.zones.forEach(z=>mx=Math.max(mx,z.qNum));Object.values(S.marks).forEach(ms=>ms.forEach(m=>{if(m.qNum)mx=Math.max(mx,m.qNum)}));if(!mx)mx=10;
+  const fn=S.stus.map(f=>f.name);let csv='\uFEFFNumber,';fn.forEach(n=>csv+=`"${n}",`);csv+='\n';
+  let tot='Total Score,';fn.forEach(n=>{let sc=0;(S.marks[n]||[]).forEach(m=>{if(m.type==='o')sc+=1;if(m.type==='tri')sc+=(parseFloat(m.text)||0)});tot+=sc+','});csv+=tot+'\n';
+  for(let i=1;i<=mx;i++){let row=`${i},`;fn.forEach(n=>{const m=(S.marks[n]||[]).find(x=>x.qNum===i);let v='';if(m){if(m.type==='o')v='1';else if(m.type==='x')v='0';else if(m.type==='tri')v=m.text}row+=v+','});csv+=row+'\n'}
+  dl(new Blob([csv],{type:'text/csv'}),'results.csv');
 }
 
-// ── MISC ─────────────────────────────────────────────────────────
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500);}
-function openM(id){document.getElementById(id).classList.add('on');}
-function closeM(id){document.getElementById(id).classList.remove('on');}
-function openFolderModal(){renderFL();openM('fm');}
-function cpURL(){if(!S.folderId){toast('フォルダに保存してください');return;}navigator.clipboard.writeText(location.origin+location.pathname+'#folder-'+S.folderId).then(()=>toast('🔗 URLをコピーしました'));}
-function backToTop(){if(!confirm('トップに戻りますか？'))return;fbUnsub();S.folderId=null;document.getElementById('ov').style.display='flex';history.replaceState(null,'',location.pathname);document.getElementById('udis').textContent='';document.getElementById('sKey').textContent='クリックまたはドラッグ';document.getElementById('sKey').classList.remove('ok');document.getElementById('sStu').textContent='クリックまたはドラッグ（複数可）';document.getElementById('sStu').classList.remove('ok');bStart.disabled=true;}
-document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+const dl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()};
+
+// ── CONFIRM DIALOG ────────────────────────────────────────────────
+let _confRes=null;
+function confirm2(title,msg,okLabel='実行する',danger=true){
+  return new Promise(res=>{
+    _confRes=res;
+    document.getElementById('confTitle').textContent=title;
+    document.getElementById('confMsg').textContent=msg;
+    const ok=document.getElementById('confOK');ok.textContent=okLabel;
+    ok.className=danger?'tbtn tbtn-ng':'tbtn tbtn-primary';
+    ok.style.cssText='flex:1;justify-content:center';
+    openM('mConfirm');
+  });
+}
+function _confCancel(){closeM('mConfirm');if(_confRes){_confRes(false);_confRes=null}}
+function _confOK(){closeM('mConfirm');if(_confRes){_confRes(true);_confRes=null}}
+
+// ── MISC ──────────────────────────────────────────────────────────
+let _tT=null;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(_tT);_tT=setTimeout(()=>t.classList.remove('on'),2600);
+}
+function openM(id){document.getElementById(id).classList.add('on')}
+function closeM(id){document.getElementById(id).classList.remove('on')}
+function openFolderModal(){renderFolderList();openM('mFolder')}
+function cpURL(){
+  if(!S.fid){toast('フォルダに保存してください');return}
+  navigator.clipboard.writeText(location.origin+location.pathname+'#folder-'+S.fid).then(()=>toast('🔗 URLをコピーしました'));
+}
+async function backToTop(){
+  const ok=await confirm2('トップに戻る','採点中のデータはブラウザに保存されています。トップ画面に戻りますか？','戻る',false);
+  if(!ok)return;
+  fbUnsub();S.fid=null;
+  document.getElementById('ov').style.display='flex';
+  document.getElementById('ov').style.display='';
+  history.replaceState(null,'',location.pathname);
+  document.getElementById('urlChip').textContent='';
+  document.getElementById('hKey').textContent='クリックまたはドラッグ';document.getElementById('hKey').classList.remove('ok');
+  document.getElementById('hStu').textContent='クリックまたはドラッグ（複数可）';document.getElementById('hStu').classList.remove('ok');
+  document.getElementById('bStart').disabled=true;
+}
+
+// Close modals on backdrop click (except confirm)
+document.querySelectorAll('.mo:not(#mConfirm)').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on')}));
+
+// Keyboard shortcuts
 document.addEventListener('keydown',e=>{
-  if(document.querySelector('.mo.on'))return;if(document.getElementById('ov').style.display!=='none')return;if(e.target.tagName==='INPUT')return;
+  if(document.querySelector('.mo.on'))return;
+  if(document.getElementById('ov').style.display!=='none'&&document.getElementById('ov').style.display!=='')return;
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   const k=e.key.toLowerCase();
-  if(k==='z'||k==='1')setTool('o');if(k==='x'||k==='2')setTool('x');if(k==='c'||k==='3')setTool('tri');if(k==='t')setTool('text');
-  if(k==='arrowright')navS(1);if(k==='arrowleft')navS(-1);
-  if(e.ctrlKey&&k==='z'){e.preventDefault();undo();}if(k==='delete'||k==='backspace')delSelTxt();
+  if(k==='z'||k==='1')setTool('o');
+  else if(k==='x'||k==='2')setTool('x');
+  else if(k==='c'||k==='3')setTool('tri');
+  else if(k==='t')setTool('text');
+  else if(k==='arrowright')navS(1);
+  else if(k==='arrowleft')navS(-1);
+  else if(e.ctrlKey&&k==='z'){e.preventDefault();undo()}
+  else if(k==='delete'||k==='backspace')delSelTxt();
+  else if(k==='escape')closeTxtEd();
 });
 
-// ── INIT ─────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────
 (async()=>{
-  await initDB();await waitFB();
+  await initDB();
+  await waitFB();
+  // Auto-open folder from URL hash
   const m=location.hash.match(/#folder-([a-z0-9]+)/i);
-  if(m){aVis(m[1]);await openFolder(m[1]);}
+  if(m){addVis(m[1]);await openFolder(m[1])}
 })();
 </script>
 </body>
