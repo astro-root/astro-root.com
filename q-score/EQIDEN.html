@@ -23,15 +23,15 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: var(--font-family); }
+    html, body { margin: 0; padding: 0; font-family: var(--font-family); height: 100%; overflow: hidden; }
     
     body {
       background: var(--bg-color);
       background-image: var(--bg-gradient);
       color: var(--text-main);
       padding: 20px;
-      overflow-y: auto; 
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
@@ -47,6 +47,7 @@
       border-radius: 12px;
       backdrop-filter: blur(10px);
       box-shadow: var(--shadow-soft);
+      flex-shrink: 0;
     }
     
     .title-group { display: flex; align-items: center; gap: 10px; }
@@ -63,6 +64,7 @@
       display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; 
       background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
       border: 1px solid var(--card-border); margin-bottom: 20px;
+      flex-shrink: 0;
     }
     .control-group { display: flex; flex-direction: column; gap: 5px; }
     .control-group label { font-size: 11px; color: var(--text-muted); font-weight: bold; }
@@ -72,10 +74,15 @@
       width: 60px; text-align: center; padding: 5px; border-radius: 4px;
     }
 
-    .needs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-    .need-item { display: flex; flex-direction: column; align-items: center; }
-    .need-item span { font-size: 9px; color: var(--text-muted); }
-    .need-item input { width: 30px; height: 24px; font-size: 12px; padding: 0; }
+    .needs-grid { 
+      display: flex; 
+      flex-direction: row; 
+      gap: 4px; 
+      align-items: flex-end;
+    }
+    .need-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .need-item span { font-size: 9px; color: var(--text-muted); line-height: 1; }
+    .need-item input { width: 26px; height: 24px; font-size: 11px; padding: 0; text-align: center; }
 
     .btn-action {
       border: none; padding: 8px 16px; border-radius: 6px;
@@ -97,24 +104,26 @@
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
-      gap: 15px;
-      width: 100%;
-      align-items: start;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
+      align-items: stretch;
       overflow-x: auto;
-      padding-bottom: 20px;
+      overflow-y: hidden;
+      padding-bottom: 10px;
     }
 
     .team-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 10px;
+      border-radius: 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
       min-width: 0;
+      height: 100%;
       box-shadow: var(--shadow-soft);
       flex: 0 0 auto;
+      overflow: hidden;
     }
     .team-card.disqualified {
       opacity: 0.6;
@@ -124,33 +133,35 @@
 
     .team-name {
       background: transparent; border: none; 
-      color: var(--text-muted); font-weight: 800; font-size: 14px;
+      color: var(--text-muted); font-weight: 800;
       text-align: center; width: 100%; outline: none;
+      padding: 0; line-height: 1.2; display: block;
     }
 
     .team-current {
-      font-size: 16px; font-weight: 900; text-align: center; color: var(--color-gold);
-      padding: 8px; border-radius: 6px;
+      font-weight: 900; text-align: center; color: var(--color-gold);
+      border-radius: 4px;
       background: rgba(245, 158, 11, 0.1);
       border: 1px solid rgba(245, 158, 11, 0.3);
-      min-height: 40px; display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1.1; white-space: nowrap; overflow: hidden;
     }
 
     .limits { 
-      font-size: 11px; color: var(--text-muted); text-align: center; 
+      color: var(--text-muted); text-align: center; 
       display: flex; justify-content: space-around;
-      background: rgba(0,0,0,0.2); padding: 4px; border-radius: 4px;
+      background: rgba(0,0,0,0.2); border-radius: 3px;
     }
     .limits span { color: var(--text-main); font-weight: bold; }
 
-    .districts { display: flex; flex-direction: column; gap: 4px; margin-top: 5px; }
+    .districts { display: flex; flex-direction: column; margin-top: 2px; flex: 1; overflow: hidden; }
     
     .district {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 8px; border-radius: 6px;
+      display: flex; align-items: center;
+      border-radius: 4px;
       background: rgba(255,255,255,0.03);
       border: 1px solid transparent;
-      font-size: 12px;
+      overflow: hidden;
     }
     
     .district.current { border-color: var(--color-blue); background: rgba(59, 130, 246, 0.1); }
@@ -161,25 +172,25 @@
     .player-input {
       flex: 1; border: none; background: transparent;
       color: var(--text-main); font-weight: 700;
-      font-size: 13px; outline: none; min-width: 0;
+      outline: none; min-width: 0;
     }
 
     .count {
       font-family: monospace; font-weight: 700;
-      color: var(--text-muted); font-size: 12px; white-space: nowrap;
+      color: var(--text-muted); white-space: nowrap;
     }
 
-    .top-controls { display: flex; gap: 5px; margin-bottom: 5px; }
+    .top-controls { display: flex; }
     .btn-mini {
-      flex: 1; padding: 8px 0; border-radius: 6px; border: none;
-      cursor: pointer; font-weight: 800; font-size: 12px; color: #fff;
+      flex: 1; border-radius: 4px; border: none;
+      cursor: pointer; font-weight: 800; color: #fff; line-height: 1;
     }
     .btn-correct { background: var(--color-green); color: #064e3b; }
     .btn-wrong { background: var(--color-red); color: #450a0a; }
     .btn-undo { background: var(--text-muted); color: #1e293b; }
 
-    .teams-wrap::-webkit-scrollbar { height: 8px; }
-    .teams-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    .teams-wrap::-webkit-scrollbar { height: 6px; }
+    .teams-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
 
     .btn-eliminate { background: #7f1d1d; color: #fca5a5; }
     .btn-revive    { background: #14532d; color: #86efac; }
@@ -280,31 +291,99 @@
       preview.appendChild(createTeamBoard(t, playersPerTeam, savedData[t]));
     }
     recalcAndRender();
-    adjustTeamCardWidths();
+    requestAnimationFrame(adjustTeamCards);
   }
 
-  function adjustTeamCardWidths() {
+  function adjustTeamCards() {
     const cards = preview.querySelectorAll('.team-card');
     const count = cards.length;
     if (count === 0) return;
-    const gap = 15;
+    const gap = 6;
+
+    // --- 横幅 ---
+    let cardWidth;
     if (count <= 12) {
-      const totalGap = (count - 1) * gap;
-      const availableWidth = preview.clientWidth - totalGap;
-      const cardWidth = Math.max(160, Math.floor(availableWidth / count));
-      cards.forEach(c => {
-        c.style.flex = `0 0 ${cardWidth}px`;
-        c.style.width = `${cardWidth}px`;
-      });
+      const available = preview.clientWidth - (count - 1) * gap;
+      cardWidth = Math.max(72, Math.floor(available / count));
     } else {
-      cards.forEach(c => {
-        c.style.flex = '0 0 240px';
-        c.style.width = '240px';
-      });
+      cardWidth = 150;
     }
+    const sw = Math.min(1.3, Math.max(0.4, cardWidth / 160));
+
+    // --- 縦スケール: カード高さから district 行高さを逆算 ---
+    // teams-wrap の実際の高さを使用（padding-bottom:10px を引く）
+    const wrapH = preview.clientHeight - 10;
+    // カード固定パーツの高さ概算: padding×2 + teamName + teamCurrent + limits + top-controls + gap×5
+    const fixedH = Math.round((6 + 6 + 16 + 26 + 14 + 28 + 5 * 4) * sw);
+    const playersPerTeam = cards[0] ? cards[0].querySelectorAll('.district').length : 10;
+    const distAreaH = Math.max(wrapH - fixedH, playersPerTeam * 14);
+    const distGapPx = Math.max(1, Math.round(2 * sw));
+    const rowH = Math.floor((distAreaH - (playersPerTeam - 1) * distGapPx) / playersPerTeam);
+    const sh = Math.min(1.3, Math.max(0.4, rowH / 22)); // BASE行高さ22px
+
+    // スケール値（幅・高さの小さい方を採用してはみ出し防止）
+    const s = Math.min(sw, sh);
+
+    const cardPad   = Math.max(3,  Math.round(6  * s));
+    const cardGap   = Math.max(2,  Math.round(4  * s));
+    const nameFsPx  = Math.max(8,  Math.round(11 * s));
+    const currFsPx  = Math.max(8,  Math.round(11 * s));
+    const currPadV  = Math.max(2,  Math.round(4  * s));
+    const currMinH  = Math.max(16, Math.round(26 * s));
+    const limFsPx   = Math.max(7,  Math.round(9  * s));
+    const limPad    = Math.max(1,  Math.round(2  * s));
+    const distPadV  = Math.max(1,  Math.round(3  * s));
+    const distPadH  = Math.max(2,  Math.round(4  * s));
+    const distFsPx  = Math.max(7,  Math.round(10 * s));
+    const piFsPx    = Math.max(7,  Math.round(10 * s));
+    const cntFsPx   = Math.max(7,  Math.round(10 * s));
+    const btnPad    = Math.max(2,  Math.round(4  * s));
+    const btnFsPx   = Math.max(7,  Math.round(9  * s));
+    const btnGap    = Math.max(1,  Math.round(2  * s));
+
+    cards.forEach(card => {
+      card.style.width   = `${cardWidth}px`;
+      card.style.flex    = `0 0 ${cardWidth}px`;
+      card.style.padding = `${cardPad}px`;
+      card.style.gap     = `${cardGap}px`;
+
+      const nm = card.querySelector('.team-name');
+      if (nm) nm.style.fontSize = `${nameFsPx}px`;
+
+      const cur = card.querySelector('.team-current');
+      if (cur) {
+        cur.style.fontSize  = `${currFsPx}px`;
+        cur.style.padding   = `${currPadV}px 2px`;
+        cur.style.minHeight = `${currMinH}px`;
+      }
+
+      const lim = card.querySelector('.limits');
+      if (lim) { lim.style.fontSize = `${limFsPx}px`; lim.style.padding = `${limPad}px 2px`; }
+
+      const ds = card.querySelector('.districts');
+      if (ds) ds.style.gap = `${distGapPx}px`;
+
+      card.querySelectorAll('.district').forEach(d => {
+        d.style.padding  = `${distPadV}px ${distPadH}px`;
+        d.style.fontSize = `${distFsPx}px`;
+        d.style.gap      = `${distGapPx}px`;
+        d.style.flex     = `0 0 ${rowH}px`; // 行高さを固定して均等分割
+      });
+
+      card.querySelectorAll('.player-input').forEach(pi => pi.style.fontSize = `${piFsPx}px`);
+      card.querySelectorAll('.count').forEach(c => c.style.fontSize = `${cntFsPx}px`);
+
+      const ctl = card.querySelector('.top-controls');
+      if (ctl) { ctl.style.gap = `${btnGap}px`; ctl.style.marginBottom = `${btnGap}px`; }
+
+      card.querySelectorAll('.btn-mini').forEach(b => {
+        b.style.padding  = `${btnPad}px 0`;
+        b.style.fontSize = `${btnFsPx}px`;
+      });
+    });
   }
 
-  window.addEventListener('resize', adjustTeamCardWidths);
+  window.addEventListener('resize', adjustTeamCards);
 
   function createTeamBoard(teamNo, playersPerTeam, savedData){
     const board = document.createElement('div');
