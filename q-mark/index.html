@@ -786,7 +786,7 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
   <div class="vsep"></div>
   <button class="tbtn tbtn-primary" onclick="dlPDF()" title="現在の答案をPDF保存">PDF</button>
   <button class="tbtn" onclick="dlIndivCSV(S.stus[S.idx]?.name)" title="現在の答案をCSV保存">個人CSV</button>
-  <button class="tbtn" onclick="dlCSV()" title="全データをCSV一括出力">CSV一括</button>
+  <button class="tbtn" onclick="dlCSV()" title="統計・正誤表をCSV出力">CSV</button>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -2000,7 +2000,6 @@ function dlIndivCSV(name){
 }
 
 function dlCSV(){
-  // statistics.csv / results.csv / 個人別 [名前]_results.csv を別ファイルで一括出力
   if(!S.stus.length){toast('生徒答案がありません');return}
   const st=calcStats();if(!st)return;
   const mx=getMaxQ();
@@ -2032,10 +2031,7 @@ function dlCSV(){
   csv2+='順位,,'+fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.rank:''}).join(',')+'\n';
   dl(new Blob([csv2],{type:'text/csv'}),'results.csv');
 
-  // ── ③ 個人別 [名前]_results.csv ──
-  S.stus.forEach(f=>dlIndivCSV(f.name));
-
-  toast(`CSV ${S.stus.length+2} ファイルを出力しました`);
+  toast('statistics.csv と results.csv を出力しました');
 }
 
 function dlStatsCSV(){dlCSV()}
