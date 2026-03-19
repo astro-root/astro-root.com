@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Q-Mark — デジタル採点</title>
+<title>Q-Mark - ペーパークイズデジタル採点ツール</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getDatabase,ref,set,get,onValue,remove}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -657,6 +658,17 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
 
 /* ─── PANE HEADER RIGHT ─────────────────────────────────────── */
 .ph-right{display:flex;align-items:center;gap:8px}
+
+/* ─── POINTS MODAL ───────────────────────────────────────────────── */
+#mPoints .mbox{width:min(540px,100%);max-height:88vh;display:flex;flex-direction:column}
+#mPoints .mbdy{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:calc(88vh - 72px)}
+.pts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.pts-item{background:var(--ink);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.pts-qlbl{font-size:.68rem;font-weight:700;color:var(--tx3);letter-spacing:.4px}
+.pts-inp{width:100%;height:34px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;text-align:center;outline:none;transition:border-color .15s}
+.pts-inp:focus{border-color:var(--gold)}
+.pts-total{background:var(--gold-lo);border:1px solid rgba(200,148,58,.2);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--gold-txt);font-weight:600}
+.zone-pts{font-size:.58rem;color:var(--tri);font-weight:700;position:absolute;top:-6px;left:-4px;background:var(--card);border:1px solid rgba(245,158,11,.3);border-radius:3px;padding:0 3px}
 </style>
 </head>
 <body>
@@ -757,6 +769,7 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
     <input type="range" id="mszR" min="20" max="100" value="44">
   </div>
   <button class="tbtn" onclick="toggleLayout()" title="グリッド設定">📐</button>
+  <button class="tbtn" onclick="openPoints()" title="問題の配点設定">⚖️ 配点</button>
   <div class="sp"></div>
   <!-- Score -->
   <div class="score-chip">
@@ -964,6 +977,27 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
 </div>
 
 <!-- ══════════════════════════════════════════════
+     POINTS MODAL
+══════════════════════════════════════════════ -->
+<div class="mo" id="mPoints">
+  <div class="mbox">
+    <div class="mhdr">
+      <div class="mtit">⚖️ 配点設定</div>
+      <button class="mcls" onclick="closeM('mPoints')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="infobox">○（正解）マークに適用される配点を問題ごとに設定します。△（部分点）はマーク時に直接入力した値が使われます。</div>
+      <div class="pts-total" id="ptsTotalDisp">満点: — 点</div>
+      <div class="pts-grid" id="ptsGrid"></div>
+      <div style="display:flex;gap:8px;padding-top:4px">
+        <button class="tbtn tbtn-primary" style="flex:1;height:38px;justify-content:center" onclick="savePoints()">✓ 保存して反映</button>
+        <button class="tbtn" style="height:38px" onclick="resetPoints()">リセット</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
      CONFIRM DIALOG
 ══════════════════════════════════════════════ -->
 <div class="mo" id="mConfirm">
@@ -1025,6 +1059,7 @@ const S={
   nextQ:1,selTxt:null,drag:false,
   mSz:44,layout:false,gpts:[],
   fid:null,pgMm:{w:210,h:297},
+  points:{},  // qNum -> point value
   _fresh:false  // trigger pop animation for new mark
 };
 let _lastSave=0,_uns={};
@@ -1116,7 +1151,7 @@ async function fbDlDiff(id,from,to){
 // ── FIREBASE: MARKS & METADATA ───────────────────────────────────
 async function fbSaveData(id){
   _lastSave=Date.now();
-  await fbSet(`folders/${id}/data`,{marks:encM(S.marks),zones:S.zones.length?S.zones:null,markSize:S.mSz,updatedAt:_lastSave});
+  await fbSet(`folders/${id}/data`,{marks:encM(S.marks),zones:S.zones.length?S.zones:null,markSize:S.mSz,points:Object.keys(S.points).length?S.points:null,updatedAt:_lastSave});
 }
 
 // ── FIREBASE: REALTIME SUBSCRIBE ─────────────────────────────────
@@ -1130,7 +1165,7 @@ function fbSub(id){
       if(fd){fd=false;return}
       const d=snap.exists()?snap.val():null;if(!d)return;
       if((d.updatedAt||0)>_lastSave+500){
-        S.marks=decM(d.marks);S.zones=d.zones||[];
+        S.marks=decM(d.marks);S.zones=d.zones||[];S.points=d.points||{};
         if(d.markSize){S.mSz=d.markSize;document.getElementById('mszR').value=d.markSize}
         if(document.getElementById('ov').style.display==='none'||!document.getElementById('ov').style.display){renderMks();updUI();toast('🔄 他のデバイスの変更を反映しました')}
       }
@@ -1157,7 +1192,7 @@ async function idbCache(id){
   if(!S.key)return;
   try{
     const kb=await f2buf(S.key),sbs=await Promise.all(S.stus.map(f2buf));
-    await idbPut({id,keyFile:{name:S.key.name,type:S.key.type,buffer:kb},stuFiles:S.stus.map((f,i)=>({name:f.name,type:f.type,buffer:sbs[i]})),marks:S.marks,zones:S.zones,markSize:S.mSz});
+    await idbPut({id,keyFile:{name:S.key.name,type:S.key.type,buffer:kb},stuFiles:S.stus.map((f,i)=>({name:f.name,type:f.type,buffer:sbs[i]})),marks:S.marks,zones:S.zones,markSize:S.mSz,points:S.points});
   }catch(e){console.warn('idbCache:',e)}
 }
 
@@ -1185,8 +1220,8 @@ async function openFolder(id){
   }
 
   // Step 4: Apply marks/zones — Firebase wins (newest)
-  if(fbData){S.marks=decM(fbData.marks);S.zones=fbData.zones||[];S.mSz=fbData.markSize||44}
-  else if(loc){S.marks=loc.marks||{};S.zones=loc.zones||[];S.mSz=loc.markSize||44}
+  if(fbData){S.marks=decM(fbData.marks);S.zones=fbData.zones||[];S.mSz=fbData.markSize||44;S.points=fbData.points||{}}
+  else if(loc){S.marks=loc.marks||{};S.zones=loc.zones||[];S.mSz=loc.markSize||44;S.points=loc.points||{}}
   document.getElementById('mszR').value=S.mSz;
 
   // Step 5: Files — download if missing or partial
@@ -1225,6 +1260,8 @@ async function openFolder(id){
 
   if(S.key){
     document.getElementById('ov').style.display='none';
+    const baseName=S.key.name.replace(/\.[^.]+$/,'');
+    document.title=`${baseName} — Q-Mark`;
     await drawImg(S.key,'cvL','wL','scL','l');
     if(S.stus.length>0)await loadS(0);else renderMks();
     toast(`✅ 「${meta.name}」を開きました`);
@@ -1426,7 +1463,7 @@ async function clearAllStus(){
 
 // ── SAVE TO STORAGE ──────────────────────────────────────────────
 function saveStorage(){
-  localStorage.setItem('QM_MK5',JSON.stringify({marks:S.marks,zones:S.zones,markSize:S.mSz}));
+  localStorage.setItem('QM_MK5',JSON.stringify({marks:S.marks,zones:S.zones,markSize:S.mSz,points:S.points}));
   if(S.fid)fbSaveData(S.fid).catch(()=>{});
 }
 
@@ -1507,7 +1544,10 @@ function renderMks(){
     const d=document.createElement('div');d.className='zone';
     d.style.width=ds+'px';d.style.height=(ds*.58)+'px';
     d.style.left=z.x+'%';d.style.top=z.y+'%';
-    d.textContent=z.qNum;lz.appendChild(d);
+    d.textContent=z.qNum;
+    const pt=S.points[z.qNum];
+    if(pt!==undefined&&pt!==1){const pb=document.createElement('div');pb.className='zone-pts';pb.textContent=pt+'pt';d.appendChild(pb);}
+    lz.appendChild(d);
   });
 
   const fn=S.stus[S.idx]?.name;if(!fn)return;
@@ -1569,8 +1609,8 @@ function setTool(t){
 }
 
 function updUI(){
-  const fn=S.stus[S.idx]?.name;const ms=S.marks[fn]||[];
-  let sc=0;ms.forEach(m=>{if(m.type==='o')sc+=1;if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))sc+=v}});
+  const fn=S.stus[S.idx]?.name;
+  const sc=fn?getScore(fn):0;
   document.getElementById('scoreVal').textContent=Number.isInteger(sc)?sc:sc.toFixed(1);
   document.getElementById('nqChip').textContent=S.nextQ;
 }
@@ -1701,9 +1741,12 @@ function handleF(files,type){
 }
 
 document.getElementById('bStart').addEventListener('click',async()=>{
-  if(!S.fid){const r=localStorage.getItem('QM_MK5');if(r)try{const d=JSON.parse(r);S.marks=d.marks||{};S.zones=d.zones||[];S.mSz=d.markSize||44;document.getElementById('mszR').value=S.mSz}catch(_){}}
+  if(!S.fid){const r=localStorage.getItem('QM_MK5');if(r)try{const d=JSON.parse(r);S.marks=d.marks||{};S.zones=d.zones||[];S.mSz=d.markSize||44;S.points=d.points||{};document.getElementById('mszR').value=S.mSz}catch(_){}}
   document.getElementById('ov').style.display='none';
   document.getElementById('sbar').classList.add('on');
+  // Update page title with key filename
+  const baseName=S.key.name.replace(/\.[^.]+$/,'');
+  document.title=`${baseName} — Q-Mark`;
   if(S.fid){document.getElementById('fp').style.display='flex';await quickSave()}
   else{document.getElementById('nfInfo').textContent=`📄 ${S.key.name}  ·  👥 ${S.stus.length}名  ·  保存ボタンでフォルダに保存できます`}
   await drawImg(S.key,'cvL','wL','scL','l');
@@ -1711,9 +1754,18 @@ document.getElementById('bStart').addEventListener('click',async()=>{
 });
 
 // ── STATISTICS ───────────────────────────────────────────────────
+function getScore(name){
+  let s=0;
+  (S.marks[name]||[]).forEach(m=>{
+    if(m.type==='o'){const pt=S.points[m.qNum];s+=(pt!==undefined?pt:1);}
+    if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))s+=v;}
+  });
+  return s;
+}
+
 function calcStats(){
   if(!S.stus.length)return null;
-  const sc=S.stus.map(f=>{let s=0;(S.marks[f.name]||[]).forEach(m=>{if(m.type==='o')s+=1;if(m.type==='tri'){const v=parseFloat(m.text);if(!isNaN(v))s+=v}});return{name:f.name,score:s}});
+  const sc=S.stus.map(f=>({name:f.name,score:getScore(f.name)}));
   const n=sc.length,mean=sc.reduce((s,x)=>s+x.score,0)/n;
   const sd=Math.sqrt(sc.reduce((s,x)=>s+Math.pow(x.score-mean,2),0)/n);
   const sorted=[...sc].map(x=>x.score).sort((a,b)=>a-b);
@@ -1755,7 +1807,8 @@ function openStats(){
     </table>
   </div>
   <div class="sexp">
-    <button class="tbtn tbtn-primary" onclick="dlStatsCSV()">📥 統計CSV</button>
+    <button class="tbtn tbtn-primary" onclick="dlExcel()">📊 Excel（全シート）</button>
+    <button class="tbtn" onclick="dlStatsCSV()">📥 統計CSV</button>
     <button class="tbtn" onclick="dlAllPDF()">📄 合本PDF</button>
   </div>`;
 
@@ -1810,6 +1863,116 @@ function drawHist(ctx,W,H,scores,curScore,maxScore){
       ctx.fillText(c,x+bW/2,H-30-fh);
     }
   });
+}
+
+// ── POINTS MODAL ─────────────────────────────────────────────────
+function getMaxQ(){
+  let mx=0;S.zones.forEach(z=>mx=Math.max(mx,z.qNum));
+  Object.values(S.marks).forEach(ms=>ms.forEach(m=>{if(m.qNum)mx=Math.max(mx,m.qNum)}));
+  return mx||10;
+}
+function openPoints(){
+  const mx=getMaxQ();
+  const grid=document.getElementById('ptsGrid');grid.innerHTML='';
+  for(let i=1;i<=mx;i++){
+    const cur=S.points[i]!==undefined?S.points[i]:1;
+    const el=document.createElement('div');el.className='pts-item';
+    el.innerHTML=`<div class="pts-qlbl">問 ${i}</div><input class="pts-inp" type="number" min="0" step="0.5" data-q="${i}" value="${cur}">`;
+    grid.appendChild(el);
+  }
+  updatePtsTotal();
+  grid.querySelectorAll('.pts-inp').forEach(inp=>inp.addEventListener('input',updatePtsTotal));
+  openM('mPoints');
+}
+function updatePtsTotal(){
+  const mx=getMaxQ();let tot=0;
+  document.querySelectorAll('.pts-inp').forEach(inp=>{const v=parseFloat(inp.value);if(!isNaN(v))tot+=v;});
+  document.getElementById('ptsTotalDisp').textContent=`満点: ${Number.isInteger(tot)?tot:tot.toFixed(1)} 点（問1〜${mx}の合計）`;
+}
+function savePoints(){
+  document.querySelectorAll('.pts-inp').forEach(inp=>{
+    const q=+inp.dataset.q,v=parseFloat(inp.value);
+    if(!isNaN(v))S.points[q]=v; else delete S.points[q];
+  });
+  saveStorage();renderMks();updUI();closeM('mPoints');toast('✅ 配点を保存しました');
+}
+async function resetPoints(){
+  const ok=await confirm2('配点をリセット','すべての問題の配点を 1点 に戻しますか？','リセット',false);
+  if(!ok)return;
+  S.points={};saveStorage();renderMks();updUI();closeM('mPoints');toast('配点をリセットしました');
+}
+
+// ── EXCEL EXPORT ─────────────────────────────────────────────────
+function dlExcel(){
+  if(!S.stus.length){toast('生徒答案がありません');return}
+  if(typeof XLSX==='undefined'){toast('SheetJSの読み込みが完了していません');return}
+  const st=calcStats();if(!st)return;
+  const wb=XLSX.utils.book_new();
+  const mx=getMaxQ();
+  const fns=S.stus.map(f=>f.name);
+  const shortNames=fns.map(n=>n.replace(/\.[^.]+$/,''));
+
+  // ── Sheet 1: 統計 ──
+  const statsAoa=[
+    ['順位','氏名','得点','偏差値'],
+    ...[...st.scores].sort((a,b)=>a.rank-b.rank).map(s=>[s.rank,s.name,s.score,s.dev]),
+    [],['','平均',st.mean,''],['','標準偏差',st.sd,''],
+    ['','最高点',st.max,''],['','最低点',st.min,''],['','中央値',st.med,''],['','人数',st.n,''],
+  ];
+  // 配点情報を追記
+  statsAoa.push([]);statsAoa.push(['【配点設定】']);
+  for(let i=1;i<=mx;i++)statsAoa.push([`問${i}`,S.points[i]!==undefined?S.points[i]:1,'点']);
+  const ws1=XLSX.utils.aoa_to_sheet(statsAoa);ws1['!cols']=[{wch:6},{wch:30},{wch:8},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws1,'統計');
+
+  // helper: get mark label / score
+  function getMk(name,q){
+    const m=(S.marks[name]||[]).find(x=>x.qNum===q);if(!m)return{label:'',val:''};
+    const pt=S.points[q]!==undefined?S.points[q]:1;
+    if(m.type==='o')return{label:'○',val:pt};
+    if(m.type==='x')return{label:'×',val:0};
+    if(m.type==='tri'){const v=parseFloat(m.text);return{label:`△(${m.text})`,val:isNaN(v)?0:v};}
+    return{label:'',val:''};
+  }
+
+  // ── Sheet 2: 正誤表（まとめ） ──
+  const hdr2=['問番号','配点',...shortNames];
+  const combined=[hdr2];
+  for(let i=1;i<=mx;i++){
+    const pt=S.points[i]!==undefined?S.points[i]:1;
+    const row=[i,pt];fns.forEach(name=>row.push(getMk(name,i).label));combined.push(row);
+  }
+  combined.push([]);
+  combined.push(['得点合計','（満点'+(()=>{let t=0;for(let i=1;i<=mx;i++)t+=S.points[i]!==undefined?S.points[i]:1;return t})()+'点）',...fns.map(n=>getScore(n))]);
+  combined.push(['偏差値','',...fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.dev:''})]);
+  combined.push(['順位','',...fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.rank:''})]);
+  const ws2=XLSX.utils.aoa_to_sheet(combined);
+  ws2['!cols']=[{wch:8},{wch:6},...fns.map(()=>({wch:14}))];
+  XLSX.utils.book_append_sheet(wb,ws2,'正誤表（まとめ）');
+
+  // ── Sheet 3+: 個別正誤表 ──
+  fns.forEach((name,idx)=>{
+    const rows=[['問番号','配点','結果','得点']];
+    let total=0;
+    for(let i=1;i<=mx;i++){
+      const pt=S.points[i]!==undefined?S.points[i]:1;
+      const mk=getMk(name,i);
+      rows.push([i,pt,mk.label,mk.val===''?'':mk.val]);
+      if(typeof mk.val==='number')total+=mk.val;
+    }
+    rows.push([]);rows.push(['合計得点','','' ,total]);
+    const ss=st.scores.find(x=>x.name===name);
+    if(ss){rows.push(['偏差値','','',ss.dev]);rows.push(['順位','','',`${ss.rank}/${st.n}`]);}
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:8},{wch:6},{wch:10},{wch:8}];
+    let sn=shortNames[idx].replace(/[\/\\\?\*\[\]]/g,'_').substring(0,31)||`答案${idx+1}`;
+    let finalSn=sn,cnt=1;
+    while(wb.SheetNames.includes(finalSn)){finalSn=sn.substring(0,28)+`(${cnt++})`;}
+    XLSX.utils.book_append_sheet(wb,ws,finalSn);
+  });
+
+  const baseName=S.key?S.key.name.replace(/\.[^.]+$/,''):'Q-Mark';
+  XLSX.writeFile(wb,`${baseName}_results.xlsx`);
+  toast('✅ Excelファイルを保存しました');
 }
 
 function dlStatsCSV(){
@@ -1868,8 +2031,8 @@ async function dlAllPDF(){
 function dlCSV(){
   let mx=0;S.zones.forEach(z=>mx=Math.max(mx,z.qNum));Object.values(S.marks).forEach(ms=>ms.forEach(m=>{if(m.qNum)mx=Math.max(mx,m.qNum)}));if(!mx)mx=10;
   const fn=S.stus.map(f=>f.name);let csv='\uFEFFNumber,';fn.forEach(n=>csv+=`"${n}",`);csv+='\n';
-  let tot='Total Score,';fn.forEach(n=>{let sc=0;(S.marks[n]||[]).forEach(m=>{if(m.type==='o')sc+=1;if(m.type==='tri')sc+=(parseFloat(m.text)||0)});tot+=sc+','});csv+=tot+'\n';
-  for(let i=1;i<=mx;i++){let row=`${i},`;fn.forEach(n=>{const m=(S.marks[n]||[]).find(x=>x.qNum===i);let v='';if(m){if(m.type==='o')v='1';else if(m.type==='x')v='0';else if(m.type==='tri')v=m.text}row+=v+','});csv+=row+'\n'}
+  let tot='Total Score,';fn.forEach(n=>{tot+=getScore(n)+','});csv+=tot+'\n';
+  for(let i=1;i<=mx;i++){let row=`${i},`;fn.forEach(n=>{const m=(S.marks[n]||[]).find(x=>x.qNum===i);let v='';if(m){if(m.type==='o')v=String(S.points[i]!==undefined?S.points[i]:1);else if(m.type==='x')v='0';else if(m.type==='tri')v=m.text}row+=v+','});csv+=row+'\n'}
   dl(new Blob([csv],{type:'text/csv'}),'results.csv');
 }
 
