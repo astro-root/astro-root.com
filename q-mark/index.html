@@ -1973,13 +1973,7 @@ function dlExcel(){
   toast('✅ Excelファイルを保存しました');
 }
 
-function dlStatsCSV(){
-  const st=calcStats();if(!st)return;
-  let csv='\uFEFF順位,氏名,得点,偏差値\n';
-  [...st.scores].sort((a,b)=>a.rank-b.rank).forEach(s=>{csv+=`${s.rank},"${s.name}",${s.score},${s.dev}\n`});
-  csv+=`\n平均,${st.mean},,\n標準偏差,${st.sd},,\n最高,${st.max},,\n最低,${st.min},,\n中央値,${st.med},,\n`;
-  dl(new Blob([csv],{type:'text/csv'}),'statistics.csv');
-}
+function dlStatsCSV(){dlCSV()}
 
 function dlCSV(){
   if(!S.stus.length){toast('生徒答案がありません');return}
@@ -1987,15 +1981,19 @@ function dlCSV(){
   const mx=getMaxQ();
   const fns=S.stus.map(f=>f.name);
   const shortNames=fns.map(n=>n.replace(/\.[^.]+$/,''));
+  const maxPt=(()=>{let t=0;for(let i=1;i<=mx;i++)t+=S.points[i]!==undefined?S.points[i]:1;return t})();
 
-  // ── CSV①: statistics.csv（統計のみ） ──
-  let csv1='\uFEFF順位,氏名,得点,偏差値\n';
-  [...st.scores].sort((a,b)=>a.rank-b.rank).forEach(s=>{csv1+=`${s.rank},"${s.name}",${s.score},${s.dev}\n`});
-  csv1+=`\n平均,${st.mean},,\n標準偏差,${st.sd},,\n最高,${st.max},,\n最低,${st.min},,\n中央値,${st.med},,\n`;
-  dl(new Blob([csv1],{type:'text/csv'}),'statistics.csv');
+  let csv='\uFEFF';
 
-  // ── CSV②: results.csv（全員まとめ正誤表） ──
-  let csv2='\uFEFF問番号,配点,'+shortNames.map(n=>`"${n}"`).join(',')+'\n';
+  // ── セクション1: 統計 ──
+  csv+='【統計】\n';
+  csv+='順位,氏名,得点,偏差値\n';
+  [...st.scores].sort((a,b)=>a.rank-b.rank).forEach(s=>{csv+=`${s.rank},"${s.name}",${s.score},${s.dev}\n`});
+  csv+=`\n平均,${st.mean},,\n標準偏差,${st.sd},,\n最高,${st.max},,\n最低,${st.min},,\n中央値,${st.med},,\n`;
+
+  // ── セクション2: 正誤表（まとめ） ──
+  csv+='\n【正誤表（まとめ）】\n';
+  csv+='問番号,配点,'+shortNames.map(n=>`"${n}"`).join(',')+'\n';
   for(let i=1;i<=mx;i++){
     const pt=S.points[i]!==undefined?S.points[i]:1;
     let row=`${i},${pt}`;
@@ -2005,18 +2003,18 @@ function dlCSV(){
       if(m){if(m.type==='o')v='○';else if(m.type==='x')v='×';else if(m.type==='tri')v=`△(${m.text})`;}
       row+=`,"${v}"`;
     });
-    csv2+=row+'\n';
+    csv+=row+'\n';
   }
-  const maxPt=(()=>{let t=0;for(let i=1;i<=mx;i++)t+=S.points[i]!==undefined?S.points[i]:1;return t})();
-  csv2+=`\n得点合計,（満点${maxPt}点）,`+fns.map(n=>getScore(n)).join(',')+'\n';
-  csv2+='偏差値,,'+fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.dev:''}).join(',')+'\n';
-  csv2+='順位,,'+fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.rank:''}).join(',')+'\n';
-  dl(new Blob([csv2],{type:'text/csv'}),'results.csv');
+  csv+=`\n得点合計,（満点${maxPt}点）,`+fns.map(n=>getScore(n)).join(',')+'\n';
+  csv+='偏差値,,'+fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.dev:''}).join(',')+'\n';
+  csv+='順位,,'+fns.map(n=>{const s=st.scores.find(x=>x.name===n);return s?s.rank:''}).join(',')+'\n';
 
-  // ── CSV③〜: [名前]_results.csv（個人別） ──
+  // ── セクション3〜: 個人別正誤表 ──
   S.stus.forEach(f=>{
     const name=f.name,short=name.replace(/\.[^.]+$/,'');
-    let csv='\uFEFF問番号,配点,結果,得点\n';
+    const ss=st.scores.find(x=>x.name===name);
+    csv+=`\n【${short}】\n`;
+    csv+='問番号,配点,結果,得点\n';
     let total=0;
     for(let i=1;i<=mx;i++){
       const pt=S.points[i]!==undefined?S.points[i]:1;
@@ -2029,13 +2027,12 @@ function dlCSV(){
       }
       csv+=`${i},${pt},"${label}",${val}\n`;
     }
-    const ss=st.scores.find(x=>x.name===name);
-    csv+=`\n合計得点,,,${total}\n`;
+    csv+=`合計得点,,,${total}\n`;
     if(ss){csv+=`偏差値,,,${ss.dev}\n順位,,,${ss.rank}/${st.n}\n`;}
-    dl(new Blob([csv],{type:'text/csv'}),`${short}_results.csv`);
   });
 
-  toast(`CSVを ${S.stus.length+2} ファイル出力しました`);
+  dl(new Blob([csv],{type:'text/csv'}),'results.csv');
+  toast('results.csv を出力しました');
 }
 async function dlPDF(){
   if(!S.stus.length){toast('生徒答案がありません');return}
