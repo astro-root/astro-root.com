@@ -29,7 +29,7 @@
       background: var(--bg-color);
       background-image: var(--bg-gradient);
       color: var(--text-main);
-      padding: 20px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
     }
@@ -39,12 +39,12 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 20px;
-      padding: 15px 20px;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding: 8px 14px;
       background: rgba(15, 23, 42, 0.8);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 10px;
       backdrop-filter: blur(10px);
       box-shadow: var(--shadow-soft);
       flex-shrink: 0;
@@ -61,9 +61,9 @@
     h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; }
 
     .controls { 
-      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; 
-      background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
-      border: 1px solid var(--card-border); margin-bottom: 20px;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; 
+      background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 10px;
+      border: 1px solid var(--card-border); margin-bottom: 6px;
       flex-shrink: 0;
     }
     .control-group { display: flex; flex-direction: column; gap: 5px; }
@@ -104,13 +104,13 @@
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
-      gap: 6px;
+      gap: 4px;
       flex: 1;
       min-height: 0;
       align-items: stretch;
       overflow-x: auto;
       overflow-y: hidden;
-      padding-bottom: 10px;
+      padding-bottom: 4px;
     }
 
     .team-card {
@@ -298,48 +298,54 @@
     const cards = preview.querySelectorAll('.team-card');
     const count = cards.length;
     if (count === 0) return;
-    const gap = 6;
+    const gap = 4;
 
-    // --- 横幅 ---
-    let cardWidth;
-    if (count <= 12) {
-      const available = preview.clientWidth - (count - 1) * gap;
-      cardWidth = Math.max(72, Math.floor(available / count));
-    } else {
-      cardWidth = 150;
-    }
-    const sw = Math.min(1.3, Math.max(0.4, cardWidth / 160));
+    // --- 横幅: 常に画面幅を均等分割。60px未満になる場合だけスクロール ---
+    const available = preview.clientWidth - (count - 1) * gap;
+    const cardWidth = Math.max(60, Math.floor(available / count));
 
-    // --- 縦スケール: カード高さから district 行高さを逆算 ---
-    // teams-wrap の実際の高さを使用（padding-bottom:10px を引く）
-    const wrapH = preview.clientHeight - 10;
-    // カード固定パーツの高さ概算: padding×2 + teamName + teamCurrent + limits + top-controls + gap×5
-    const fixedH = Math.round((6 + 6 + 16 + 26 + 14 + 28 + 5 * 4) * sw);
-    const playersPerTeam = cards[0] ? cards[0].querySelectorAll('.district').length : 10;
-    const distAreaH = Math.max(wrapH - fixedH, playersPerTeam * 14);
+    // 幅スケール: チーム数が増えても滑らかに縮小
+    const sw = Math.min(1.5, Math.max(0.3, cardWidth / 110));
+
+    // --- 縦方向: 利用可能な高さを均等に districts へ割り当てる ---
+    const wrapH = preview.clientHeight - 4;
+    const playersPerTeam = cards[0]
+      ? cards[0].querySelectorAll('.district').length : 10;
+
+    // 固定パーツ概算（cardPad×2 + teamName + teamCurrent + limits + top-controls + gap×5）
+    const estCardPad  = Math.max(3, Math.round(5  * sw));
+    const estNameH    = Math.max(8, Math.round(13 * sw));
+    const estCurrH    = Math.max(18,Math.round(28 * sw));
+    const estLimH     = Math.max(8, Math.round(11 * sw));
+    const estBtnH     = Math.max(14,Math.round(22 * sw));
+    const estCardGap  = Math.max(2, Math.round(3  * sw));
+    const fixedH = estCardPad * 2 + estNameH + estCurrH + estLimH + estBtnH + estCardGap * 5;
+
     const distGapPx = Math.max(1, Math.round(2 * sw));
-    const rowH = Math.floor((distAreaH - (playersPerTeam - 1) * distGapPx) / playersPerTeam);
-    const sh = Math.min(1.3, Math.max(0.4, rowH / 22)); // BASE行高さ22px
+    const distAreaH = Math.max(wrapH - fixedH, playersPerTeam * 16);
+    const rowH      = Math.max(16, Math.floor((distAreaH - (playersPerTeam - 1) * distGapPx) / playersPerTeam));
 
-    // スケール値（幅・高さの小さい方を採用してはみ出し防止）
+    // 高さスケール
+    const sh = Math.min(1.5, Math.max(0.3, rowH / 22));
+    // 幅・高さ両方を考慮した最終スケール
     const s = Math.min(sw, sh);
 
-    const cardPad   = Math.max(3,  Math.round(6  * s));
-    const cardGap   = Math.max(2,  Math.round(4  * s));
-    const nameFsPx  = Math.max(8,  Math.round(11 * s));
-    const currFsPx  = Math.max(8,  Math.round(11 * s));
-    const currPadV  = Math.max(2,  Math.round(4  * s));
-    const currMinH  = Math.max(16, Math.round(26 * s));
-    const limFsPx   = Math.max(7,  Math.round(9  * s));
-    const limPad    = Math.max(1,  Math.round(2  * s));
-    const distPadV  = Math.max(1,  Math.round(3  * s));
-    const distPadH  = Math.max(2,  Math.round(4  * s));
-    const distFsPx  = Math.max(7,  Math.round(10 * s));
-    const piFsPx    = Math.max(7,  Math.round(10 * s));
-    const cntFsPx   = Math.max(7,  Math.round(10 * s));
-    const btnPad    = Math.max(2,  Math.round(4  * s));
-    const btnFsPx   = Math.max(7,  Math.round(9  * s));
-    const btnGap    = Math.max(1,  Math.round(2  * s));
+    const cardPad  = Math.max(3, Math.round(5  * s));
+    const cardGap  = Math.max(2, Math.round(3  * s));
+    const nameFsPx = Math.max(7, Math.round(11 * s));
+    const currFsPx = Math.max(8, Math.round(13 * s));
+    const currPadV = Math.max(1, Math.round(3  * s));
+    const currMinH = Math.max(16,Math.round(26 * s));
+    const limFsPx  = Math.max(6, Math.round(9  * s));
+    const limPad   = Math.max(1, Math.round(2  * s));
+    const btnPad   = Math.max(2, Math.round(4  * s));
+    const btnFsPx  = Math.max(7, Math.round(10 * s));
+    const btnGap   = Math.max(1, Math.round(2  * s));
+    const distPadV = Math.max(1, Math.round(3  * s));
+    const distPadH = Math.max(2, Math.round(4  * s));
+    const distFsPx = Math.max(7, Math.round(11 * s));
+    const piFsPx   = Math.max(7, Math.round(11 * s));
+    const cntFsPx  = Math.max(6, Math.round(10 * s));
 
     cards.forEach(card => {
       card.style.width   = `${cardWidth}px`;
@@ -360,19 +366,6 @@
       const lim = card.querySelector('.limits');
       if (lim) { lim.style.fontSize = `${limFsPx}px`; lim.style.padding = `${limPad}px 2px`; }
 
-      const ds = card.querySelector('.districts');
-      if (ds) ds.style.gap = `${distGapPx}px`;
-
-      card.querySelectorAll('.district').forEach(d => {
-        d.style.padding  = `${distPadV}px ${distPadH}px`;
-        d.style.fontSize = `${distFsPx}px`;
-        d.style.gap      = `${distGapPx}px`;
-        d.style.flex     = `0 0 ${rowH}px`; // 行高さを固定して均等分割
-      });
-
-      card.querySelectorAll('.player-input').forEach(pi => pi.style.fontSize = `${piFsPx}px`);
-      card.querySelectorAll('.count').forEach(c => c.style.fontSize = `${cntFsPx}px`);
-
       const ctl = card.querySelector('.top-controls');
       if (ctl) { ctl.style.gap = `${btnGap}px`; ctl.style.marginBottom = `${btnGap}px`; }
 
@@ -380,6 +373,21 @@
         b.style.padding  = `${btnPad}px 0`;
         b.style.fontSize = `${btnFsPx}px`;
       });
+
+      const ds = card.querySelector('.districts');
+      if (ds) { ds.style.gap = `${distGapPx}px`; ds.style.flex = '1'; }
+
+      // district行: flex:1で残り全高を均等分割
+      card.querySelectorAll('.district').forEach(d => {
+        d.style.flex     = `1 1 0`;
+        d.style.minHeight = `${rowH}px`;
+        d.style.padding  = `${distPadV}px ${distPadH}px`;
+        d.style.fontSize = `${distFsPx}px`;
+        d.style.gap      = `${distGapPx}px`;
+      });
+
+      card.querySelectorAll('.player-input').forEach(pi => pi.style.fontSize = `${piFsPx}px`);
+      card.querySelectorAll('.count').forEach(c => c.style.fontSize = `${cntFsPx}px`);
     });
   }
 
@@ -407,17 +415,15 @@
     ctl.className = 'top-controls';
     const btnC = document.createElement('button'); btnC.className='btn-mini btn-correct'; btnC.textContent='正解';
     const btnW = document.createElement('button'); btnW.className='btn-mini btn-wrong'; btnW.textContent='誤答';
-    const btnU = document.createElement('button'); btnU.className='btn-mini btn-undo'; btnU.textContent='戻る';
     const btnE = document.createElement('button'); btnE.className='btn-mini btn-eliminate'; btnE.textContent='失格';
     const btnR = document.createElement('button'); btnR.className='btn-mini btn-revive'; btnR.textContent='復活'; btnR.style.display='none';
 
     btnC.addEventListener('click', () => pushAction('correct', teamNo));
     btnW.addEventListener('click', () => pushAction('wrong', teamNo));
-    btnU.addEventListener('click', () => undoTeamAction(teamNo));
     btnE.addEventListener('click', () => { globalHistory.push({ type: 'eliminate', teamId: teamNo, manual: true }); recalcAndRender(); });
     btnR.addEventListener('click', () => { undoEliminate(teamNo); });
 
-    ctl.append(btnC, btnW, btnU, btnE, btnR);
+    ctl.append(btnC, btnW, btnE, btnR);
 
     const ds = document.createElement('div'); ds.className = 'districts';
     for(let idx=0; idx<playersPerTeam; idx++){
