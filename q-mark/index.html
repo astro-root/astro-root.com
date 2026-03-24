@@ -656,6 +656,75 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
   font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:700;
 }
 
+/* ─── STUDENT PICKER ─────────────────────────────────────────── */
+.s-info{position:relative}
+.s-info-btn{
+  cursor:pointer;padding:4px 8px;border-radius:var(--r-sm);
+  transition:background .15s;text-align:center;
+}
+.s-info-btn:hover{background:var(--lift)}
+.s-info-btn .s-name-arr{
+  font-size:.55rem;color:var(--tx3);vertical-align:middle;margin-left:3px;
+  transition:transform .15s;display:inline-block;
+}
+.s-info-btn.open .s-name-arr{transform:rotate(180deg)}
+
+.spicker{
+  position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  width:300px;max-height:360px;
+  background:var(--card);border:1px solid var(--line2);
+  border-radius:var(--r-lg);box-shadow:var(--sh);
+  z-index:500;display:none;flex-direction:column;overflow:hidden;
+  animation:mIn .15s cubic-bezier(.22,1,.36,1) both;
+}
+.spicker.on{display:flex}
+.spicker-hdr{
+  padding:10px 12px 8px;border-bottom:1px solid var(--line);
+  display:flex;flex-direction:column;gap:6px;flex-shrink:0;
+}
+.spicker-search{
+  width:100%;height:32px;background:var(--ink);
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.78rem;padding:0 10px;outline:none;transition:border-color .15s;
+}
+.spicker-search:focus{border-color:var(--gold)}
+.spicker-search::placeholder{color:var(--tx3)}
+.spicker-meta{
+  font-size:.64rem;color:var(--tx3);
+  display:flex;justify-content:space-between;
+}
+.spicker-list{overflow-y:auto;flex:1}
+.spi{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;cursor:pointer;transition:background .12s;
+  border-bottom:1px solid rgba(38,38,58,.5);
+}
+.spi:last-child{border-bottom:none}
+.spi:hover{background:var(--lift)}
+.spi.cur{background:var(--gold-lo);border-left:3px solid var(--gold-txt)}
+.spi.cur:hover{background:var(--gold-hi)}
+.spi-num{
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  color:var(--tx3);width:26px;flex-shrink:0;text-align:right;
+}
+.spi-name{
+  flex:1;font-size:.78rem;font-weight:600;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  color:var(--tx);
+}
+.spi.cur .spi-name{color:var(--gold-txt)}
+.spi-score{
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;
+  font-weight:700;color:var(--ok);flex-shrink:0;
+}
+.spi-score.ns{color:var(--tx3)}
+.spi-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+  background:var(--tx3);
+}
+.spi-dot.marked{background:var(--ok)}
+
 /* ─── PANE HEADER RIGHT ─────────────────────────────────────── */
 .ph-right{display:flex;align-items:center;gap:8px}
 
@@ -847,8 +916,20 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
       <div class="s-nav">
         <button class="tbtn" style="padding:0 10px" onclick="navS(-1)" title="前の答案 [←]">◀</button>
         <div class="s-info">
-          <div class="s-name" id="sName">—</div>
-          <div class="s-count" id="sCnt">0 / 0</div>
+          <div class="s-info-btn" id="sInfoBtn" onclick="toggleStudentPicker()" title="クリックで一覧を開く">
+            <div class="s-name" id="sName">—</div>
+            <div class="s-count" id="sCnt">0 / 0<span class="s-name-arr">▾</span></div>
+          </div>
+          <div class="spicker" id="spicker">
+            <div class="spicker-hdr">
+              <input class="spicker-search" id="spSearch" type="text" placeholder="ファイル名で絞り込み..." oninput="filterSPicker(this.value)">
+              <div class="spicker-meta">
+                <span id="spTotal">0 件</span>
+                <span id="spDone">採点済 0 件</span>
+              </div>
+            </div>
+            <div class="spicker-list" id="spList"></div>
+          </div>
         </div>
         <button class="tbtn" style="padding:0 10px" onclick="navS(1)" title="次の答案 [→]">▶</button>
         <div class="vsep"></div>
@@ -1146,7 +1227,7 @@ async function fbDlDiff(id,from,to){
     if(d&&!del.includes(d.name)&&!S.stus.find(f=>f.name===d.name))
       S.stus.push(b2f(d.data,d.name,d.type));
   }
-  document.getElementById('sCnt').textContent=`${S.idx+1} / ${S.stus.length}`;
+  document.getElementById('sCnt').innerHTML=`${S.idx+1} / ${S.stus.length}<span class='s-name-arr'>▾</span>`;
 }
 
 // ── FIREBASE: MARKS & METADATA ───────────────────────────────────
@@ -1503,7 +1584,7 @@ async function loadS(idx){
   S.idx=idx;closeTxtEd();
   const f=S.stus[idx];
   document.getElementById('sName').textContent=f.name;
-  document.getElementById('sCnt').textContent=`${idx+1} / ${S.stus.length}`;
+  document.getElementById('sCnt').innerHTML=`${idx+1} / ${S.stus.length}<span class='s-name-arr'>▾</span>`;
   const ms=S.marks[f.name]||[];
   S.nextQ=(ms.reduce((m,v)=>v.qNum>m?v.qNum:m,0))+1;
   updUI();
@@ -1514,11 +1595,69 @@ async function loadSSilent(idx){
   if(idx<0||idx>=S.stus.length)return;
   S.idx=idx;const f=S.stus[idx];
   document.getElementById('sName').textContent=f.name;
-  document.getElementById('sCnt').textContent=`${idx+1} / ${S.stus.length}`;
+  document.getElementById('sCnt').innerHTML=`${idx+1} / ${S.stus.length}<span class='s-name-arr'>▾</span>`;
   const ms=S.marks[f.name]||[];S.nextQ=(ms.reduce((m,v)=>v.qNum>m?v.qNum:m,0))+1;
   updUI();await drawImg(f,'cvR','wR','scR','r');renderMks();
 }
 const navS=d=>loadS(S.idx+d);
+
+// ── STUDENT PICKER ────────────────────────────────────────────────
+let _spOpen=false;
+function toggleStudentPicker(){
+  _spOpen?closeStudentPicker():openStudentPicker();
+}
+function openStudentPicker(){
+  if(!S.stus.length)return;
+  _spOpen=true;
+  document.getElementById('sInfoBtn').classList.add('open');
+  const picker=document.getElementById('spicker');
+  picker.classList.add('on');
+  document.getElementById('spSearch').value='';
+  renderSPickerList('');
+  setTimeout(()=>document.getElementById('spSearch').focus(),60);
+  setTimeout(()=>document.addEventListener('click',_spOutside,{once:true,capture:true}),10);
+}
+function closeStudentPicker(){
+  _spOpen=false;
+  document.getElementById('sInfoBtn').classList.remove('open');
+  document.getElementById('spicker').classList.remove('on');
+}
+function _spOutside(e){
+  const picker=document.getElementById('spicker');
+  const btn=document.getElementById('sInfoBtn');
+  if(!picker.contains(e.target)&&!btn.contains(e.target)){closeStudentPicker();}
+  else if(_spOpen){setTimeout(()=>document.addEventListener('click',_spOutside,{once:true,capture:true}),10);}
+}
+function filterSPicker(q){renderSPickerList(q)}
+function renderSPickerList(q){
+  const list=document.getElementById('spList');
+  const lo=q.toLowerCase();
+  const filtered=S.stus.map((f,i)=>({f,i})).filter(({f})=>!lo||f.name.toLowerCase().includes(lo));
+
+  const total=S.stus.length;
+  const doneCount=S.stus.filter(f=>(S.marks[f.name]||[]).length>0).length;
+  document.getElementById('spTotal').textContent=`${total} 件`;
+  document.getElementById('spDone').textContent=`採点済 ${doneCount} 件`;
+
+  list.innerHTML='';
+  if(!filtered.length){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3);font-size:.76rem">一致なし</div>';
+    return;
+  }
+  filtered.forEach(({f,i})=>{
+    const marks=S.marks[f.name]||[];
+    const hasMarks=marks.length>0;
+    const score=getScore(f.name);
+    const isCur=i===S.idx;
+    const shortName=f.name.replace(/\.[^.]+$/,'');
+    const row=document.createElement('div');
+    row.className='spi'+(isCur?' cur':'');
+    row.innerHTML=`<div class="spi-num">${i+1}</div><div class="spi-dot${hasMarks?' marked':''}"></div><div class="spi-name" title="${esc(f.name)}">${esc(shortName)}</div><div class="spi-score${hasMarks?'':' ns'}">${hasMarks?score+'pt':'—'}</div>`;
+    row.onclick=()=>{closeStudentPicker();loadS(i)};
+    if(isCur)setTimeout(()=>row.scrollIntoView({block:'nearest'}),0);
+    list.appendChild(row);
+  });
+}
 
 // ── ADD STUDENTS ─────────────────────────────────────────────────
 async function addStudents(files){
@@ -1527,7 +1666,7 @@ async function addStudents(files){
   const add=Array.from(files).filter(f=>{if(ex.has(f.name)){toast(`スキップ: ${f.name}（重複）`);return false}return true});
   if(!add.length)return;
   const si=S.stus.length;S.stus.push(...add);
-  document.getElementById('sCnt').textContent=`${S.idx+1} / ${S.stus.length}`;
+  document.getElementById('sCnt').innerHTML=`${S.idx+1} / ${S.stus.length}<span class='s-name-arr'>▾</span>`;
   toast(`${add.length} 件を追加しました`);
   if(S.fid){await quickSave();await fbAppend(S.fid,add,si)}
 }
@@ -1613,6 +1752,7 @@ function updUI(){
   const sc=fn?getScore(fn):0;
   document.getElementById('scoreVal').textContent=Number.isInteger(sc)?sc:sc.toFixed(1);
   document.getElementById('nqChip').textContent=S.nextQ;
+  if(_spOpen){const q=document.getElementById('spSearch').value;renderSPickerList(q);}
 }
 
 function undo(){
@@ -1706,13 +1846,8 @@ wR.addEventListener('mousedown',e=>{
 });
 window.addEventListener('mouseup',endDrag);
 document.getElementById('mszR').addEventListener('input',e=>{S.mSz=+e.target.value;renderMks();saveStorage()});
-// Track physical Ctrl key state (to distinguish from macOS trackpad pinch which also sends ctrlKey=true)
-let _ctrlDown=false;
-window.addEventListener('keydown',e=>{if(e.key==='Control')_ctrlDown=true;});
-window.addEventListener('keyup',e=>{if(e.key==='Control')_ctrlDown=false;});
-window.addEventListener('blur',()=>{_ctrlDown=false;}); // reset if window loses focus while Ctrl held
-document.getElementById('scR').addEventListener('wheel',e=>{if(_ctrlDown){e.preventDefault();addZoom('r',e.deltaY<0?5:-5)}},{passive:false});
-document.getElementById('scL').addEventListener('wheel',e=>{if(_ctrlDown){e.preventDefault();addZoom('l',e.deltaY<0?5:-5)}},{passive:false});
+document.getElementById('scR').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();addZoom('r',e.deltaY<0?5:-5)}},{passive:false});
+document.getElementById('scL').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();addZoom('l',e.deltaY<0?5:-5)}},{passive:false});
 
 // ── RESIZER ──────────────────────────────────────────────────────
 let _resizing=false;
@@ -2118,7 +2253,7 @@ function cpURL(){
 async function backToTop(){
   const ok=await confirm2('トップに戻る','採点中のデータはブラウザに保存されています。トップ画面に戻りますか？','戻る',false);
   if(!ok)return;
-  fbUnsub();S.fid=null;
+  fbUnsub();S.fid=null;closeStudentPicker();
   document.getElementById('ov').style.display='grid';
   document.getElementById('ov').style.display='grid';
   history.replaceState(null,'',location.pathname);
@@ -2145,7 +2280,7 @@ document.addEventListener('keydown',e=>{
   else if(k==='arrowleft')navS(-1);
   else if(e.ctrlKey&&k==='z'){e.preventDefault();undo()}
   else if(k==='delete'||k==='backspace')delSelTxt();
-  else if(k==='escape')closeTxtEd();
+  else if(k==='escape'){closeTxtEd();closeStudentPicker()}
 });
 
 // ── INIT ──────────────────────────────────────────────────────────
