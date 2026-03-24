@@ -260,11 +260,27 @@ kbd{
 #hdr{
   height:52px;flex-shrink:0;z-index:50;
   background:var(--surface);border-bottom:1px solid var(--line);
-  display:flex;align-items:center;padding:0 16px;gap:7px;
+  display:flex;align-items:center;padding:0 10px;gap:5px;
   overflow-x:auto;overflow-y:hidden;
   scrollbar-width:none;
 }
 #hdr::-webkit-scrollbar{display:none}
+/* Back button: hidden until JS enables it */
+.hdr-back{display:none!important}
+.hdr-back.vis{display:flex!important}
+/* Responsive label hiding */
+@media(max-width:1100px){.hdr-lbl{display:none}}
+/* Tool groups: keep as flex rows */
+.hdr-tools,.hdr-acts,.hdr-exp{display:contents}
+/* Hide low-priority items on small screens */
+@media(max-width:900px){
+  .hdr-extra{display:none!important}
+  .hdr-sz input[type=range]{width:44px}
+}
+@media(max-width:720px){
+  .hdr-sz{display:none!important}
+  .score-chip .sc-lbl{display:none}
+}
 .logo{
   font-family:'Fraunces',serif;font-weight:900;font-size:1.15rem;
   letter-spacing:-1px;cursor:pointer;flex-shrink:0;
@@ -831,33 +847,38 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
      HEADER
 ══════════════════════════════════════════════ -->
 <div id="hdr">
+  <!-- 戻るボタン -->
+  <button class="tbtn hdr-back" onclick="histBack()" title="直前の履歴に戻る" id="btnBack">◀ 戻る</button>
+  <div class="vsep hdr-back"></div>
   <div class="logo" onclick="backToTop()" title="トップに戻る">
     <em>Q</em><span class="dash">–</span><span>Mark</span>
   </div>
   <div class="vsep"></div>
-  <!-- Mark tools -->
-  <button class="tbtn act-ok" id="tO" onclick="setTool('o')" title="正解 [Z / 1]">
-    <span class="tool-ico-ok">○</span> 正解
-  </button>
-  <button class="tbtn" id="tX" onclick="setTool('x')" title="不正解 [X / 2]">
-    <span class="tool-ico-ng">✕</span> 不正解
-  </button>
-  <button class="tbtn" id="tTri" onclick="setTool('tri')" title="部分点 [C / 3]">
-    <span class="tool-ico-tri">△</span> 部分点
-  </button>
-  <button class="tbtn" id="tTxt" onclick="setTool('text')" title="文字 [T]">
-    <span style="font-weight:700;color:var(--tx2)">T</span> 文字
-  </button>
-  <button class="tbtn" id="tErase" onclick="setTool('erase')" title="消しゴム [E] — マークをクリックして削除">
-    <span style="color:var(--ng);font-size:.9rem">⌫</span> 消しゴム
-  </button>
+  <!-- Mark tools group -->
+  <div class="hdr-tools">
+    <button class="tbtn act-ok" id="tO" onclick="setTool('o')" title="正解 [Z / 1]">
+      <span class="tool-ico-ok">○</span><span class="hdr-lbl"> 正解</span>
+    </button>
+    <button class="tbtn" id="tX" onclick="setTool('x')" title="不正解 [X / 2]">
+      <span class="tool-ico-ng">✕</span><span class="hdr-lbl"> 不正解</span>
+    </button>
+    <button class="tbtn" id="tTri" onclick="setTool('tri')" title="部分点 [C / 3]">
+      <span class="tool-ico-tri">△</span><span class="hdr-lbl"> 部分点</span>
+    </button>
+    <button class="tbtn" id="tTxt" onclick="setTool('text')" title="文字 [T]">
+      <span style="font-weight:700;color:var(--tx2)">T</span><span class="hdr-lbl"> 文字</span>
+    </button>
+    <button class="tbtn" id="tErase" onclick="setTool('erase')" title="消しゴム [E]">
+      <span style="color:var(--ng);font-size:.9rem">⌫</span><span class="hdr-lbl"> 消しゴム</span>
+    </button>
+  </div>
   <div class="vsep"></div>
-  <div class="size-row">
+  <div class="size-row hdr-sz">
     <span class="size-lbl">SZ</span>
     <input type="range" id="mszR" min="20" max="100" value="44">
   </div>
-  <button class="tbtn" onclick="toggleLayout()" title="グリッド設定">📐</button>
-  <button class="tbtn" onclick="openPoints()" title="問題の配点設定">⚖️ 配点</button>
+  <button class="tbtn hdr-extra" onclick="toggleLayout()" title="グリッド設定">📐</button>
+  <button class="tbtn hdr-extra" onclick="openPoints()" title="配点設定">⚖️<span class="hdr-lbl"> 配点</span></button>
   <div class="sp"></div>
   <!-- Score -->
   <div class="score-chip">
@@ -865,16 +886,21 @@ select.fi{height:auto;padding:9px 12px;cursor:pointer}
     <span class="sc-val" id="scoreVal">0</span>
   </div>
   <div class="vsep"></div>
-  <!-- Actions -->
-  <button class="tbtn" onclick="openFolderModal()" title="フォルダ">📁 フォルダ</button>
-  <button class="tbtn" onclick="openSaveModal()" title="保存">💾 保存</button>
-  <button class="tbtn" onclick="openFileMgr()" title="ファイル管理">🗂</button>
-  <button class="tbtn" onclick="openStats()" title="統計">📊</button>
-  <button class="tbtn" onclick="undo()" title="元に戻す [Ctrl+Z]">↩</button>
+  <!-- Actions group -->
+  <div class="hdr-acts">
+    <button class="tbtn" onclick="openFolderModal()" title="フォルダ">📁<span class="hdr-lbl"> フォルダ</span></button>
+    <button class="tbtn" onclick="openSaveModal()" title="保存">💾<span class="hdr-lbl"> 保存</span></button>
+    <button class="tbtn hdr-extra" onclick="openFileMgr()" title="ファイル管理">🗂</button>
+    <button class="tbtn" onclick="openStats()" title="統計">📊</button>
+    <button class="tbtn" onclick="undo()" title="元に戻す [Ctrl+Z]">↩</button>
+  </div>
   <div class="vsep"></div>
-  <button class="tbtn tbtn-primary" onclick="dlPDF()" title="現在の答案をPDF保存">PDF</button>
-  <button class="tbtn" onclick="dlIndivCSV(S.stus[S.idx]?.name)" title="現在の答案をCSV保存">個人CSV</button>
-  <button class="tbtn" onclick="dlCSV()" title="統計・正誤表をCSV出力">CSV</button>
+  <!-- Export -->
+  <div class="hdr-exp">
+    <button class="tbtn tbtn-primary" onclick="dlPDF()" title="PDF保存">PDF</button>
+    <button class="tbtn hdr-extra" onclick="dlIndivCSV(S.stus[S.idx]?.name)" title="個人CSV">個人CSV</button>
+    <button class="tbtn hdr-extra" onclick="dlCSV()" title="CSV出力">CSV</button>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -1534,6 +1560,7 @@ async function delStu(nm){
   const ok=await confirm2('答案を削除',`「${nm}」を削除しますか？この操作はフォルダ内の全デバイスに反映されます。`,'削除する');
   if(!ok)return;
   const i=S.stus.findIndex(f=>f.name===nm);if(i<0)return;
+  clearFileCache(nm);
   S.stus.splice(i,1);
   if(S.idx>=S.stus.length)S.idx=Math.max(0,S.stus.length-1);
   delete S.marks[nm];
@@ -1552,7 +1579,7 @@ async function clearAllStus(){
   const ok=await confirm2('すべての答案を削除',`${S.stus.length} 件の生徒答案をすべて削除しますか？`,'すべて削除');
   if(!ok)return;
   const names=S.stus.map(f=>f.name);
-  S.stus=[];S.idx=0;names.forEach(n=>delete S.marks[n]);
+  S.stus=[];S.idx=0;names.forEach(n=>{clearFileCache(n);delete S.marks[n]});
   if(S.fid){
     const del=(await fbGet(`folders/${S.fid}/deletedNames`))||[];
     names.forEach(n=>{if(!del.includes(n))del.push(n)});
@@ -1562,32 +1589,71 @@ async function clearAllStus(){
   closeM('mFiles');renderMks();updUI();toast('全生徒答案を削除しました');
 }
 
-// ── SAVE TO STORAGE ──────────────────────────────────────────────
+// ── SAVE TO STORAGE (debounced 600ms) ──────────────────────────
+let _saveT=null;
 function saveStorage(){
-  localStorage.setItem('QM_MK5',JSON.stringify({marks:S.marks,zones:S.zones,markSize:S.mSz,points:S.points}));
-  if(S.fid)fbSaveData(S.fid).catch(()=>{});
+  clearTimeout(_saveT);
+  _saveT=setTimeout(()=>{
+    localStorage.setItem('QM_MK5',JSON.stringify({marks:S.marks,zones:S.zones,markSize:S.mSz,points:S.points}));
+    if(S.fid)fbSaveData(S.fid).catch(()=>{});
+  },600);
 }
 
 // ── DRAW IMAGE ───────────────────────────────────────────────────
+// ── PDF DOC CACHE (prevents re-parsing same file repeatedly) ────
+const _pdfCache=new Map(); // file.name -> PDFDocumentProxy
+const _objUrlCache=new Map(); // file.name -> objectURL
+
+async function getPdfDoc(file){
+  if(_pdfCache.has(file.name))return _pdfCache.get(file.name);
+  const doc=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  _pdfCache.set(file.name,doc);
+  return doc;
+}
+function getObjUrl(file){
+  if(_objUrlCache.has(file.name))return _objUrlCache.get(file.name);
+  const url=URL.createObjectURL(file);
+  _objUrlCache.set(file.name,url);
+  return url;
+}
+function clearFileCache(name){
+  if(_pdfCache.has(name)){_pdfCache.get(name).destroy().catch(()=>{});_pdfCache.delete(name);}
+  if(_objUrlCache.has(name)){URL.revokeObjectURL(_objUrlCache.get(name));_objUrlCache.delete(name);}
+}
+
 async function drawImg(file,cvId,wId,scId,side){
   const cv=document.getElementById(cvId),ctx=cv.getContext('2d');
+  // Determine target pixel width based on container (cap at 1600px to save memory)
+  const con=document.getElementById(scId);
+  const conW=con.clientWidth||800;
+  const maxPx=Math.min(Math.max(conW*1.5,800),1600);
+
   if(file.type==='application/pdf'){
-    const doc=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    const doc=await getPdfDoc(file);
     const pg=await doc.getPage(1);
     const v1=pg.getViewport({scale:1});
     if(side==='r')S.pgMm={w:v1.width*.352778,h:v1.height*.352778};
-    const vp=pg.getViewport({scale:3});
+    // Adaptive scale: render to ~maxPx width, never more than needed
+    const scale=Math.min(maxPx/v1.width,3);
+    const vp=pg.getViewport({scale});
     cv.width=vp.width;cv.height=vp.height;
     await pg.render({canvasContext:ctx,viewport:vp}).promise;
   }else{
     await new Promise(res=>{
       const img=new Image;
-      img.onload=()=>{cv.width=img.width;cv.height=img.height;ctx.drawImage(img,0,0);if(side==='r')S.pgMm={w:img.width*25.4/96,h:img.height*25.4/96};res()};
-      img.src=URL.createObjectURL(file);
+      img.onload=()=>{
+        // Downsample very large images to save memory
+        const srcW=img.naturalWidth,srcH=img.naturalHeight;
+        const ratio=Math.min(1,maxPx/srcW);
+        cv.width=Math.round(srcW*ratio);cv.height=Math.round(srcH*ratio);
+        ctx.drawImage(img,0,0,cv.width,cv.height);
+        if(side==='r')S.pgMm={w:srcW*25.4/96,h:srcH*25.4/96};
+        res();
+      };
+      img.src=getObjUrl(file);
     });
   }
-  const con=document.getElementById(scId);
-  S.fit[side]=Math.max(200,con.clientWidth-72);
+  S.fit[side]=Math.max(200,conW-72);
   S.zoom[side]=100;applyZoom(side);
 }
 
@@ -1602,6 +1668,7 @@ function applyZoom(s){
 async function loadS(idx){
   if(idx<0||idx>=S.stus.length)return;
   S.idx=idx;closeTxtEd();
+  pushHist(idx);
   const f=S.stus[idx];
   document.getElementById('sName').textContent=f.name;
   document.getElementById('sCnt').innerHTML=`${idx+1} / ${S.stus.length}<span class='s-name-arr'>▾</span>`;
@@ -1692,7 +1759,38 @@ async function addStudents(files){
 }
 document.getElementById('iAddS').addEventListener('change',e=>{addStudents(e.target.files);e.target.value=''});
 
-// ── MARKS ────────────────────────────────────────────────────────
+// ── BACK BUTTON (student history) ────────────────────────────────
+const _navHist=[];   // ring buffer of student indices
+const _maxHist=50;
+let _histPos=-1;     // cursor into _navHist
+let _navInProgress=false;
+
+function pushHist(idx){
+  if(_navInProgress)return;
+  // Drop any forward entries
+  if(_histPos<_navHist.length-1)_navHist.splice(_histPos+1);
+  // Avoid duplicate consecutive
+  if(_navHist[_navHist.length-1]===idx)return;
+  if(_navHist.length>=_maxHist)_navHist.shift();
+  _navHist.push(idx);
+  _histPos=_navHist.length-1;
+  updBackBtn();
+}
+function updBackBtn(){
+  const btn=document.getElementById('btnBack');
+  const sep=document.querySelector('.hdr-back.vsep');
+  const can=_histPos>0;
+  btn.classList.toggle('vis',can);
+  if(sep)sep.classList.toggle('vis',can);
+}
+function histBack(){
+  if(_histPos<=0)return;
+  _histPos--;
+  const idx=_navHist[_histPos];
+  _navInProgress=true;
+  loadS(idx).finally(()=>{_navInProgress=false;updBackBtn()});
+}
+
 function renderMks(){
   const lm=document.getElementById('lMk'),lz=document.getElementById('lZn');
   lm.innerHTML='';lz.innerHTML='';
@@ -2336,6 +2434,10 @@ async function backToTop(){
   const ok=await confirm2('トップに戻る','採点中のデータはブラウザに保存されています。トップ画面に戻りますか？','戻る',false);
   if(!ok)return;
   fbUnsub();S.fid=null;closeStudentPicker();
+  // Clear file caches to free memory
+  S.stus.forEach(f=>clearFileCache(f.name));
+  if(S.key)clearFileCache(S.key.name);
+  _navHist.length=0;_histPos=-1;updBackBtn();
   document.getElementById('ov').style.display='grid';
   document.getElementById('ov').style.display='grid';
   history.replaceState(null,'',location.pathname);
@@ -2354,6 +2456,7 @@ document.addEventListener('keydown',e=>{
   if(document.getElementById('ov').style.display!=='none')return;
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   const k=e.key.toLowerCase();
+  if(k==='arrowleft'&&e.altKey){e.preventDefault();histBack();return}
   if(k==='z'||k==='1')setTool('o');
   else if(k==='x'||k==='2')setTool('x');
   else if(k==='c'||k==='3')setTool('tri');
