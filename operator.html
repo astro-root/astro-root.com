@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>運営者情報 | るーとの研究室</title>
+  <meta name="description" content="るーとの研究室の運営者情報。高校生Webエンジニア・クイズプレイヤー「るーと」のプロフィールとサイト概要。" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/astro-root/astro-root.com/main/favicon-32.png" />
+  <link rel="canonical" href="https://astro-root.com/operator" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-0:#020b18; --bg-1:#040f20; --bg-2:#071628;
+      --bg-card:rgba(5,14,28,0.82);
+      --accent-blue:#3b9eff; --accent-teal:#00e5b8; --accent-purple:#8b72ff;
+      --text-0:#eef3ff; --text-1:#7d9ab8; --text-2:#6b8fa8;
+      --border:rgba(59,158,255,0.10); --border-m:rgba(59,158,255,0.22); --border-hover:rgba(59,158,255,0.50);
+      --glow-blue:rgba(59,158,255,0.18);
+      --font-display:'Syne','Noto Sans JP',sans-serif;
+      --font-mono:'JetBrains Mono','Noto Sans JP',monospace;
+      --font-body:'Noto Sans JP',sans-serif;
+      --r-sm:8px; --r-md:14px; --r-lg:22px; --r-xl:28px;
+      --ease:cubic-bezier(0.25,0.46,0.45,0.94);
+      --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+      --t:0.28s;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; font-size:16px; }
+    body { background:var(--bg-0); color:var(--text-0); font-family:var(--font-body); line-height:1.8; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+    a { color:var(--accent-blue); text-decoration:none; transition:color var(--t); }
+    a:hover { color:var(--accent-teal); }
+    img { max-width:100%; display:block; }
+    ul, ol { list-style:none; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg-0); }
+    ::-webkit-scrollbar-thumb { background:var(--border-m); border-radius:99px; }
+    :focus-visible { outline:2px solid var(--accent-blue); outline-offset:3px; border-radius:4px; }
+
+    #star-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+    .aurora-bg { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .aurora-orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:0; animation:orbIn 3s ease forwards; }
+    .aurora-orb:nth-child(1) { width:600px; height:600px; background:radial-gradient(circle, rgba(59,158,255,0.20) 0%, transparent 65%); top:-200px; right:-150px; animation-delay:0.3s; }
+    .aurora-orb:nth-child(2) { width:380px; height:380px; background:radial-gradient(circle, rgba(0,229,184,0.14) 0%, transparent 65%); bottom:15%; left:-80px; animation-delay:0.9s; }
+    @keyframes orbIn { to { opacity:1; } }
+    .grid-overlay { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(59,158,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(59,158,255,0.022) 1px,transparent 1px); background-size:72px 72px; }
+
+    nav, main, footer { position:relative; z-index:1; }
+
+    .container { width:100%; max-width:860px; margin:0 auto; padding:0 clamp(20px,5vw,56px); }
+    .container-wide { width:100%; max-width:1100px; margin:0 auto; padding:0 clamp(20px,5vw,64px); }
+
+    /* ===== NAVIGATION (フル版) ===== */
+    .nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(2,11,24,0.88); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid var(--border); }
+    .nav-inner { display:flex; align-items:center; justify-content:space-between; height:62px; }
+    .nav-logo { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:0.92rem; transition:opacity var(--t); color:var(--text-0); }
+    .nav-logo:hover { opacity:0.75; color:var(--text-0); }
+    .nav-logo-img { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--border-m); overflow:hidden; flex-shrink:0; }
+    .nav-logo-img img { width:100%; height:100%; object-fit:cover; }
+
+    .nav-links { display:flex; align-items:center; gap:32px; }
+    .nav-links a {
+      font-family:var(--font-mono); font-size:0.68rem;
+      color:var(--text-1); letter-spacing:0.14em; text-transform:uppercase;
+      position:relative; padding-bottom:4px;
+      transition:color var(--t) var(--ease);
+      min-height:44px; display:inline-flex; align-items:center;
+    }
+    .nav-links a::after {
+      content:''; position:absolute; bottom:0; left:0;
+      width:100%; height:1.5px;
+      background:linear-gradient(90deg, var(--accent-blue), var(--accent-teal));
+      transform:scaleX(0); transform-origin:left;
+      transition:transform var(--t) var(--ease-spring); border-radius:99px;
+    }
+    .nav-links a:hover { color:var(--text-0); }
+    .nav-links a:hover::after { transform:scaleX(1); }
+    .nav-links a[aria-current="page"] { color:var(--accent-blue); }
+    .nav-links a[aria-current="page"]::after { transform:scaleX(1); }
+
+    .nav-toggle {
+      display:none; flex-direction:column; gap:5px;
+      background:none; border:none; padding:10px; border-radius:var(--r-sm);
+      min-width:44px; min-height:44px; align-items:center; justify-content:center;
+      cursor:pointer;
+    }
+    .nav-toggle span {
+      display:block; width:22px; height:1.5px; background:var(--text-0);
+      transition:transform var(--t) var(--ease), opacity var(--t) var(--ease);
+      transform-origin:center;
+    }
+    .nav-toggle.open span:nth-child(1) { transform:translateY(6.5px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity:0; transform:scaleX(0); }
+    .nav-toggle.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
+
+    .nav-mobile {
+      display:none; position:fixed; top:62px; left:0; right:0;
+      background:rgba(2,11,24,0.97); backdrop-filter:blur(24px);
+      -webkit-backdrop-filter:blur(24px); border-bottom:1px solid var(--border);
+      padding:8px 0; z-index:99; flex-direction:column;
+    }
+    .nav-mobile.open { display:flex; }
+    .nav-mobile a {
+      padding:14px clamp(20px,5vw,64px); font-family:var(--font-mono);
+      font-size:0.78rem; color:var(--text-1); letter-spacing:0.12em;
+      text-transform:uppercase; border-bottom:1px solid var(--border);
+      transition:color var(--t) var(--ease), background var(--t) var(--ease), padding-left var(--t) var(--ease);
+      min-height:52px; display:flex; align-items:center;
+    }
+    .nav-mobile a::before { content:'—'; font-size:0.65rem; color:var(--accent-blue); opacity:0.35; margin-right:12px; transition:opacity var(--t), transform var(--t) var(--ease-spring); }
+    .nav-mobile a:last-child { border-bottom:none; }
+    .nav-mobile a:hover { color:var(--accent-blue); background:rgba(59,158,255,0.04); padding-left:calc(clamp(20px,5vw,64px) + 6px); }
+    .nav-mobile a:hover::before { opacity:1; transform:translateX(4px); }
+    .nav-mobile a[aria-current="page"] { color:var(--accent-blue); }
+
+    @media (max-width:860px) { .nav-links { display:none; } .nav-toggle { display:flex; } }
+
+    /* ===== CONTENT ===== */
+    .page-hero { padding:120px 0 64px; text-align:center; }
+    .page-label { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.28em; color:var(--accent-teal); text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .page-label::before, .page-label::after { content:''; display:inline-block; width:28px; height:1px; background:linear-gradient(90deg,transparent,var(--accent-teal)); }
+    .page-label::after { background:linear-gradient(90deg,var(--accent-teal),transparent); }
+    .page-title { font-family:var(--font-display); font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; letter-spacing:-0.03em; }
+
+    .content-wrap { padding:0 0 100px; }
+
+    .profile-hero {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-xl);
+      padding:clamp(32px,5vw,56px); backdrop-filter:blur(14px);
+      display:flex; align-items:center; gap:40px; margin-bottom:24px;
+      position:relative; overflow:hidden;
+    }
+    .profile-hero::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent-blue),var(--accent-teal),transparent); opacity:0.4; }
+    .profile-avatar-wrap { position:relative; flex-shrink:0; }
+    .profile-avatar {
+      width:100px; height:100px; border-radius:50%; overflow:hidden;
+      border:2px solid transparent;
+      background:linear-gradient(var(--bg-1),var(--bg-1)) padding-box, linear-gradient(135deg,var(--accent-blue),var(--accent-teal)) border-box;
+      box-shadow:0 0 40px var(--glow-blue);
+    }
+    .profile-avatar img { width:100%; height:100%; object-fit:cover; }
+    .profile-info { flex:1; }
+    .profile-name { font-family:var(--font-display); font-size:1.8rem; font-weight:800; margin-bottom:6px; }
+    .profile-id { font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-blue); letter-spacing:0.1em; margin-bottom:14px; }
+    .profile-tags { display:flex; flex-wrap:wrap; gap:8px; }
+    .tag {
+      font-family:var(--font-mono); font-size:0.64rem; letter-spacing:0.08em;
+      padding:5px 12px; border-radius:99px;
+      border:1px solid var(--border-m); color:var(--text-1);
+      background:rgba(59,158,255,0.04);
+    }
+
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+    .info-card {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg);
+      padding:28px 30px; backdrop-filter:blur(14px);
+    }
+    .info-card h2 {
+      font-family:var(--font-display); font-size:0.95rem; font-weight:700; margin-bottom:16px;
+      display:flex; align-items:center; gap:8px; color:var(--text-0);
+    }
+    .info-card h2::before { content:''; display:inline-block; width:4px; height:16px; background:linear-gradient(to bottom,var(--accent-blue),var(--accent-teal)); border-radius:99px; flex-shrink:0; }
+    .info-table { display:flex; flex-direction:column; gap:10px; }
+    .info-row { display:flex; gap:12px; font-size:0.86rem; }
+    .info-key { font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-teal); letter-spacing:0.1em; text-transform:uppercase; white-space:nowrap; padding-top:1px; min-width:80px; flex-shrink:0; }
+    .info-val { color:var(--text-1); line-height:1.7; }
+    .info-val a { color:var(--accent-blue); }
+    .info-val a:hover { color:var(--accent-teal); }
+
+    .full-card {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg);
+      padding:28px 30px; backdrop-filter:blur(14px); margin-bottom:24px;
+    }
+    .full-card h2 {
+      font-family:var(--font-display); font-size:0.95rem; font-weight:700; margin-bottom:16px;
+      display:flex; align-items:center; gap:8px; color:var(--text-0);
+    }
+    .full-card h2::before { content:''; display:inline-block; width:4px; height:16px; background:linear-gradient(to bottom,var(--accent-blue),var(--accent-teal)); border-radius:99px; flex-shrink:0; }
+    .full-card p { font-size:0.9rem; color:var(--text-1); line-height:2.1; }
+
+    .link-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+    .site-link {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:9px 18px; border-radius:var(--r-sm);
+      font-family:var(--font-mono); font-size:0.67rem; letter-spacing:0.07em;
+      border:1px solid var(--border-m); color:var(--text-1);
+      background:rgba(59,158,255,0.04);
+      transition:border-color var(--t),color var(--t),transform var(--t) var(--ease-spring);
+    }
+    .site-link:hover { border-color:var(--accent-blue); color:var(--accent-blue); transform:translateY(-2px); }
+    .site-link::after { content:'↗'; font-size:0.6rem; opacity:0.6; }
+
+    @media (max-width:680px) {
+      .profile-hero { flex-direction:column; text-align:center; }
+      .profile-tags { justify-content:center; }
+      .info-grid { grid-template-columns:1fr; }
+    }
+
+    /* ===== FOOTER ===== */
+    .footer { border-top:1px solid var(--border); padding:44px 0; }
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+    .footer-brand { display:flex; align-items:center; gap:10px; }
+    .footer-brand-icon { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--border-m); overflow:hidden; }
+    .footer-brand-icon img { width:100%; height:100%; object-fit:cover; }
+    .footer-brand-name { font-family:var(--font-display); font-size:0.86rem; font-weight:700; }
+    .footer-nav { display:flex; flex-wrap:wrap; gap:18px; }
+    .footer-nav a { font-family:var(--font-mono); font-size:0.64rem; color:var(--text-2); letter-spacing:0.1em; text-transform:uppercase; transition:color var(--t); min-height:44px; display:inline-flex; align-items:center; }
+    .footer-nav a:hover { color:var(--accent-teal); }
+    .footer-nav a[aria-current="page"] { color:var(--accent-blue); }
+    .footer-copy { font-family:var(--font-mono); font-size:0.62rem; color:var(--text-2); letter-spacing:0.08em; }
+
+    @media (max-width:600px) { .footer-inner { flex-direction:column; align-items:flex-start; gap:12px; } }
+  </style>
+</head>
+<body>
+  <canvas id="star-canvas" aria-hidden="true"></canvas>
+  <div class="aurora-bg" aria-hidden="true"><div class="aurora-orb"></div><div class="aurora-orb"></div></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <!-- Navigation: フル版 -->
+  <nav class="nav" id="nav" aria-label="メインナビゲーション">
+    <div class="container-wide">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="nav-logo-img"><img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="" aria-hidden="true" /></div>
+          <span>るーとの研究室</span>
+        </a>
+        <ul class="nav-links" role="list">
+          <li><a href="index.html">ホーム</a></li>
+          <li><a href="index.html#projects">Works</a></li>
+          <li><a href="contact.html">お問い合わせ</a></li>
+          <li><a href="operator.html" aria-current="page">運営者情報</a></li>
+          <li><a href="privacy.html">プライバシーポリシー</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="メニューを開閉する" aria-expanded="false" aria-controls="nav-mobile">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-mobile" id="nav-mobile" aria-label="モバイルナビゲーション">
+      <a href="index.html">ホーム</a>
+      <a href="index.html#projects">Works</a>
+      <a href="contact.html">お問い合わせ</a>
+      <a href="operator.html" aria-current="page">運営者情報</a>
+      <a href="privacy.html">プライバシーポリシー</a>
+    </div>
+  </nav>
+
+  <main id="main-content">
+    <div class="page-hero">
+      <div class="container">
+        <p class="page-label">About Site</p>
+        <h1 class="page-title">運営者情報</h1>
+      </div>
+    </div>
+
+    <div class="content-wrap">
+      <div class="container">
+
+        <div class="profile-hero">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar">
+              <img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="るーとのアバター" />
+            </div>
+          </div>
+          <div class="profile-info">
+            <p class="profile-name">るーと</p>
+            <p class="profile-id">@astro_root</p>
+            <div class="profile-tags">
+              <span class="tag">高校生</span>
+              <span class="tag">Web Engineer</span>
+              <span class="tag">Quiz Player</span>
+              <span class="tag">Astronomy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <h2>サイト概要</h2>
+            <div class="info-table">
+              <div class="info-row"><span class="info-key">サイト名</span><span class="info-val">るーとの研究室</span></div>
+              <div class="info-row"><span class="info-key">URL</span><span class="info-val"><a href="https://astro-root.com/" target="_blank" rel="noopener">astro-root.com</a></span></div>
+              <div class="info-row"><span class="info-key">開設</span><span class="info-val">2026年</span></div>
+              <div class="info-row"><span class="info-key">目的</span><span class="info-val">ポートフォリオ・クイズツール配信</span></div>
+              <div class="info-row"><span class="info-key">言語</span><span class="info-val">日本語</span></div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h2>運営者プロフィール</h2>
+            <div class="info-table">
+              <div class="info-row"><span class="info-key">ハンドル</span><span class="info-val">るーと / astro_root</span></div>
+              <div class="info-row"><span class="info-key">属性</span><span class="info-val">高校3年生（2026年現在）</span></div>
+              <div class="info-row"><span class="info-key">活動</span><span class="info-val">Web開発・クイズ・天文学</span></div>
+              <div class="info-row"><span class="info-key">所属</span><span class="info-val">日本物理学会 学生会友</span></div>
+              <div class="info-row"><span class="info-key">連絡</span><span class="info-val"><a href="contact.html">お問い合わせページ</a></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="full-card">
+          <h2>サイト運営方針</h2>
+          <p>
+            当サイトは、クイズ大会支援Webツールの開発・公開およびポートフォリオとしての情報発信を目的として運営しています。
+            掲載するツール・コンテンツは、クイズ活動・天文学・プログラミングに関する実体験をもとに制作した独自のものです。
+            提供するツールは無償で公開しており、クイズシーン全体への技術的な貢献を目指しています。
+          </p>
+        </div>
+
+        <div class="full-card">
+          <h2>連絡先 &amp; SNS</h2>
+          <p>ご質問・ご要望・コラボレーションのご提案など、お気軽にご連絡ください。</p>
+          <div class="link-row">
+            <a href="https://x.com/astro_root" target="_blank" rel="noopener noreferrer" class="site-link">@astro_root（個人）</a>
+            <a href="https://x.com/root_qscore" target="_blank" rel="noopener noreferrer" class="site-link">@root_qscore（Q-Score公式）</a>
+            <a href="https://x.com/AstroHigh_Info" target="_blank" rel="noopener noreferrer" class="site-link">@AstroHigh_Info</a>
+            <a href="https://line.me/R/ti/p/@468vemfe" target="_blank" rel="noopener noreferrer" class="site-link">LINE公式</a>
+            <a href="contact.html" class="site-link">お問い合わせフォーム</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container-wide">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="" aria-hidden="true" /></div>
+          <span class="footer-brand-name">るーとの研究室</span>
+        </div>
+        <nav class="footer-nav" aria-label="フッターナビゲーション">
+          <a href="index.html">ホーム</a>
+          <a href="operator.html" aria-current="page">運営者情報</a>
+          <a href="privacy.html">プライバシーポリシー</a>
+          <a href="contact.html">お問い合わせ</a>
+        </nav>
+        <p class="footer-copy">© 2026 Root. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ===== NAV TOGGLE ===== */
+    (function () {
+      const toggle    = document.getElementById('nav-toggle');
+      const mobileNav = document.getElementById('nav-mobile');
+      if (!toggle || !mobileNav) return;
+      toggle.addEventListener('click', function () {
+        const open = toggle.classList.toggle('open');
+        mobileNav.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+      mobileNav.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          toggle.classList.remove('open');
+          mobileNav.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+
+    /* ===== STAR CANVAS ===== */
+    (function () {
+      const canvas = document.getElementById('star-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let stars = [], W = 0, H = 0;
+      function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+      function mkStar() { return { x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.1+0.15, a:Math.random(), da:(Math.random()*0.003+0.001)*(Math.random()>0.5?1:-1), vy:-(Math.random()*0.035+0.005) }; }
+      function init() { stars = Array.from({length:260}, mkStar); }
+      function draw() {
+        ctx.clearRect(0,0,W,H);
+        for (const s of stars) {
+          s.a+=s.da; if(s.a>1){s.a=1;s.da=-Math.abs(s.da);} if(s.a<0.04){s.a=0.04;s.da=Math.abs(s.da);}
+          s.y+=s.vy; if(s.y<-4){s.y=H+4;s.x=Math.random()*W;}
+          ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+          ctx.fillStyle=`rgba(160,200,255,${s.a})`; ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      let rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){resize();init();},200);});
+      resize(); init(); draw();
+    })();
+  </script>
+</body>
+</html>
