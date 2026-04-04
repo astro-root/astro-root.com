@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>るーとの研究室</title>
+  <title>るーとの研究室 | 高校生エンジニア・クイズプレイヤー</title>
   <meta name="description" content="高校生/Webエンジニア/クイズプレイヤー るーと のポートフォリオ。クイズツール開発・天文学探求・AstroHigh運営。" />
-  <meta name="keywords" content="るーと, astro_root, Webエンジニア, 高校生, クイズ, Q-Score, Q-Room, Q-Mark, Q-Panel, 天文学, AstroHigh, クイズツール, るーとの研究室" />
+  <meta name="keywords" content="るーと, astro_root, Webエンジニア, 高校生, クイズ, Q-Score, Q-Room, Q-Mark, Q-Panel, 天文学, AstroHigh, クイズツール" />
   <meta name="author" content="るーと" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#020b18" />
@@ -72,7 +72,7 @@
       --accent-aurora: #1af0c4;
       --text-0:        #eef3ff;
       --text-1:        #7d9ab8;
-      --text-2:        #314860;
+      --text-2:        #6b8fa8;
       --border:        rgba(59, 158, 255, 0.10);
       --border-m:      rgba(59, 158, 255, 0.22);
       --border-hover:  rgba(59, 158, 255, 0.50);
@@ -188,6 +188,28 @@
       width: 6px; height: 6px; border-radius: 50%;
       background: var(--accent-blue);
       box-shadow: 0 0 12px var(--accent-blue);
+    }
+
+    /* ===== AD UNIT ===== */
+    .ad-unit {
+      width: 100%;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      overflow: hidden;
+    }
+    .ad-unit-inner {
+      width: 100%;
+      max-width: 728px;
+      min-height: 90px;
+      background: rgba(59,158,255,0.015);
+      border: 1px dashed rgba(59,158,255,0.10);
+      border-radius: var(--r-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* ===== BACKGROUND LAYERS ===== */
@@ -338,7 +360,7 @@
     .nav-mobile a::before {
       content: '—'; font-size: 0.65rem; color: var(--accent-blue);
       opacity: 0.35; margin-right: 12px;
-      transition: opacity var(--t), transform var(--t) var(--ease);
+      transition: opacity var(--t), transform var(--t) var(--ease-spring);
     }
     .nav-mobile a:last-child { border-bottom: none; }
     .nav-mobile a:hover {
@@ -347,6 +369,12 @@
       padding-left: calc(clamp(20px, 5vw, 64px) + 6px);
     }
     .nav-mobile a:hover::before { opacity: 1; transform: translateX(4px); }
+    /* モバイルメニューの区切り */
+    .nav-mobile-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(59,158,255,0.15), transparent);
+      margin: 4px 0;
+    }
     @media (max-width: 780px) { .nav-links { display: none; } .nav-toggle { display: flex; } }
 
     /* ===== HERO ===== */
@@ -917,7 +945,13 @@
       color: var(--accent-teal); letter-spacing: 0.17em;
       text-transform: uppercase; margin-bottom: 8px;
     }
-    .form-label::after { content: '*'; color: #f87171; font-size: 0.75rem; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .form-label .req { color: #f87171; margin-left: 2px; }
+    .form-label::after { display: none; }
 
     .form-input, .form-textarea {
       width: 100%;
@@ -995,7 +1029,7 @@
     }
     .footer-brand-icon img { width: 100%; height: 100%; object-fit: cover; }
     .footer-brand-name { font-family: var(--font-display); font-size: 0.88rem; font-weight: 700; }
-    .footer-nav { display: flex; gap: 24px; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 24px; }
     .footer-nav a {
       font-family: var(--font-mono); font-size: 0.66rem;
       color: var(--text-2); letter-spacing: 0.1em; text-transform: uppercase;
@@ -1079,6 +1113,9 @@
       <a href="#projects">Works</a>
       <a href="#activities">Activities</a>
       <a href="#contact">Contact</a>
+      <div class="nav-mobile-sep" aria-hidden="true"></div>
+      <a href="operator.html">運営者情報</a>
+      <a href="privacy.html">プライバシーポリシー</a>
     </div>
   </nav>
 
@@ -1104,7 +1141,7 @@
       </p>
       <div class="hero-cta">
         <a href="#projects" class="btn btn-primary">プロジェクトを見る</a>
-        <a href="#contact" class="btn btn-secondary">お問い合わせ</a>
+        <a href="contact.html" class="btn btn-secondary">お問い合わせ</a>
       </div>
       <div class="hero-scroll" aria-hidden="true">
         <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
@@ -1186,6 +1223,15 @@
     </section>
 
     <div class="divider"></div>
+
+    <!-- AdSense Unit: About ↔ Projects 間 -->
+    <div class="container">
+      <div class="ad-unit" aria-label="広告">
+        <div class="ad-unit-inner">
+          <!-- Google AdSense: 審査通過後にコードを挿入 -->
+        </div>
+      </div>
+    </div>
 
     <!-- Projects -->
     <section id="projects" class="section" aria-labelledby="projects-h2">
@@ -1337,6 +1383,15 @@
 
     <div class="divider"></div>
 
+    <!-- AdSense Unit: Activities ↔ Contact 間 -->
+    <div class="container">
+      <div class="ad-unit" aria-label="広告">
+        <div class="ad-unit-inner">
+          <!-- Google AdSense: 審査通過後にコードを挿入 -->
+        </div>
+      </div>
+    </div>
+
     <!-- Contact -->
     <section id="contact" class="section" aria-labelledby="contact-h2">
       <div class="container">
@@ -1353,11 +1408,6 @@
               学校生活の都合上、返信にお時間をいただく場合があります。ご了承ください。
             </p>
             <nav class="contact-channels" aria-label="連絡先一覧">
-              <a href="/cdn-cgi/l/email-protection#72111d1c0613110632130106001d5f001d1d065c111d1f" class="c-channel" aria-label="メールで連絡する">
-                <span class="c-icon" aria-hidden="true">✉️</span>
-                <span class="__cf_email__" data-cfemail="c8aba7a6bca9abbc88a9bbbcbaa7e5baa7a7bce6aba7a5">[email&#160;protected]</span>
-                <span class="c-ext" aria-hidden="true">↗</span>
-              </a>
               <a href="https://x.com/astro_root" target="_blank" rel="noopener noreferrer" class="c-channel" aria-label="個人Twitter @astro_rootを開く（外部リンク）">
                 <span class="c-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -1387,19 +1437,19 @@
             <p class="form-required-note"><span>*</span> は必須項目です</p>
             <form id="contact-form" novalidate>
               <div class="form-row">
-                <label for="from_name" class="form-label">お名前</label>
+                <label for="from_name" class="form-label">お名前<span class="req" aria-hidden="true">*</span><span class="sr-only">（必須）</span></label>
                 <input type="text" id="from_name" name="from_name" class="form-input" placeholder="山田 太郎" required autocomplete="name" />
               </div>
               <div class="form-row">
-                <label for="from_email" class="form-label">メールアドレス</label>
+                <label for="from_email" class="form-label">メールアドレス<span class="req" aria-hidden="true">*</span><span class="sr-only">（必須）</span></label>
                 <input type="email" id="from_email" name="from_email" class="form-input" placeholder="example@email.com" required autocomplete="email" />
               </div>
               <div class="form-row">
-                <label for="subject" class="form-label">件名</label>
+                <label for="subject" class="form-label">件名<span class="req" aria-hidden="true">*</span><span class="sr-only">（必須）</span></label>
                 <input type="text" id="subject" name="subject" class="form-input" placeholder="お問い合わせ件名" required />
               </div>
               <div class="form-row">
-                <label for="message" class="form-label">メッセージ</label>
+                <label for="message" class="form-label">メッセージ<span class="req" aria-hidden="true">*</span><span class="sr-only">（必須）</span></label>
                 <textarea id="message" name="message" class="form-textarea" placeholder="ご用件をご記入ください" required></textarea>
               </div>
               <button type="submit" class="form-submit" id="submit-btn">送信する</button>
@@ -1414,6 +1464,7 @@
 
   </main>
 
+  <!-- フッター: 全ページ統一版 -->
   <footer class="footer">
     <div class="container">
       <div class="footer-inner">
@@ -1424,9 +1475,10 @@
           <span class="footer-brand-name">るーとの研究室</span>
         </div>
         <nav class="footer-nav" aria-label="フッターナビゲーション">
-          <a href="https://x.com/astro_root" target="_blank" rel="noopener noreferrer">Twitter</a>
-          <a href="https://line.me/R/ti/p/@468vemfe" target="_blank" rel="noopener noreferrer">LINE</a>
-          <a href="/cdn-cgi/l/email-protection#83e0ecedf7e2e0f7c3e2f0f7f1ecaef1ececf7ade0ecee">Email</a>
+          <a href="index.html" aria-current="page">ホーム</a>
+          <a href="operator.html">運営者情報</a>
+          <a href="privacy.html">プライバシーポリシー</a>
+          <a href="contact.html">お問い合わせ</a>
         </nav>
         <p class="footer-copy">© 2026 Root. All rights reserved.</p>
       </div>
