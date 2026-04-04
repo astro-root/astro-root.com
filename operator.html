@@ -6,15 +6,31 @@
   <title>運営者情報 | るーとの研究室</title>
   <meta name="description" content="るーとの研究室の運営者情報。高校生Webエンジニア・クイズプレイヤー「るーと」のプロフィールとサイト概要。" />
   <meta name="robots" content="index, follow" />
+  <meta name="author" content="るーと" />
+  <meta name="theme-color" content="#020b18" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="運営者情報 | るーとの研究室" />
+  <meta property="og:description" content="るーとの研究室の運営者情報。高校生Webエンジニア・クイズプレイヤー「るーと」のプロフィールとサイト概要。" />
+  <meta property="og:url" content="https://astro-root.com/operator" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/astro-root/astro-root.com/main/ogp-image.png" />
+  <meta property="og:site_name" content="るーとの研究室" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@astro_root" />
+  <meta name="twitter:title" content="運営者情報 | るーとの研究室" />
+  <meta name="twitter:description" content="るーとの研究室の運営者情報。高校生Webエンジニア・クイズプレイヤー「るーと」のプロフィールとサイト概要。" />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/astro-root/astro-root.com/main/ogp-image.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/astro-root/astro-root.com/main/favicon-32.png" />
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" />
   <link rel="canonical" href="https://astro-root.com/operator" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg-0:#020b18; --bg-1:#040f20; --bg-2:#071628;
       --bg-card:rgba(5,14,28,0.82);
+      --bg-card-hover:rgba(7,18,36,0.92);
       --accent-blue:#3b9eff; --accent-teal:#00e5b8; --accent-purple:#8b72ff;
       --text-0:#eef3ff; --text-1:#7d9ab8; --text-2:#6b8fa8;
       --border:rgba(59,158,255,0.10); --border-m:rgba(59,158,255,0.22); --border-hover:rgba(59,158,255,0.50);
@@ -25,39 +41,92 @@
       --r-sm:8px; --r-md:14px; --r-lg:22px; --r-xl:28px;
       --ease:cubic-bezier(0.25,0.46,0.45,0.94);
       --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
-      --t:0.28s;
+      --t:0.28s; --t-fast:0.18s;
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    html { scroll-behavior:smooth; font-size:16px; }
-    body { background:var(--bg-0); color:var(--text-0); font-family:var(--font-body); line-height:1.8; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
-    a { color:var(--accent-blue); text-decoration:none; transition:color var(--t); }
+    html { scroll-behavior:smooth; font-size:16px; -webkit-text-size-adjust:100%; }
+    body { background:var(--bg-0); color:var(--text-0); font-family:var(--font-body); line-height:1.8; overflow-x:hidden; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; cursor:none; }
+    @media (hover:none) { body { cursor:auto; } }
+    a { color:var(--accent-blue); text-decoration:none; transition:color var(--t); cursor:none; }
+    @media (hover:none) { a { cursor:pointer; } }
     a:hover { color:var(--accent-teal); }
     img { max-width:100%; display:block; }
     ul, ol { list-style:none; }
+    button { font-family:inherit; cursor:none; }
+    @media (hover:none) { button { cursor:pointer; } }
+    input, textarea { font-family:inherit; }
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:var(--bg-0); }
     ::-webkit-scrollbar-thumb { background:var(--border-m); border-radius:99px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--accent-blue); }
     :focus-visible { outline:2px solid var(--accent-blue); outline-offset:3px; border-radius:4px; }
 
-    #star-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+    .skip-link {
+      position:fixed; top:-100%; left:16px; z-index:9999;
+      background:var(--accent-blue); color:var(--bg-0);
+      padding:10px 20px; border-radius:0 0 var(--r-md) var(--r-md);
+      font-family:var(--font-mono); font-size:0.75rem;
+      letter-spacing:0.08em; font-weight:600;
+      transition:top 0.2s var(--ease);
+    }
+    .skip-link:focus { top:0; outline:none; }
+
+    #cursor-dot {
+      position:fixed; pointer-events:none; z-index:10000;
+      width:6px; height:6px; border-radius:50%;
+      background:var(--accent-blue);
+      box-shadow:0 0 10px var(--accent-blue), 0 0 20px rgba(59,158,255,0.4);
+      transform:translate(-50%,-50%);
+      transition:width var(--t-fast) var(--ease), height var(--t-fast) var(--ease), background var(--t-fast);
+      will-change:transform;
+    }
+    #cursor-ring {
+      position:fixed; pointer-events:none; z-index:9999;
+      width:36px; height:36px; border-radius:50%;
+      border:1px solid rgba(59,158,255,0.45);
+      transform:translate(-50%,-50%);
+      transition:width 0.22s var(--ease), height 0.22s var(--ease), border-color 0.22s, opacity 0.22s;
+      will-change:transform;
+    }
+    #cursor-dot.hover { width:10px; height:10px; background:var(--accent-teal); }
+    #cursor-ring.hover { width:54px; height:54px; border-color:rgba(0,229,184,0.5); }
+    #cursor-dot.clicking { width:4px; height:4px; }
+    #cursor-ring.clicking { width:28px; height:28px; }
+
+    #scroll-progress {
+      position:fixed; top:0; left:0; z-index:200;
+      height:2px; width:0%;
+      background:linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-teal) 50%, var(--accent-purple) 100%);
+      transition:width 0.1s linear;
+      box-shadow:0 0 8px rgba(59,158,255,0.6);
+    }
+
+    #star-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; display:block; }
     .aurora-bg { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-    .aurora-orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:0; animation:orbIn 3s ease forwards; }
-    .aurora-orb:nth-child(1) { width:600px; height:600px; background:radial-gradient(circle, rgba(59,158,255,0.20) 0%, transparent 65%); top:-200px; right:-150px; animation-delay:0.3s; }
-    .aurora-orb:nth-child(2) { width:380px; height:380px; background:radial-gradient(circle, rgba(0,229,184,0.14) 0%, transparent 65%); bottom:15%; left:-80px; animation-delay:0.9s; }
+    .aurora-orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:0; animation:orbDrift 28s ease-in-out infinite alternate, orbIn 3s ease forwards; }
+    .aurora-orb:nth-child(1) { width:600px; height:600px; background:radial-gradient(circle, rgba(59,158,255,0.20) 0%, transparent 65%); top:-200px; right:-150px; animation-duration:22s; animation-delay:0.3s; }
+    .aurora-orb:nth-child(2) { width:380px; height:380px; background:radial-gradient(circle, rgba(0,229,184,0.14) 0%, transparent 65%); bottom:15%; left:-80px; animation-duration:30s; animation-delay:-10s; }
+    @keyframes orbDrift {
+      0%   { transform:translate(0,0) scale(1) rotate(0deg); }
+      33%  { transform:translate(30px,-20px) scale(1.08) rotate(2deg); }
+      66%  { transform:translate(-20px,15px) scale(0.95) rotate(-1deg); }
+      100% { transform:translate(50px,40px) scale(1.14) rotate(3deg); }
+    }
     @keyframes orbIn { to { opacity:1; } }
+    .noise-overlay { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity:0.022; mix-blend-mode:overlay; }
     .grid-overlay { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(59,158,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(59,158,255,0.022) 1px,transparent 1px); background-size:72px 72px; }
 
-    nav, main, footer { position:relative; z-index:1; }
+    header, nav, main, footer { position:relative; z-index:1; }
 
     .container { width:100%; max-width:860px; margin:0 auto; padding:0 clamp(20px,5vw,56px); }
     .container-wide { width:100%; max-width:1100px; margin:0 auto; padding:0 clamp(20px,5vw,64px); }
 
-    /* ===== NAVIGATION (フル版) ===== */
-    .nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(2,11,24,0.88); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom:1px solid var(--border); }
-    .nav-inner { display:flex; align-items:center; justify-content:space-between; height:62px; }
+    .nav { position:fixed; top:0; left:0; right:0; z-index:100; transition:background var(--t) var(--ease), border-color var(--t) var(--ease); border-bottom:1px solid transparent; }
+    .nav.scrolled { background:rgba(2,11,24,0.88); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-bottom-color:var(--border); }
+    .nav-inner { display:flex; align-items:center; justify-content:space-between; height:66px; }
     .nav-logo { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:0.92rem; transition:opacity var(--t); color:var(--text-0); }
     .nav-logo:hover { opacity:0.75; color:var(--text-0); }
-    .nav-logo-img { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--border-m); overflow:hidden; flex-shrink:0; }
+    .nav-logo-img { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--border-m); overflow:hidden; flex-shrink:0; box-shadow:0 0 12px rgba(59,158,255,0.3); }
     .nav-logo-img img { width:100%; height:100%; object-fit:cover; }
 
     .nav-links { display:flex; align-items:center; gap:32px; }
@@ -84,7 +153,6 @@
       display:none; flex-direction:column; gap:5px;
       background:none; border:none; padding:10px; border-radius:var(--r-sm);
       min-width:44px; min-height:44px; align-items:center; justify-content:center;
-      cursor:pointer;
     }
     .nav-toggle span {
       display:block; width:22px; height:1.5px; background:var(--text-0);
@@ -96,7 +164,7 @@
     .nav-toggle.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
 
     .nav-mobile {
-      display:none; position:fixed; top:62px; left:0; right:0;
+      display:none; position:fixed; top:66px; left:0; right:0;
       background:rgba(2,11,24,0.97); backdrop-filter:blur(24px);
       -webkit-backdrop-filter:blur(24px); border-bottom:1px solid var(--border);
       padding:8px 0; z-index:99; flex-direction:column;
@@ -115,14 +183,29 @@
     .nav-mobile a:hover::before { opacity:1; transform:translateX(4px); }
     .nav-mobile a[aria-current="page"] { color:var(--accent-blue); }
 
-    @media (max-width:860px) { .nav-links { display:none; } .nav-toggle { display:flex; } }
+    @media (max-width:780px) { .nav-links { display:none; } .nav-toggle { display:flex; } }
 
-    /* ===== CONTENT ===== */
     .page-hero { padding:120px 0 64px; text-align:center; }
-    .page-label { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.28em; color:var(--accent-teal); text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .page-label {
+      font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.28em;
+      color:var(--accent-teal); text-transform:uppercase; margin-bottom:16px;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      opacity:0; animation:heroUp 0.8s var(--ease) forwards 0.2s;
+    }
     .page-label::before, .page-label::after { content:''; display:inline-block; width:28px; height:1px; background:linear-gradient(90deg,transparent,var(--accent-teal)); }
     .page-label::after { background:linear-gradient(90deg,var(--accent-teal),transparent); }
-    .page-title { font-family:var(--font-display); font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; letter-spacing:-0.03em; }
+    .page-title {
+      font-family:var(--font-display); font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; letter-spacing:-0.03em;
+      opacity:0; animation:heroUp 0.8s var(--ease) forwards 0.4s;
+    }
+    @keyframes heroUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .d1 { transition-delay:0.08s; }
+    .d2 { transition-delay:0.16s; }
+    .d3 { transition-delay:0.24s; }
+    .d4 { transition-delay:0.32s; }
 
     .content-wrap { padding:0 0 100px; }
 
@@ -131,8 +214,10 @@
       padding:clamp(32px,5vw,56px); backdrop-filter:blur(14px);
       display:flex; align-items:center; gap:40px; margin-bottom:24px;
       position:relative; overflow:hidden;
+      transition:border-color var(--t), box-shadow var(--t), transform var(--t) var(--ease);
     }
     .profile-hero::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent-blue),var(--accent-teal),transparent); opacity:0.4; }
+    .profile-hero:hover { border-color:var(--border-m); box-shadow:0 20px 50px rgba(59,158,255,0.09); }
     .profile-avatar-wrap { position:relative; flex-shrink:0; }
     .profile-avatar {
       width:100px; height:100px; border-radius:50%; overflow:hidden;
@@ -150,13 +235,20 @@
       padding:5px 12px; border-radius:99px;
       border:1px solid var(--border-m); color:var(--text-1);
       background:rgba(59,158,255,0.04);
+      transition:border-color var(--t), color var(--t), transform var(--t) var(--ease-spring);
     }
+    .tag:hover { border-color:var(--accent-blue); color:var(--accent-blue); transform:translateY(-1px); }
 
     .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
     .info-card {
       background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg);
       padding:28px 30px; backdrop-filter:blur(14px);
+      position:relative; overflow:hidden;
+      transition:border-color var(--t), box-shadow var(--t), transform var(--t) var(--ease);
     }
+    .info-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent-blue),transparent); opacity:0; transition:opacity var(--t); }
+    .info-card:hover { border-color:var(--border-m); box-shadow:0 16px 40px rgba(59,158,255,0.08); transform:translateY(-4px); }
+    .info-card:hover::before { opacity:0.5; }
     .info-card h2 {
       font-family:var(--font-display); font-size:0.95rem; font-weight:700; margin-bottom:16px;
       display:flex; align-items:center; gap:8px; color:var(--text-0);
@@ -172,7 +264,12 @@
     .full-card {
       background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg);
       padding:28px 30px; backdrop-filter:blur(14px); margin-bottom:24px;
+      position:relative; overflow:hidden;
+      transition:border-color var(--t), box-shadow var(--t), transform var(--t) var(--ease);
     }
+    .full-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent-teal),transparent); opacity:0; transition:opacity var(--t); }
+    .full-card:hover { border-color:var(--border-m); box-shadow:0 16px 40px rgba(59,158,255,0.08); transform:translateY(-4px); }
+    .full-card:hover::before { opacity:0.5; }
     .full-card h2 {
       font-family:var(--font-display); font-size:0.95rem; font-weight:700; margin-bottom:16px;
       display:flex; align-items:center; gap:8px; color:var(--text-0);
@@ -187,9 +284,9 @@
       font-family:var(--font-mono); font-size:0.67rem; letter-spacing:0.07em;
       border:1px solid var(--border-m); color:var(--text-1);
       background:rgba(59,158,255,0.04);
-      transition:border-color var(--t),color var(--t),transform var(--t) var(--ease-spring);
+      transition:border-color var(--t),color var(--t),transform var(--t) var(--ease-spring), box-shadow var(--t);
     }
-    .site-link:hover { border-color:var(--accent-blue); color:var(--accent-blue); transform:translateY(-2px); }
+    .site-link:hover { border-color:var(--accent-blue); color:var(--accent-blue); transform:translateY(-2px); box-shadow:0 6px 18px rgba(59,158,255,0.15); }
     .site-link::after { content:'↗'; font-size:0.6rem; opacity:0.6; }
 
     @media (max-width:680px) {
@@ -198,55 +295,74 @@
       .info-grid { grid-template-columns:1fr; }
     }
 
-    /* ===== FOOTER ===== */
-    .footer { border-top:1px solid var(--border); padding:44px 0; }
-    .footer-inner { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
-    .footer-brand { display:flex; align-items:center; gap:10px; }
-    .footer-brand-icon { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--border-m); overflow:hidden; }
+    .footer { border-top:1px solid var(--border); padding:48px 0; position:relative; }
+    .footer::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:200px; height:1px; background:linear-gradient(90deg,transparent,var(--accent-blue),transparent); }
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; }
+    .footer-brand { display:flex; align-items:center; gap:10px; color:var(--text-0); text-decoration:none; }
+    a.footer-brand:hover { opacity:0.75; }
+    .footer-brand-icon { width:26px; height:26px; border-radius:50%; border:1.5px solid var(--border-m); overflow:hidden; box-shadow:0 0 8px rgba(59,158,255,0.2); }
     .footer-brand-icon img { width:100%; height:100%; object-fit:cover; }
-    .footer-brand-name { font-family:var(--font-display); font-size:0.86rem; font-weight:700; }
-    .footer-nav { display:flex; flex-wrap:wrap; gap:18px; }
-    .footer-nav a { font-family:var(--font-mono); font-size:0.64rem; color:var(--text-2); letter-spacing:0.1em; text-transform:uppercase; transition:color var(--t); min-height:44px; display:inline-flex; align-items:center; }
+    .footer-brand-name { font-family:var(--font-display); font-size:0.88rem; font-weight:700; }
+    .footer-nav { display:flex; flex-wrap:wrap; gap:24px; }
+    .footer-nav a {
+      font-family:var(--font-mono); font-size:0.64rem; color:var(--text-2); letter-spacing:0.1em; text-transform:uppercase;
+      transition:color var(--t) var(--ease); position:relative; padding-bottom:2px;
+      min-height:44px; display:inline-flex; align-items:center;
+    }
+    .footer-nav a::after { content:''; position:absolute; bottom:0; left:0; width:100%; height:1px; background:var(--accent-teal); transform:scaleX(0); transform-origin:left; transition:transform var(--t) var(--ease-spring); }
     .footer-nav a:hover { color:var(--accent-teal); }
+    .footer-nav a:hover::after { transform:scaleX(1); }
     .footer-nav a[aria-current="page"] { color:var(--accent-blue); }
-    .footer-copy { font-family:var(--font-mono); font-size:0.62rem; color:var(--text-2); letter-spacing:0.08em; }
+    .footer-copy { font-family:var(--font-mono); font-size:0.64rem; color:var(--text-2); letter-spacing:0.08em; }
 
     @media (max-width:600px) { .footer-inner { flex-direction:column; align-items:flex-start; gap:12px; } }
+
+    @media (prefers-reduced-motion:reduce) {
+      *, *::before, *::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+      .reveal { opacity:1; transform:none; }
+      body { cursor:auto; }
+      a, button { cursor:pointer; }
+      #cursor-dot, #cursor-ring { display:none; }
+    }
   </style>
 </head>
 <body>
+  <div id="cursor-dot" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+  <div id="scroll-progress" aria-hidden="true"></div>
+  <a href="#main-content" class="skip-link">メインコンテンツへスキップ</a>
   <canvas id="star-canvas" aria-hidden="true"></canvas>
   <div class="aurora-bg" aria-hidden="true"><div class="aurora-orb"></div><div class="aurora-orb"></div></div>
+  <div class="noise-overlay" aria-hidden="true"></div>
   <div class="grid-overlay" aria-hidden="true"></div>
 
-  <!-- Navigation: フル版 -->
-  <nav class="nav" id="nav" aria-label="メインナビゲーション">
-    <div class="container-wide">
-      <div class="nav-inner">
-        <a href="index.html" class="nav-logo">
-          <div class="nav-logo-img"><img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="" aria-hidden="true" /></div>
-          <span>るーとの研究室</span>
-        </a>
-        <ul class="nav-links" role="list">
-          <li><a href="index.html">ホーム</a></li>
-          <li><a href="index.html#projects">Works</a></li>
-          <li><a href="contact.html">お問い合わせ</a></li>
-          <li><a href="operator.html" aria-current="page">運営者情報</a></li>
-          <li><a href="privacy.html">プライバシーポリシー</a></li>
-        </ul>
-        <button class="nav-toggle" id="nav-toggle" aria-label="メニューを開閉する" aria-expanded="false" aria-controls="nav-mobile">
-          <span></span><span></span><span></span>
-        </button>
+  <header role="banner">
+    <nav class="nav" id="nav" aria-label="メインナビゲーション">
+      <div class="container-wide">
+        <div class="nav-inner">
+          <a href="index.html" class="nav-logo" aria-label="るーとの研究室 トップへ">
+            <div class="nav-logo-img"><img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="" aria-hidden="true" /></div>
+            <span>るーとの研究室</span>
+          </a>
+          <ul class="nav-links" role="list">
+            <li><a href="index.html">ホーム</a></li>
+            <li><a href="operator.html" aria-current="page">運営者情報</a></li>
+            <li><a href="privacy.html">プライバシーポリシー</a></li>
+            <li><a href="contact.html">お問い合わせ</a></li>
+          </ul>
+          <button class="nav-toggle" id="nav-toggle" aria-label="メニューを開閉する" aria-expanded="false" aria-controls="nav-mobile">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
       </div>
-    </div>
-    <div class="nav-mobile" id="nav-mobile" aria-label="モバイルナビゲーション">
-      <a href="index.html">ホーム</a>
-      <a href="index.html#projects">Works</a>
-      <a href="contact.html">お問い合わせ</a>
-      <a href="operator.html" aria-current="page">運営者情報</a>
-      <a href="privacy.html">プライバシーポリシー</a>
-    </div>
-  </nav>
+      <div class="nav-mobile" id="nav-mobile" aria-label="モバイルナビゲーション">
+        <a href="index.html">ホーム</a>
+        <a href="operator.html" aria-current="page">運営者情報</a>
+        <a href="privacy.html">プライバシーポリシー</a>
+        <a href="contact.html">お問い合わせ</a>
+      </div>
+    </nav>
+  </header>
 
   <main id="main-content">
     <div class="page-hero">
@@ -259,7 +375,7 @@
     <div class="content-wrap">
       <div class="container">
 
-        <div class="profile-hero">
+        <div class="profile-hero reveal">
           <div class="profile-avatar-wrap">
             <div class="profile-avatar">
               <img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="るーとのアバター" />
@@ -278,7 +394,7 @@
         </div>
 
         <div class="info-grid">
-          <div class="info-card">
+          <div class="info-card reveal d1">
             <h2>サイト概要</h2>
             <div class="info-table">
               <div class="info-row"><span class="info-key">サイト名</span><span class="info-val">るーとの研究室</span></div>
@@ -289,7 +405,7 @@
             </div>
           </div>
 
-          <div class="info-card">
+          <div class="info-card reveal d2">
             <h2>運営者プロフィール</h2>
             <div class="info-table">
               <div class="info-row"><span class="info-key">ハンドル</span><span class="info-val">るーと / astro_root</span></div>
@@ -301,7 +417,7 @@
           </div>
         </div>
 
-        <div class="full-card">
+        <div class="full-card reveal">
           <h2>サイト運営方針</h2>
           <p>
             当サイトは、クイズ大会支援Webツールの開発・公開およびポートフォリオとしての情報発信を目的として運営しています。
@@ -310,7 +426,7 @@
           </p>
         </div>
 
-        <div class="full-card">
+        <div class="full-card reveal d1">
           <h2>連絡先 &amp; SNS</h2>
           <p>ご質問・ご要望・コラボレーションのご提案など、お気軽にご連絡ください。</p>
           <div class="link-row">
@@ -329,10 +445,10 @@
   <footer class="footer">
     <div class="container-wide">
       <div class="footer-inner">
-        <div class="footer-brand">
+        <a href="index.html" class="footer-brand" aria-label="るーとの研究室 トップへ">
           <div class="footer-brand-icon"><img src="https://raw.githubusercontent.com/astro-root/astro-root.com/main/icon.png" alt="" aria-hidden="true" /></div>
           <span class="footer-brand-name">るーとの研究室</span>
-        </div>
+        </a>
         <nav class="footer-nav" aria-label="フッターナビゲーション">
           <a href="index.html">ホーム</a>
           <a href="operator.html" aria-current="page">運営者情報</a>
@@ -345,8 +461,54 @@
   </footer>
 
   <script>
-    /* ===== NAV TOGGLE ===== */
     (function () {
+      if (window.matchMedia('(hover: none)').matches) return;
+      const dot  = document.getElementById('cursor-dot');
+      const ring = document.getElementById('cursor-ring');
+      if (!dot || !ring) return;
+      let mx = 0, my = 0, rx = 0, ry = 0;
+      document.addEventListener('mousemove', function (e) {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px';
+        dot.style.top  = my + 'px';
+      });
+      function animRing() {
+        rx += (mx - rx) * 0.14;
+        ry += (my - ry) * 0.14;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        requestAnimationFrame(animRing);
+      }
+      animRing();
+      const interactives = 'a, button, input, textarea, [role="button"]';
+      document.addEventListener('mouseover', function (e) {
+        if (e.target.closest(interactives)) { dot.classList.add('hover'); ring.classList.add('hover'); }
+      });
+      document.addEventListener('mouseout', function (e) {
+        if (e.target.closest(interactives)) { dot.classList.remove('hover'); ring.classList.remove('hover'); }
+      });
+      document.addEventListener('mousedown', function () { dot.classList.add('clicking'); ring.classList.add('clicking'); });
+      document.addEventListener('mouseup',   function () { dot.classList.remove('clicking'); ring.classList.remove('clicking'); });
+      document.addEventListener('mouseleave', function () { dot.style.opacity = '0'; ring.style.opacity = '0'; });
+      document.addEventListener('mouseenter', function () { dot.style.opacity = '1'; ring.style.opacity = '1'; });
+    })();
+
+    (function () {
+      const bar = document.getElementById('scroll-progress');
+      if (!bar) return;
+      window.addEventListener('scroll', function () {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+      }, { passive: true });
+    })();
+
+    (function () {
+      const nav = document.getElementById('nav');
+      if (nav) {
+        window.addEventListener('scroll', function () {
+          nav.classList.toggle('scrolled', window.scrollY > 20);
+        }, { passive: true });
+      }
       const toggle    = document.getElementById('nav-toggle');
       const mobileNav = document.getElementById('nav-mobile');
       if (!toggle || !mobileNav) return;
@@ -364,22 +526,63 @@
       });
     })();
 
-    /* ===== STAR CANVAS ===== */
+    (function () {
+      const revealEls = document.querySelectorAll('.reveal');
+      const obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+      revealEls.forEach(function (el) { obs.observe(el); });
+    })();
+
+    (function () {
+      if (window.matchMedia('(hover: none)').matches) return;
+      document.querySelectorAll('.info-card, .full-card, .profile-hero').forEach(function (card) {
+        card.addEventListener('mousemove', function (e) {
+          const r = card.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top  + r.height / 2;
+          const dx = (e.clientX - cx) / (r.width / 2);
+          const dy = (e.clientY - cy) / (r.height / 2);
+          card.style.transform = 'translateY(-4px) rotateX(' + (-dy * 2) + 'deg) rotateY(' + (dx * 3) + 'deg)';
+        });
+        card.addEventListener('mouseleave', function () { card.style.transform = ''; });
+      });
+    })();
+
     (function () {
       const canvas = document.getElementById('star-canvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      let stars = [], W = 0, H = 0;
+      let stars = [], W = 0, H = 0, constellations = [];
       function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-      function mkStar() { return { x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.1+0.15, a:Math.random(), da:(Math.random()*0.003+0.001)*(Math.random()>0.5?1:-1), vy:-(Math.random()*0.035+0.005) }; }
-      function init() { stars = Array.from({length:260}, mkStar); }
+      function mkStar() { return { x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.1+0.15, a:Math.random(), da:(Math.random()*0.003+0.001)*(Math.random()>0.5?1:-1), vy:-(Math.random()*0.035+0.005), bright:Math.random()>0.95 }; }
+      function buildConstellations() {
+        constellations = [];
+        const seeds = stars.filter(function(s){ return s.bright; }).slice(0, 10);
+        for (let i = 0; i < seeds.length - 1; i++) {
+          const a = seeds[i], b = seeds[i+1];
+          if (Math.hypot(b.x-a.x, b.y-a.y) < 240) constellations.push({a:a,b:b});
+        }
+      }
+      function init() { stars = Array.from({length:280}, mkStar); buildConstellations(); }
       function draw() {
         ctx.clearRect(0,0,W,H);
+        for (const c of constellations) {
+          ctx.beginPath(); ctx.moveTo(c.a.x,c.a.y); ctx.lineTo(c.b.x,c.b.y);
+          ctx.strokeStyle='rgba(59,158,255,0.04)'; ctx.lineWidth=0.5; ctx.stroke();
+        }
         for (const s of stars) {
           s.a+=s.da; if(s.a>1){s.a=1;s.da=-Math.abs(s.da);} if(s.a<0.04){s.a=0.04;s.da=Math.abs(s.da);}
           s.y+=s.vy; if(s.y<-4){s.y=H+4;s.x=Math.random()*W;}
+          if(s.bright) {
+            const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*3);
+            g.addColorStop(0,`rgba(180,215,255,${s.a})`); g.addColorStop(1,'rgba(180,215,255,0)');
+            ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+          }
           ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-          ctx.fillStyle=`rgba(160,200,255,${s.a})`; ctx.fill();
+          ctx.fillStyle=`rgba(${s.bright?'200,230':'160,200'},255,${s.a})`; ctx.fill();
         }
         requestAnimationFrame(draw);
       }
