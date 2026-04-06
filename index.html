@@ -80,8 +80,9 @@
       --r-xl: 28px;
       --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-      --t: 0.3s;
+      --t: 0.28s;
       --t-fast: 0.18s;
+      --nav-h: 66px;
       --section-gap: clamp(96px, 14vw, 156px);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -122,6 +123,7 @@
       transition: top 0.2s var(--ease);
     }
     .skip-link:focus { top: 0; outline: none; }
+
     #cursor-dot {
       position: fixed; pointer-events: none; z-index: 10000;
       width: 6px; height: 6px; border-radius: 50%;
@@ -129,7 +131,7 @@
       box-shadow: 0 0 10px var(--accent-blue), 0 0 20px rgba(59,158,255,0.4);
       transform: translate(-50%, -50%);
       transition: width var(--t-fast) var(--ease), height var(--t-fast) var(--ease), background var(--t-fast);
-      will-change: transform;
+      will-change: left, top;
     }
     #cursor-ring {
       position: fixed; pointer-events: none; z-index: 9999;
@@ -137,19 +139,21 @@
       border: 1px solid rgba(59,158,255,0.45);
       transform: translate(-50%, -50%);
       transition: width 0.22s var(--ease), height 0.22s var(--ease), border-color 0.22s, opacity 0.22s;
-      will-change: transform;
+      will-change: left, top;
     }
     #cursor-dot.hover { width: 10px; height: 10px; background: var(--accent-teal); }
     #cursor-ring.hover { width: 54px; height: 54px; border-color: rgba(0,229,184,0.5); }
     #cursor-dot.clicking { width: 4px; height: 4px; }
     #cursor-ring.clicking { width: 28px; height: 28px; }
+
     #scroll-progress {
-      position: fixed; top: 0; left: 0; z-index: 200;
+      position: fixed; top: 0; left: 0; z-index: 9998;
       height: 2px; width: 0%;
       background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-teal) 50%, var(--accent-purple) 100%);
       transition: width 0.1s linear;
       box-shadow: 0 0 8px rgba(59,158,255,0.6);
     }
+
     .container {
       width: 100%; max-width: 1120px;
       margin: 0 auto;
@@ -170,29 +174,21 @@
       box-shadow: 0 0 12px var(--accent-blue);
     }
     .ad-unit {
-      width: 100%;
-      min-height: 90px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0;
-      overflow: hidden;
+      width: 100%; min-height: 90px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0; overflow: hidden;
     }
     .ad-unit-inner {
-      width: 100%;
-      max-width: 728px;
-      min-height: 90px;
+      width: 100%; max-width: 728px; min-height: 90px;
       background: rgba(59,158,255,0.015);
       border: 1px dashed rgba(59,158,255,0.10);
       border-radius: var(--r-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
+
     #star-canvas {
       position: fixed; inset: 0; z-index: 0;
       pointer-events: none; display: block;
-      will-change: transform;
     }
     .aurora-bg {
       position: fixed; inset: 0; z-index: 0;
@@ -231,6 +227,7 @@
       100% { transform: translate(50px, 40px) scale(1.14) rotate(3deg); }
     }
     @keyframes orbIn { to { opacity: 1; } }
+
     .noise-overlay {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
@@ -239,25 +236,28 @@
     .grid-overlay {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
-        linear-gradient(rgba(59,158,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(59,158,255,0.025) 1px, transparent 1px);
+        linear-gradient(rgba(59,158,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,158,255,0.022) 1px, transparent 1px);
       background-size: 72px 72px;
     }
-    header, nav, main, footer { position: relative; z-index: 1; }
+
+    main, footer { position: relative; z-index: 1; }
+    header { position: relative; z-index: 500; }
+
     .nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
       transition: background var(--t) var(--ease), border-color var(--t) var(--ease), backdrop-filter var(--t);
       border-bottom: 1px solid transparent;
     }
     .nav.scrolled {
-      background: rgba(2, 11, 24, 0.88);
+      background: rgba(2, 11, 24, 0.90);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
       border-bottom-color: var(--border);
     }
     .nav-inner {
       display: flex; align-items: center; justify-content: space-between;
-      height: 66px;
+      height: var(--nav-h);
     }
     .nav-logo {
       display: flex; align-items: center; gap: 10px;
@@ -315,13 +315,14 @@
     .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
     .nav-toggle.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
     .nav-mobile {
-      display: none; position: fixed; top: 66px; left: 0; right: 0;
+      display: none; position: fixed; top: var(--nav-h); left: 0; right: 0;
       background: rgba(2, 11, 24, 0.97);
       backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--border);
-      padding: 8px 0; z-index: 99; flex-direction: column;
+      padding: 8px 0; z-index: 499; flex-direction: column;
     }
-    .nav-mobile.open { display: flex; }
+    .nav-mobile.open { display: flex; animation: mobileSlideIn 0.22s var(--ease) forwards; }
+    @keyframes mobileSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     .nav-mobile a {
       padding: 14px clamp(20px, 5vw, 64px);
       font-family: var(--font-mono); font-size: 0.78rem;
@@ -349,6 +350,7 @@
       margin: 4px 0;
     }
     @media (max-width: 780px) { .nav-links { display: none; } .nav-toggle { display: flex; } }
+
     .hero {
       min-height: 100svh;
       display: flex; flex-direction: column;
@@ -452,12 +454,14 @@
       color: var(--text-2); letter-spacing: 0.22em; text-transform: uppercase;
     }
     @keyframes heroUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+
     .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
     .d1 { transition-delay: 0.08s; }
     .d2 { transition-delay: 0.16s; }
     .d3 { transition-delay: 0.24s; }
     .d4 { transition-delay: 0.32s; }
+
     .section-header { margin-bottom: clamp(48px, 8vw, 80px); }
     .section-label {
       font-family: var(--font-mono); font-size: 0.64rem;
@@ -473,6 +477,7 @@
       font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
     }
     .section-title em { font-style: normal; color: var(--accent-blue); }
+
     .about-layout {
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -542,6 +547,7 @@
       .pillar-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 480px) { .social-pill { flex: 1 1 100%; } }
+
     .projects-bento {
       display: grid;
       grid-template-columns: repeat(12, 1fr);
@@ -616,6 +622,7 @@
       .project-card:nth-child(3),
       .project-card:nth-child(4) { grid-column: 1; }
     }
+
     .activities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .activity-card {
       background: var(--bg-card);
@@ -658,6 +665,7 @@
     .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-teal); flex-shrink: 0; box-shadow: 0 0 6px rgba(0,229,184,0.5); }
     .badge-dot.blue { background: var(--accent-blue); box-shadow: 0 0 6px rgba(59,158,255,0.5); }
     @media (max-width: 680px) { .activities-grid { grid-template-columns: 1fr; } }
+
     .contact-layout {
       display: grid;
       grid-template-columns: 1fr 1.6fr;
@@ -734,6 +742,7 @@
     .form-msg.ok { background: rgba(0, 229, 184, 0.08); border: 1px solid rgba(0, 229, 184, 0.25); color: var(--accent-teal); }
     .form-msg.ng { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171; }
     @media (max-width: 780px) { .contact-layout { grid-template-columns: 1fr; } }
+
     .footer { border-top: 1px solid var(--border); padding: 48px 0; position: relative; }
     .footer::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-blue), transparent); }
     .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
@@ -756,6 +765,7 @@
     .footer-nav a[aria-current="page"] { color: var(--accent-blue); }
     .footer-copy { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-2); letter-spacing: 0.08em; }
     @media (max-width: 600px) { .footer-inner { flex-direction: column; align-items: flex-start; gap: 12px; } }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
       .reveal { opacity: 1; transform: none; }
@@ -802,17 +812,17 @@
           </button>
         </div>
       </div>
-      <nav class="nav-mobile" id="nav-mobile" aria-label="モバイルナビゲーション">
-        <a href="/" aria-current="page">TOP</a>
-        <a href="/about">ABOUT</a>
-        <a href="/privacy">PRIVACY POLICY</a>
-        <a href="/contact">CONTACT</a>
-        <div class="nav-mobile-sep" aria-hidden="true"></div>
-        <a href="#about">→ About るーと</a>
-        <a href="#projects">→ Works</a>
-        <a href="#activities">→ Activities</a>
-      </nav>
     </nav>
+    <div class="nav-mobile" id="nav-mobile" role="navigation" aria-label="モバイルナビゲーション">
+      <a href="/" aria-current="page">TOP</a>
+      <a href="/about">ABOUT</a>
+      <a href="/privacy">PRIVACY POLICY</a>
+      <a href="/contact">CONTACT</a>
+      <div class="nav-mobile-sep" aria-hidden="true"></div>
+      <a href="#about">→ About るーと</a>
+      <a href="#projects">→ Works</a>
+      <a href="#activities">→ Activities</a>
+    </div>
   </header>
 
   <main id="main-content">
@@ -1173,10 +1183,10 @@
   <script>
     (function () { emailjs.init({ publicKey: 'yxzdXxEsQp6Ulyn1w' }); })();
 
-    const contactForm = document.getElementById('contact-form');
-    const submitBtn   = document.getElementById('submit-btn');
-    const msgOk       = document.getElementById('msg-ok');
-    const msgNg       = document.getElementById('msg-ng');
+    var contactForm = document.getElementById('contact-form');
+    var submitBtn   = document.getElementById('submit-btn');
+    var msgOk       = document.getElementById('msg-ok');
+    var msgNg       = document.getElementById('msg-ng');
 
     if (contactForm) {
       contactForm.addEventListener('submit', function (e) {
@@ -1335,9 +1345,9 @@
       rafId = requestAnimationFrame(draw);
     })();
 
-    var nav       = document.getElementById('nav');
-    var toggle    = document.getElementById('nav-toggle');
-    var mobileNav = document.getElementById('nav-mobile');
+    var nav    = document.getElementById('nav');
+    var toggle = document.getElementById('nav-toggle');
+    var mob    = document.getElementById('nav-mobile');
 
     window.addEventListener('scroll', function () {
       nav.classList.toggle('scrolled', window.scrollY > 20);
@@ -1345,13 +1355,13 @@
 
     toggle.addEventListener('click', function () {
       var open = toggle.classList.toggle('open');
-      mobileNav.classList.toggle('open', open);
+      mob.classList.toggle('open', open);
       toggle.setAttribute('aria-expanded', String(open));
     });
-    mobileNav.querySelectorAll('a').forEach(function (a) {
+    mob.querySelectorAll('a').forEach(function (a) {
       a.addEventListener('click', function () {
         toggle.classList.remove('open');
-        mobileNav.classList.remove('open');
+        mob.classList.remove('open');
         toggle.setAttribute('aria-expanded', 'false');
       });
     });
