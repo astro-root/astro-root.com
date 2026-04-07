@@ -763,7 +763,7 @@ const RULES = [
   },
   {
     id:'mon',name:'m◯n×',
-    params:[{key:'m',label:'m（勝ち抜け正解数）',def:5},{key:'n',label:'n（失格誤答数）',def:2}],
+    params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:2}],
     desc:(p)=>`${p.m}問正解で勝ち抜け、${p.n}問誤答で失格。`,
     initState:()=>({correct:0,wrong:0}),
     onCorrect(s,p){s.correct++;return{log:`正解 ${s.correct}/${p.m}`}},
@@ -780,7 +780,7 @@ const RULES = [
   },
   {
     id:'newyork',name:'NewYork',
-    params:[{key:'m',label:'m（正解加点）',def:1},{key:'n',label:'n（誤答減点）',def:1},{key:'x',label:'x（勝ち抜け点）',def:10},{key:'y',label:'y（失格点）',def:-10}],
+    params:[{key:'m',label:'正解加点',def:1},{key:'n',label:'誤答減点',def:1},{key:'x',label:'勝ち抜けポイント',def:10},{key:'y',label:'失格ポイント',def:-10}],
     desc:(p)=>`正解で+${p.m}点、誤答で−${p.n}点。${p.x}点で勝ち抜け、${p.y}点で失格。`,
     initState:()=>({score:0,correct:0,wrong:0}),
     onCorrect(s,p){s.score+=p.m;s.correct++;return{log:`正解 +${p.m} → ${s.score}点`}},
@@ -798,7 +798,7 @@ const RULES = [
   },
   {
     id:'updown',name:'Up-Down',
-    params:[{key:'m',label:'m（勝ち抜け点）',def:5},{key:'n',label:'n（失格誤答数）',def:2}],
+    params:[{key:'m',label:'勝ち抜けポイント',def:5},{key:'n',label:'失格誤答数',def:2}],
     desc:(p)=>`正解で+1点、誤答で得点を0にリセット。誤答${p.n}回で失格、${p.m}点で勝ち抜け。`,
     initState:()=>({score:0,correct:0,wrong:0}),
     onCorrect(s,p){s.score++;s.correct++;return{log:`正解 +1 → ${s.score}点`}},
@@ -816,7 +816,7 @@ const RULES = [
   },
   {
     id:'by',name:'by',
-    params:[{key:'m',label:'m（基準値）',def:5}],
+    params:[{key:'m',label:'基準値',def:5}],
     desc:(p)=>`正解ポイント=正解数、誤答ポイント=${p.m}−誤答数。(正解ポイント×誤答ポイント)≧${p.m}²(=${p.m*p.m})で勝ち抜け。誤答ポイントが0以下で失格。`,
     initState:()=>({correct:0,wrong:0}),
     onCorrect(s,p){s.correct++;const cp=s.correct,dp=p.m-s.wrong;return{log:`正解 正解P=${cp} 誤答P=${dp} 積=${cp*dp}`}},
@@ -838,7 +838,7 @@ const RULES = [
   },
   {
     id:'freeze',name:'Freeze',
-    params:[{key:'m',label:'m（勝ち抜け点）',def:5}],
+    params:[{key:'m',label:'勝ち抜け正解数',def:5}],
     desc:(p)=>`正解で+1点。誤答すると「通算誤答数」回の休みが発生。${p.m}点で勝ち抜け。休み消化にはスルーボタンを使用。`,
     initState:()=>({score:0,correct:0,wrong:0,rest:0}),
     onCorrect(s,p){s.score++;s.correct++;return{log:`正解 +1 → ${s.score}点`}},
@@ -855,7 +855,7 @@ const RULES = [
   },
   {
     id:'mon_rest',name:'m◯n休',
-    params:[{key:'m',label:'m（勝ち抜け点）',def:5},{key:'n',label:'n（誤答休み数）',def:3}],
+    params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'誤答休み数',def:3}],
     desc:(p)=>`正解で+1点、誤答で${p.n}回休み。${p.m}点で勝ち抜け。スルーで休みを消化。`,
     initState:()=>({score:0,correct:0,wrong:0,rest:0}),
     onCorrect(s,p){s.score++;s.correct++;return{log:`正解 +1 → ${s.score}点`}},
@@ -872,7 +872,7 @@ const RULES = [
   },
   {
     id:'swedish',name:'Swedish',
-    params:[{key:'m',label:'m（勝ち抜け/失格基準）',def:10}],
+    params:[{key:'m',label:'勝ち抜け/失格基準',def:10}],
     desc:(p)=>`正解${p.m}問で勝ち抜け、累計ペナルティ${p.m}回で失格。誤答ペナルティは正解数に依存：0問目→1、1-2問目→2、3-5問目→3、6-9問目→4…`,
     initState:()=>({correct:0,wrong:0,penalty:0}),
     onCorrect(s,p){s.correct++;return{log:`正解 累計${s.correct}問`}},
@@ -895,7 +895,7 @@ const RULES = [
   },
   {
     id:'divide',name:'Divide',
-    params:[{key:'m',label:'m（初期点）',def:10},{key:'n',label:'n（正解加点）',def:10},{key:'x',label:'x（勝ち抜け点）',def:100}],
+    params:[{key:'m',label:'初期ポイント',def:10},{key:'n',label:'正解加点',def:10},{key:'x',label:'勝ち抜けポイント',def:100}],
     desc:(p)=>`初期${p.m}点から開始。正解で+${p.n}点。誤答ごとに「現在得点÷通算誤答数」で得点更新（小数切り捨て）。得点が1未満で失格、${p.x}点で勝ち抜け。`,
     initState:(p)=>({score:p.m,correct:0,wrong:0}),
     onCorrect(s,p){s.score+=p.n;s.correct++;return{log:`正解 +${p.n} → ${s.score}点`}},
@@ -913,7 +913,7 @@ const RULES = [
   },
   {
     id:'lucky',name:'Lucky Shot',
-    params:[{key:'m',label:'m（正解最大加点）',def:10},{key:'n',label:'n（誤答最大減点）',def:10},{key:'x',label:'x（勝ち抜け点）',def:100},{key:'y',label:'y（失格点）',def:-20}],
+    params:[{key:'m',label:'正解最大加点',def:10},{key:'n',label:'誤答最大減点',def:10},{key:'x',label:'勝ち抜けポイント',def:100},{key:'y',label:'失格ポイント',def:-20}],
     desc:(p)=>`正解で0〜${p.m}のランダム加点、誤答で0〜${p.n}のランダム減点。${p.x}点で勝ち抜け、${p.y}点で失格。`,
     initState:()=>({score:0,correct:0,wrong:0,lastAdd:0}),
     onCorrect(s,p){const add=Math.floor(Math.random()*(p.m+1));s.score+=add;s.correct++;s.lastAdd=add;return{log:`正解 +${add} → ${s.score}点`}},
@@ -931,7 +931,7 @@ const RULES = [
   },
   {
     id:'rensei',name:'連答付き',
-    params:[{key:'m',label:'m（勝ち抜け点）',def:5},{key:'n',label:'n（失格誤答数）',def:2}],
+    params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:2}],
     desc:(p)=>`正解で+1点+連答権獲得。連答権保持中の正解は+2点。等速：連答ボーナス後に連答権消失。加速：連続正解中は常に+2点。誤答で連答権消失。${p.m}点で勝ち抜け、${p.n}誤答で失格。`,
     initState:()=>({score:0,correct:0,wrong:0,hasRight:false,mode:'even'}),
     modes:[{key:'even',label:'等速'},{key:'accel',label:'加速'}],
@@ -963,7 +963,7 @@ const RULES = [
   },
   {
     id:'rengou',name:'連誤答付き',
-    params:[{key:'m',label:'m（勝ち抜け正解数）',def:5},{key:'n',label:'n（失格誤答数）',def:2}],
+    params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:2}],
     desc:(p)=>`正解でディスアド獲得。ディスアド保持中の誤答は2回分として扱う。自分の正解でディスアド消失。${p.m}正解で勝ち抜け、${p.n}誤答で失格。`,
     initState:()=>({correct:0,wrong:0,disadv:false}),
     onCorrect(s,p){s.correct++;const had=s.disadv;s.disadv=true;return{log:`正解 累計${s.correct}問 ${had?'ディスアド消失→再取得':'[ディスアド取得]'}`}},
@@ -983,7 +983,7 @@ const RULES = [
   },
   {
     id:'combo',name:'m hits Combo',
-    params:[{key:'m',label:'m（勝ち抜け点）',def:6},{key:'n',label:'n（失格誤答数）',def:2}],
+    params:[{key:'m',label:'勝ち抜けポイント',def:6},{key:'n',label:'失格誤答数',def:2}],
     desc:(p)=>`連続正解数=コンボ数。1連答→+1、2連答→+2、3連答→+3…誤答でコンボリセット。${p.m}点で勝ち抜け、${p.n}誤答で失格。`,
     initState:()=>({score:0,correct:0,wrong:0,combo:0}),
     onCorrect(s,p){s.combo++;s.score+=s.combo;s.correct++;return{log:`正解 コンボ${s.combo} +${s.combo} → ${s.score}点`,combo:s.combo}},
@@ -1146,11 +1146,11 @@ function renderStatus(){
   const st=currentRule.getStatus(state,params);
   statusBar.className='status-bar';
   if(st==='WIN'){
-    statusBar.innerHTML='🏆&nbsp; WINNER';
+    statusBar.innerHTML='🏆&nbsp; WIN!!';
     statusBar.classList.add('win');
     ended=true;
   } else if(st==='LOSE'){
-    statusBar.innerHTML='💀&nbsp; ELIMINATED';
+    statusBar.innerHTML='💀&nbsp; LOSE...';
     statusBar.classList.add('lose');
     ended=true;
   } else {
