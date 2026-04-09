@@ -1054,7 +1054,7 @@ const RULES = [
   {
     id:'mon',name:'m◯n×',
     params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:2}],
-    desc:(p)=>`<strong>${p.m}問正解</strong>で勝ち抜け、<strong>${p.n}問誤答</strong>で失格。`,
+    desc:(p)=>`<strong>${p.m}問の正解</strong>で勝ち抜け、<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({correct:0,wrong:0}),
     onCorrect(s,p){s.correct++;return{log:`正解 ${s.correct}/${p.m}`}},
     onWrong(s,p){s.wrong++;return{log:`誤答 ${s.wrong}/${p.n}`,type:'wrong'}},
@@ -1089,7 +1089,7 @@ const RULES = [
   {
     id:'updown',name:'Up-Down',
     params:[{key:'m',label:'勝ち抜けポイント',def:5},{key:'n',label:'失格誤答数',def:2}],
-    desc:(p)=>`正解で+1点、誤答で得点を<strong>0にリセット</strong>。<br>誤答${p.n}回で失格、${p.m}点で勝ち抜け。`,
+    desc:(p)=>`正解で+1点、誤答で得点を<strong>0にリセット</strong>。<br><strong>${p.m}点</strong>で勝ち抜け、<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({score:0,correct:0,wrong:0}),
     onCorrect(s,p){s.score++;s.correct++;return{log:`正解 +1 → ${s.score}点`}},
     onWrong(s,p){s.wrong++;const old=s.score;s.score=0;return{log:`誤答 得点0リセット (${old}→0) 誤答${s.wrong}/${p.n}`,type:'wrong'}},
@@ -1106,15 +1106,15 @@ const RULES = [
   },
   {
     id:'by',name:'by',
-    params:[{key:'m',label:'基準値',def:5}],
-    desc:(p)=>`正解ポイント＝正解数、誤答ポイント＝${p.m}−誤答数。<br>(正解P × 誤答P) ≥ ${p.m}²（＝${p.m*p.m}）で勝ち抜け。<br>誤答ポイントが<strong>0以下</strong>で失格。`,
+    params:[{key:'m',label:'基準値',def:5},{key:'n',label:'失格誤答数',def:3}],
+    desc:(p)=>`正解ポイント＝正解数、誤答ポイント＝${p.m}−誤答数。<br>(正解P × 誤答P) ≥ ${p.m}²（＝${p.m*p.m}）で勝ち抜け。<br>誤答ポイントが<strong>0以下</strong>、または<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({correct:0,wrong:0}),
     onCorrect(s,p){s.correct++;const cp=s.correct,dp=p.m-s.wrong;return{log:`正解 正解P=${cp} 誤答P=${dp} 積=${cp*dp}`}},
-    onWrong(s,p){s.wrong++;const cp=s.correct,dp=p.m-s.wrong;return{log:`誤答 正解P=${cp} 誤答P=${dp} 積=${cp*dp}`,type:'wrong'}},
+    onWrong(s,p){s.wrong++;const cp=s.correct,dp=p.m-s.wrong;return{log:`誤答 正解P=${cp} 誤答P=${dp} 積=${cp*dp} 誤答${s.wrong}/${p.n}`,type:'wrong'}},
     getStatus(s,p){
       const cp=s.correct,dp=p.m-s.wrong;
       if(cp*dp>=p.m*p.m)return'WIN';
-      if(dp<=0)return'LOSE';
+      if(dp<=0||s.wrong>=p.n)return'LOSE';
       return'ACTIVE';
     },
     getDisplay(s,p){
@@ -1123,13 +1123,14 @@ const RULES = [
         {val:cp*dp,lbl:`Score (目標:${p.m*p.m})`,cls:'accent',rank:'primary'},
         {val:cp,lbl:'Correct P',cls:'accent',rank:'secondary'},
         {val:dp,lbl:'Wrong P',cls:dp<=0?'danger':'warn',rank:'secondary'},
+        {val:s.wrong,lbl:`誤答 /${p.n}`,cls:'danger',rank:'secondary'},
       ]
     }
   },
   {
     id:'freeze',name:'Freeze',
     params:[{key:'m',label:'勝ち抜け正解数',def:5}],
-    desc:(p)=>`正解で+1点。誤答すると<strong>「通算誤答数」回の休み</strong>が発生。<br>${p.m}点で勝ち抜け。<br>スルーで休みを消化。`,
+    desc:(p)=>`正解で+1問。誤答すると<strong>「通算誤答数」回の休み</strong>が発生。<br><strong>${p.m}問の正解</strong>で勝ち抜け。<br>スルーで休みを消化。`,
     initState:()=>({score:0,correct:0,wrong:0,rest:0}),
     onCorrect(s,p){s.score++;s.correct++;return{log:`正解 +1 → ${s.score}点`}},
     onWrong(s,p){s.wrong++;s.rest+=s.wrong;return{log:`誤答 通算${s.wrong}回目 → 休み${s.wrong}回追加 (残休み${s.rest})`,type:'wrong'}},
@@ -1146,7 +1147,7 @@ const RULES = [
   {
     id:'mon_rest',name:'m◯n休',
     params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'誤答休み数',def:3}],
-    desc:(p)=>`正解で+1点、誤答で<strong>${p.n}回休み</strong>。<br>${p.m}点で勝ち抜け。<br>スルーで休みを消化。`,
+    desc:(p)=>`正解で+1問、誤答で<strong>${p.n}回休み</strong>。<br><strong>${p.m}問の正解</strong>で勝ち抜け。<br>スルーで休みを消化。`,
     initState:()=>({score:0,correct:0,wrong:0,rest:0}),
     onCorrect(s,p){s.score++;s.correct++;return{log:`正解 +1 → ${s.score}点`}},
     onWrong(s,p){s.wrong++;s.rest+=p.n;return{log:`誤答 → 休み${p.n}回追加 (残休み${s.rest})`,type:'wrong'}},
@@ -1230,7 +1231,7 @@ const RULES = [
   {
     id:'rensei',name:'連答付き',
     params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:2}],
-    desc:(p)=>`正解で+1点＋連答権獲得。連答権保持中の正解は<strong>+2点</strong>。<br>等速：連答ボーナス後に連答権消失。<br>加速：連続正解中は常に+2点。<br>自分の誤答か相手の正解で連答権消失。<br>${p.m}点で勝ち抜け、${p.n}問誤答で失格。`,
+    desc:(p)=>`正解で+1点＋連答権獲得。連答権保持中の正解は<strong>+2点</strong>。<br>等速：連答ボーナス後に連答権消失。<br>加速：連続正解中は常に+2点。<br>誤答で連答権消失。<br><strong>${p.m}点</strong>で勝ち抜け、<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({score:0,correct:0,wrong:0,hasRight:false,mode:'even'}),
     modes:[{key:'even',label:'等速'},{key:'accel',label:'加速'}],
     onCorrect(s,p){
@@ -1262,7 +1263,7 @@ const RULES = [
   {
     id:'rengou',name:'連誤答付き',
     params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:3}],
-    desc:(p)=>`誤答でディスアド獲得。ディスアド保持中の誤答は<strong>2回分</strong>として扱う。<br>正解でディスアド消失。<br>${p.m}点で勝ち抜け、${p.n}問誤答で失格。`,
+    desc:(p)=>`誤答でディスアド獲得。ディスアド保持中の誤答は<strong>2回分</strong>として扱う。<br>正解でディスアド消失。<br><strong>${p.m}問の正解</strong>で勝ち抜け、<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({correct:0,wrong:0,disadv:false}),
     onCorrect(s,p){
       s.correct++;
@@ -1290,7 +1291,7 @@ const RULES = [
   {
     id:'combo',name:'m hits Combo',
     params:[{key:'m',label:'勝ち抜けポイント',def:6},{key:'n',label:'失格誤答数',def:2}],
-    desc:(p)=>`連続正解数＝コンボ数。1連答→+1、2連答→+2、3連答→+3…<br>誤答でコンボリセット。<br>${p.m}点で勝ち抜け、${p.n}問誤答で失格。`,
+    desc:(p)=>`連続正解数＝コンボ数。1連答→+1、2連答→+2、3連答→+3…<br>誤答でコンボリセット。<br><strong>${p.m}点</strong>で勝ち抜け、<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({score:0,correct:0,wrong:0,combo:0}),
     onCorrect(s,p){s.combo++;s.score+=s.combo;s.correct++;return{log:`正解 コンボ${s.combo} +${s.combo} → ${s.score}点`,combo:s.combo}},
     onWrong(s,p){s.wrong++;s.combo=0;return{log:`誤答 コンボリセット 誤答${s.wrong}/${p.n}`,type:'wrong'}},
