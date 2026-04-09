@@ -1107,7 +1107,7 @@ const RULES = [
   {
     id:'by',name:'by',
     params:[{key:'m',label:'基準値',def:5},{key:'n',label:'失格誤答数',def:3}],
-    desc:(p)=>`正解ポイント＝正解数、誤答ポイント＝${p.m}−誤答数。<br>(正解P × 誤答P) ≥ ${p.m}²（＝${p.m*p.m}）で勝ち抜け。<br>誤答ポイントが<strong>0以下</strong>、または<strong>${p.n}回の誤答</strong>で失格。`,
+    desc:(p)=>`正解ポイント＝正解数、誤答ポイント＝${p.m}−誤答数。<br>(正解P × 誤答P) ≥ ${p.m}²（＝${p.m*p.m}）で勝ち抜け。<br>誤答ポイントが<strong>${p.m}-${p.n}以下</strong>、または<strong>${p.n}回の誤答</strong>で失格。`,
     initState:()=>({correct:0,wrong:0}),
     onCorrect(s,p){s.correct++;const cp=s.correct,dp=p.m-s.wrong;return{log:`正解 正解P=${cp} 誤答P=${dp} 積=${cp*dp}`}},
     onWrong(s,p){s.wrong++;const cp=s.correct,dp=p.m-s.wrong;return{log:`誤答 正解P=${cp} 誤答P=${dp} 積=${cp*dp} 誤答${s.wrong}/${p.n}`,type:'wrong'}},
