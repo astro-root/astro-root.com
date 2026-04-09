@@ -1099,9 +1099,9 @@ const RULES = [
       return'ACTIVE';
     },
     getDisplay(s,p){return[
-      {val:s.score,lbl:`点数 /${p.m}`,cls:'accent'},
-      {val:s.correct,lbl:'正解',cls:'accent'},
-      {val:s.wrong,lbl:`誤答 /${p.n}`,cls:'danger'},
+      {val:s.score,lbl:`Score /${p.m}`,cls:'accent',rank:'primary'},
+      {val:s.correct,lbl:'Correct',cls:'',rank:'secondary'},
+      {val:s.wrong,lbl:`誤答 /${p.n}`,cls:'danger',rank:'secondary'},
     ]}
   },
   {
@@ -1186,17 +1186,24 @@ const RULES = [
   {
     id:'divide',name:'Divide',
     params:[{key:'m',label:'初期ポイント',def:10},{key:'n',label:'正解加点',def:10},{key:'x',label:'勝ち抜けポイント',def:100}],
-    desc:(p)=>`初期<strong>${p.m}点</strong>から開始。正解で<strong>+${p.n}点</strong>。<br>誤答ごとに「現在得点 ÷ 通算誤答数」で得点更新（小数切り上げ）。<br>得点が<strong>1未満</strong>で失格、<strong>${p.x}点</strong>で勝ち抜け。`,
+    desc:(p)=>`初期<strong>${p.m}点</strong>から開始。正解で<strong>+${p.n}点</strong>。<br>誤答ごとに「現在得点 ÷ 通算誤答数」で得点更新（<strong>小数切り上げ</strong>）。<br>ただし所持ポイントが<strong>1点のときのみ切り捨て</strong>（0点→失格）。<br>得点が<strong>0以下</strong>で失格、<strong>${p.x}点</strong>で勝ち抜け。`,
     initState:(p)=>({score:p.m,correct:0,wrong:0}),
     onCorrect(s,p){s.score+=p.n;s.correct++;return{log:`正解 +${p.n} → ${s.score}点`}},
-    onWrong(s,p){s.wrong++;const old=s.score;s.score=Math.ceil(s.score/s.wrong);return{log:`誤答 ${old}÷${s.wrong}=↑${s.score}点`,type:'wrong'}},
+    onWrong(s,p){
+      s.wrong++;
+      const old=s.score;
+      const raw=old/s.wrong;
+      s.score=(old===1)?Math.floor(raw):Math.ceil(raw);
+      const method=(old===1)?'↓':'↑';
+      return{log:`誤答 ${old}÷${s.wrong}=${method}${s.score}点`,type:'wrong'}
+    },
     getStatus(s,p){
       if(s.score>=p.x)return'WIN';
-      if(s.score<1)return'LOSE';
+      if(s.score<=0)return'LOSE';
       return'ACTIVE';
     },
     getDisplay(s,p){return[
-      {val:s.score,lbl:`Score /${p.x}`,cls:s.score<1?'danger':'accent',rank:'primary'},
+      {val:s.score,lbl:`Score /${p.x}`,cls:s.score<=0?'danger':'accent',rank:'primary'},
       {val:s.correct,lbl:'Correct',cls:'',rank:'secondary'},
       {val:s.wrong,lbl:'Wrong',cls:'danger',rank:'secondary'},
     ]}
@@ -1254,7 +1261,7 @@ const RULES = [
   },
   {
     id:'rengou',name:'連誤答付き',
-    params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:4}],
+    params:[{key:'m',label:'勝ち抜け正解数',def:5},{key:'n',label:'失格誤答数',def:3}],
     desc:(p)=>`誤答でディスアド獲得。ディスアド保持中の誤答は<strong>2回分</strong>として扱う。<br>正解でディスアド消失。<br>${p.m}正解で勝ち抜け、${p.n}誤答で失格。`,
     initState:()=>({correct:0,wrong:0,disadv:false}),
     onCorrect(s,p){
