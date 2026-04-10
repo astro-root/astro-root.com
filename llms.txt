@@ -1,0 +1,28 @@
+# るーとの研究室 — llms.txt
+
+> 高校生 Web エンジニア / 天文学研究者 / クイズプレイヤー「るーと」のポートフォリオサイト。
+
+## About
+
+- 運営者: るーと（astro_root）
+- 高校生 / 日本物理学会 学生会友
+- 専門: Web 開発、天文学・物理学、クイズ競技
+
+## Main pages
+
+- [TOP](https://astro-root.com/)
+- [About](https://astro-root.com/about)
+- [Contact](https://astro-root.com/contact)
+
+## Tools
+
+- [Q-Score](https://astro-root.com/q-score/) — ブラウザ上で動作する早押しクイズ得点表示ツール
+- [Q-Panel](https://astro-root.com/q-panel/) — パネルクイズ実施ツール
+- [Q-Mark](https://astro-root.com/q-mark/) — ペーパークイズ採点デジタル化ツール
+- [Q-Mark マニュアル](https://astro-root.com/q-mark/manual)
+
+## Social
+
+- X (personal): https://x.com/astro_root
+- X (Q-Score): https://x.com/root_qscore
+- X (AstroHigh): https://x.com/AstroHigh_Info
